@@ -88,6 +88,11 @@ proc ::export::person_suche_geaendert {args} {
     variable mitglieder_liste
     variable fenster
 
+    # Prüfen ob das Fenster noch existiert (wichtig bei Traces!)
+    if {$fenster eq "" || ![winfo exists $fenster]} {
+        return
+    }
+
     # Wenn Suchfeld leer, Listbox ausblenden
     if {$person_suche eq ""} {
         if {$person_listbox_visible} {
@@ -155,6 +160,25 @@ proc ::export::person_ausgewaehlt {args} {
 }
 
 # =============================================================================
+# Prozedur: schliesse_export_dialog
+# Entfernt alle Traces und schließt den Dialog
+# Diese Prozedur verhindert, dass Traces auf zerstörte Widgets zugreifen
+# =============================================================================
+proc ::export::schliesse_export_dialog {} {
+    variable fenster
+
+    # Alle Traces entfernen, um Fehler beim nächsten Öffnen zu vermeiden
+    trace remove variable ::export::von_datum write ::export::pruefe_export_button
+    trace remove variable ::export::bis_datum write ::export::pruefe_export_button
+    trace remove variable ::export::person_suche write ::export::person_suche_geaendert
+
+    # Fenster schließen
+    if {[winfo exists $fenster]} {
+        destroy $fenster
+    }
+}
+
+# =============================================================================
 # Prozedur: pruefe_export_button
 # Prüft, ob der Export-Button aktiviert werden kann
 # Aktivierung erfolgt wenn: "Alles" gewählt ODER "Zeitraum" mit beiden Datumsfeldern
@@ -164,6 +188,11 @@ proc ::export::pruefe_export_button {args} {
     variable zeitraum_modus
     variable von_datum
     variable bis_datum
+
+    # Prüfen ob das Fenster noch existiert (wichtig bei Traces!)
+    if {$fenster eq "" || ![winfo exists $fenster]} {
+        return
+    }
 
     set button_aktivieren 0
 
@@ -195,6 +224,11 @@ proc ::export::zeitraum_modus_geaendert {args} {
     variable fenster
     variable zeitraum_modus
 
+    # Prüfen ob das Fenster noch existiert (wichtig bei Traces!)
+    if {$fenster eq "" || ![winfo exists $fenster]} {
+        return
+    }
+
     if {$zeitraum_modus eq "alles"} {
         # Datumsfelder deaktivieren
         $fenster.zeitraum_frame.zeitraum_content.von_entry configure -state disabled
@@ -217,6 +251,11 @@ proc ::export::zeitraum_modus_geaendert {args} {
 proc ::export::person_modus_geaendert {args} {
     variable fenster
     variable person_modus
+
+    # Prüfen ob das Fenster noch existiert (wichtig bei Traces!)
+    if {$fenster eq "" || ![winfo exists $fenster]} {
+        return
+    }
 
     if {$person_modus eq "alle"} {
         # Suchfeld deaktivieren
@@ -508,8 +547,8 @@ proc ::export::exportiere_daten {} {
     tk_messageBox -parent $fenster -icon info -title "Export erfolgreich" \
         -message "Export erfolgreich!\n\n[llength $gefilterte_eintraege] Einträge wurden exportiert nach:\n$datei"
 
-    # Dialog schließen
-    destroy $fenster
+    # Dialog schließen (mit Trace-Cleanup)
+    schliesse_export_dialog
 }
 
 # =============================================================================
@@ -641,7 +680,7 @@ proc open_export_dialog {format} {
 
     # Button "Abbrechen"
     button $w.button_frame.cancel -text "Abbrechen" -bg "#FFB6C1" -width 15 \
-        -command "destroy $w"
+        -command ::export::schliesse_export_dialog
     pack $w.button_frame.cancel -side right -padx 5
 
     # =========================================================================

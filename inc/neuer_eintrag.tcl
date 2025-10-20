@@ -556,7 +556,8 @@ proc ::neuer_eintrag::speichern_und_anzeigen {} {
     zeige_eintrag_im_hauptfenster $eintrag
 
     # Fenster schließen (ohne Erfolgsmeldung)
-    destroy $fenster
+    # Traces entfernen und Fenster schließen
+    schliesse_fenster
 }
 
 # =============================================================================
@@ -917,10 +918,43 @@ proc ::neuer_eintrag::zeige_eintrag_im_hauptfenster {eintrag} {
 }
 
 # =============================================================================
+# Prozedur: entferne_traces
+# Entfernt alle Traces von den Variablen des Neuer-Eintrag-Fensters
+# =============================================================================
+proc ::neuer_eintrag::entferne_traces {} {
+    # Alle Traces entfernen (falls vorhanden)
+    # trace remove wird keinen Fehler werfen, wenn die Trace nicht existiert
+    catch {trace remove variable ::neuer_eintrag::datum write ::neuer_eintrag::pruefe_speichern_button}
+    catch {trace remove variable ::neuer_eintrag::nachname write ::neuer_eintrag::nachname_geaendert}
+    catch {trace remove variable ::neuer_eintrag::nachname write ::neuer_eintrag::pruefe_speichern_button}
+    catch {trace remove variable ::neuer_eintrag::vorname write ::neuer_eintrag::pruefe_speichern_button}
+    catch {trace remove variable ::neuer_eintrag::kaliber write ::neuer_eintrag::pruefe_speichern_button}
+}
+
+# =============================================================================
+# Prozedur: schliesse_fenster
+# Schließt das Neuer-Eintrag-Fenster und räumt auf (Traces entfernen)
+# =============================================================================
+proc ::neuer_eintrag::schliesse_fenster {} {
+    variable fenster
+
+    # Traces entfernen
+    entferne_traces
+
+    # Fenster schließen
+    if {[winfo exists $fenster]} {
+        destroy $fenster
+    }
+}
+
+# =============================================================================
 # Prozedur: open_neuer_eintrag_fenster
 # Öffnet das Fenster für einen neuen Eintrag
 # =============================================================================
 proc open_neuer_eintrag_fenster {} {
+    # Alte Traces entfernen (falls vorhanden von vorherigem Fenster)
+    ::neuer_eintrag::entferne_traces
+
     # Namespace-Variablen zurücksetzen
     # Datum mit aktuellem Datum vorausfüllen
     set ::neuer_eintrag::datum [clock format [clock seconds] -format "%d.%m.%Y"]
@@ -1127,7 +1161,7 @@ proc open_neuer_eintrag_fenster {} {
     pack $w.button_frame.save -side left -padx 5
 
     button $w.button_frame.cancel -text "Abbrechen" -bg "#FFB6C1" -width 15 \
-        -command "destroy $w"
+        -command ::neuer_eintrag::schliesse_fenster
     pack $w.button_frame.cancel -side right -padx 5
 
     # =========================================================================

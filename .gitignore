@@ -1,0 +1,5 @@
+CLAUDE.md
+backups/
+daten/*.json
+daten/archiv/*.json
+*.backup

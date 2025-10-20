@@ -1,0 +1,32 @@
+{
+  "kaliber-preise": [
+    {
+      "kaliber": ".22 LR",
+      "preis": "6,00"
+    },
+    {
+      "kaliber": ".38 Special",
+      "preis": "30,00"
+    },
+    {
+      "kaliber": ".44 Magnum",
+      "preis": "40,00"
+    },
+    {
+      "kaliber": ".45 ACP",
+      "preis": "35,00"
+    },
+    {
+      "kaliber": ".357 Magnum",
+      "preis": "34,00"
+    },
+    {
+      "kaliber": "4,5mm Diabolo",
+      "preis": "5,00"
+    },
+    {
+      "kaliber": "9mm Luger",
+      "preis": "20,00"
+    }
+  ]
+}

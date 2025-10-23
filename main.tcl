@@ -51,6 +51,9 @@ source [file join [file dirname [info script]] inc eintrag_loeschen.tcl]
 # Munitions-Preise-Dialog - Dialog zur Verwaltung von Kalibern und Preisen
 source [file join [file dirname [info script]] inc munitions_preise_dialog.tcl]
 
+# Standnutzungs-Preise-Dialog - Dialog zur Verwaltung von Standnutzungskategorien und Preisen
+source [file join [file dirname [info script]] inc standnutzung_preise_dialog.tcl]
+
 # Über-Dialog - Zeigt Informationen über das Programm
 source [file join [file dirname [info script]] inc ueber_dialog.tcl]
 
@@ -108,6 +111,7 @@ menu .menubar.file.export -tearoff 0
 # Menü "Einstellungen" erstellen
 menu .menubar.settings -tearoff 0
 .menubar.settings add command -label "Preise Munition..." -command {open_munitions_preise_dialog}
+.menubar.settings add command -label "Preise Standnutzung..." -command {open_standnutzung_preise_dialog}
 .menubar add cascade -label "Einstellungen" -menu .menubar.settings
 
 # Menü "Hilfe" erstellen

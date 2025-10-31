@@ -14,6 +14,7 @@ namespace eval ::neuer_eintrag {
     variable waffentyp ""
     variable kaliber ""
     variable startgeld "0,00"
+    variable anzahl "1"
     variable munition "Keine"
     variable munitionspreis "0,00"
 
@@ -496,6 +497,7 @@ proc ::neuer_eintrag::speichern_und_anzeigen {} {
     variable waffentyp
     variable kaliber
     variable startgeld
+    variable anzahl
     variable munition
     variable munitionspreis
     variable fenster
@@ -523,15 +525,12 @@ proc ::neuer_eintrag::speichern_und_anzeigen {} {
     # Pfad zur Jahres-JSON-Datei bestimmen
     # Wenn das Jahr des Eintrags kleiner als das aktuelle Jahr ist, ins Archiv
     if {$jahr < $aktuelles_jahr} {
-        # Archiv-Verzeichnis erstellen falls nicht vorhanden
-        set archiv_dir [file join $script_dir daten archiv]
-        if {![file exists $archiv_dir]} {
-            file mkdir $archiv_dir
-        }
+        # Archiv-Verzeichnis (wird vom Pfad-Management bereits erstellt)
+        set archiv_dir [::pfad::get_archiv_directory]
         set jahres_json [file join $archiv_dir "${jahr}.json"]
     } else {
         # Aktuelles Jahr - in daten/ speichern
-        set jahres_json [file join $script_dir daten "${jahr}.json"]
+        set jahres_json [::pfad::get_jahres_json_path $jahr]
     }
 
     # Eintrag als Dictionary erstellen
@@ -545,6 +544,7 @@ proc ::neuer_eintrag::speichern_und_anzeigen {} {
         "waffentyp" $waffentyp \
         "kaliber" $kaliber \
         "startgeld" $startgeld \
+        "anzahl" $anzahl \
         "munition" $munition \
         "munitionspreis" $munitionspreis \
     ]
@@ -664,6 +664,9 @@ proc ::neuer_eintrag::speichere_eintrag_json {dateiPfad eintrag} {
             if {[regexp {"startgeld":\s*"([^"]*)"} $line -> startgeld]} {
                 dict set eintrag_data startgeld $startgeld
             }
+            if {[regexp {"anzahl":\s*"([^"]*)"} $line -> anzahl]} {
+                dict set eintrag_data anzahl $anzahl
+            }
             if {[regexp {"munition":\s*"([^"]*)"} $line -> munition]} {
                 dict set eintrag_data munition $munition
             }
@@ -671,7 +674,13 @@ proc ::neuer_eintrag::speichere_eintrag_json {dateiPfad eintrag} {
                 dict set eintrag_data munitionspreis $munitionspreis
 
                 # Vollständiger Eintrag gefunden - zur Liste hinzufügen
-                if {[dict size $eintrag_data] == 11} {
+                # Unterstützt sowohl alte Einträge (11 Felder) als auch neue (12 Felder mit Anzahl)
+                set size [dict size $eintrag_data]
+                if {$size == 11 || $size == 12} {
+                    # Für alte Einträge ohne Anzahl: Standardwert 1 setzen
+                    if {$size == 11 && ![dict exists $eintrag_data anzahl]} {
+                        dict set eintrag_data anzahl "1"
+                    }
                     lappend eintraege $eintrag_data
                     set eintrag_data [dict create]
                 }
@@ -705,6 +714,7 @@ proc ::neuer_eintrag::speichere_eintrag_json {dateiPfad eintrag} {
         lappend lines "      \"waffentyp\": \"[dict get $entry waffentyp]\","
         lappend lines "      \"kaliber\": \"[dict get $entry kaliber]\","
         lappend lines "      \"startgeld\": \"[dict get $entry startgeld]\","
+        lappend lines "      \"anzahl\": \"[dict get $entry anzahl]\","
         lappend lines "      \"munition\": \"[dict get $entry munition]\","
         lappend lines "      \"munitionspreis\": \"[dict get $entry munitionspreis]\""
 
@@ -813,6 +823,11 @@ proc ::neuer_eintrag::lade_eintraege_aus_datei {datei_pfad} {
                 dict set eintrag_data startgeld $startgeld
             }
         }
+        if {[string match "*\"anzahl\":*" $line]} {
+            if {[regexp {"anzahl":\s*"([^"]*)"} $line -> anzahl]} {
+                dict set eintrag_data anzahl $anzahl
+            }
+        }
         if {[string match "*\"munition\":*" $line]} {
             if {[regexp {"munition":\s*"([^"]*)"} $line -> munition]} {
                 dict set eintrag_data munition $munition
@@ -823,7 +838,13 @@ proc ::neuer_eintrag::lade_eintraege_aus_datei {datei_pfad} {
                 dict set eintrag_data munitionspreis $munitionspreis
 
                 # Alle Felder gesammelt - Eintrag zur Liste hinzufügen
-                if {[dict size $eintrag_data] == 11} {
+                # Unterstützt sowohl alte Einträge (11 Felder) als auch neue (12 Felder mit Anzahl)
+                set size [dict size $eintrag_data]
+                if {$size == 11 || $size == 12} {
+                    # Für alte Einträge ohne Anzahl: Standardwert 1 setzen
+                    if {$size == 11 && ![dict exists $eintrag_data anzahl]} {
+                        dict set eintrag_data anzahl "1"
+                    }
                     lappend eintraege $eintrag_data
                     # Dictionary für nächsten Eintrag zurücksetzen
                     set eintrag_data [dict create]
@@ -850,11 +871,9 @@ proc lade_existierende_eintraege {} {
     # Liste für alle Einträge aus allen Dateien
     set alle_eintraege [list]
 
-    # Daten-Verzeichnis
-    set daten_dir [file join $script_dir daten]
-
-    # Archiv-Verzeichnis
-    set archiv_dir [file join $script_dir daten archiv]
+    # Daten-Verzeichnis und Archiv-Verzeichnis vom Pfad-Management abrufen
+    set daten_dir [::pfad::get_daten_directory]
+    set archiv_dir [::pfad::get_archiv_directory]
 
     # Alle JSON-Dateien im daten-Verzeichnis finden und laden
     if {[file exists $daten_dir]} {
@@ -879,6 +898,22 @@ proc lade_existierende_eintraege {} {
 
     # Sortierte Einträge ins Treeview einfügen
     foreach eintrag $alle_eintraege {
+        # Munitionspreis mit Anzahl multiplizieren
+        set munitionspreis [dict get $eintrag munitionspreis]
+        set anzahl [dict get $eintrag anzahl]
+
+        # Preis berechnen: Anzahl × Munitionspreis
+        # Komma durch Punkt ersetzen für Berechnung
+        set preis_numerisch [string map {"," "."} $munitionspreis]
+        set anzahl_numerisch [string map {"," "."} $anzahl]
+
+        # Berechnung durchführen
+        set gesamt_preis [expr {$anzahl_numerisch * $preis_numerisch}]
+
+        # Zurück zu deutschem Format (mit Komma)
+        set gesamt_preis_str [format "%.2f" $gesamt_preis]
+        set gesamt_preis_str [string map {"." ","} $gesamt_preis_str]
+
         $treeview insert {} end -values [list \
             [dict get $eintrag datum] \
             [dict get $eintrag nachname] \
@@ -889,7 +924,7 @@ proc lade_existierende_eintraege {} {
             [dict get $eintrag kaliber] \
             [dict get $eintrag startgeld] \
             [dict get $eintrag munition] \
-            [dict get $eintrag munitionspreis]]
+            $gesamt_preis_str]
     }
 }
 
@@ -965,6 +1000,7 @@ proc open_neuer_eintrag_fenster {} {
     set ::neuer_eintrag::waffentyp ""
     set ::neuer_eintrag::kaliber ""
     set ::neuer_eintrag::startgeld "0,00"
+    set ::neuer_eintrag::anzahl "1"
     set ::neuer_eintrag::munition "Keine"
     set ::neuer_eintrag::munitionspreis "0,00"
 
@@ -1112,17 +1148,19 @@ proc open_neuer_eintrag_fenster {} {
     label $w.startgeld_frame.label -text "Startgeld (€):" -width 20 -anchor w
     pack $w.startgeld_frame.label -side left
 
-    entry $w.startgeld_frame.entry -textvariable ::neuer_eintrag::startgeld -width 40 -state readonly
+    # Startgeld-Eingabefeld (editierbar für manuelle Anpassungen in Sonderfällen)
+    entry $w.startgeld_frame.entry -textvariable ::neuer_eintrag::startgeld -width 40
     pack $w.startgeld_frame.entry -side left -fill x -expand 1
 
     # =========================================================================
-    # Munitions-Auswahl
+    # Munition und Anzahl in einer Zeile
     # =========================================================================
-    frame $w.munition_frame
-    pack $w.munition_frame -in $w.main -fill x -pady 5
+    frame $w.munition_anzahl_frame
+    pack $w.munition_anzahl_frame -in $w.main -fill x -pady 5
 
-    label $w.munition_frame.label -text "Munition:" -width 20 -anchor w
-    pack $w.munition_frame.label -side left
+    # Munitions-Auswahl (links)
+    label $w.munition_anzahl_frame.munition_label -text "Munition:" -width 20 -anchor w
+    pack $w.munition_anzahl_frame.munition_label -side left
 
     # Munitions-Optionen aus Kaliber-Preisen erstellen
     set munitions_optionen [list "Keine"]
@@ -1130,12 +1168,20 @@ proc open_neuer_eintrag_fenster {} {
         lappend munitions_optionen $kaliber
     }
 
-    ttk::combobox $w.munition_frame.combo -textvariable ::neuer_eintrag::munition \
-        -values $munitions_optionen -state readonly -width 37
-    pack $w.munition_frame.combo -side left -fill x -expand 1
+    ttk::combobox $w.munition_anzahl_frame.munition_combo -textvariable ::neuer_eintrag::munition \
+        -values $munitions_optionen -state readonly -width 15
+    pack $w.munition_anzahl_frame.munition_combo -side left -padx 5
 
     # Binding für Munitionsänderung
-    bind $w.munition_frame.combo <<ComboboxSelected>> ::neuer_eintrag::munition_geaendert
+    bind $w.munition_anzahl_frame.munition_combo <<ComboboxSelected>> ::neuer_eintrag::munition_geaendert
+
+    # Anzahl-Eingabefeld (rechts)
+    label $w.munition_anzahl_frame.anzahl_label -text "Anzahl:" -width 10 -anchor w
+    pack $w.munition_anzahl_frame.anzahl_label -side left -padx "20 0"
+
+    # Anzahl-Eingabefeld für Munition (numerischer Wert)
+    entry $w.munition_anzahl_frame.anzahl_entry -textvariable ::neuer_eintrag::anzahl -width 10
+    pack $w.munition_anzahl_frame.anzahl_entry -side left -padx 5
 
     # =========================================================================
     # Munitionspreis-Anzeige (readonly)

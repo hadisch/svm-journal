@@ -278,11 +278,9 @@ proc ::export::lade_alle_eintraege {} {
     # Liste für alle Einträge
     set alle_eintraege [list]
 
-    # Daten-Verzeichnis
-    set daten_dir [file join $script_dir daten]
-
-    # Archiv-Verzeichnis
-    set archiv_dir [file join $script_dir daten archiv]
+    # Daten-Verzeichnis und Archiv-Verzeichnis vom Pfad-Management abrufen
+    set daten_dir [::pfad::get_daten_directory]
+    set archiv_dir [::pfad::get_archiv_directory]
 
     # Alle JSON-Dateien im daten-Verzeichnis laden
     if {[file exists $daten_dir]} {

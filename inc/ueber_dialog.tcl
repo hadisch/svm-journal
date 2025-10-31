@@ -33,8 +33,8 @@ proc open_ueber_dialog {} {
     # Logo-Anzeige (oben, mittig)
     # ==========================================================================
 
-    # Pfad zum Logo
-    set logo_pfad [file join $script_dir resources Logo.gif]
+    # Pfad zum Logo vom Pfad-Management abrufen
+    set logo_pfad [::pfad::get_resources_path "Logo.gif"]
 
     # Frame für Logo-Bereich
     frame $w.main.logo_frame -bg white

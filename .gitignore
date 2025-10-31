@@ -1,5 +1,7 @@
 CLAUDE.md
+TODO.md
 backups/
 daten/*.json
 daten/archiv/*.json
+*.bak
 *.backup

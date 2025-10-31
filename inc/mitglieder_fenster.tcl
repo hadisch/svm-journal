@@ -594,12 +594,12 @@ proc loesche_mitglied {} {
         return
     }
 
-    # Zugriff auf die globale Variable aus main.tcl
+    # Zugriff auf die globale Variable aus svm-journal.tcl
     global mitglieder_json
     global script_dir
 
     # Backup-Verzeichnis erstellen falls nicht vorhanden
-    set backup_dir [file join $script_dir backups]
+    set backup_dir [::pfad::get_backups_directory]
     if {![file exists $backup_dir]} {
         file mkdir $backup_dir
     }
@@ -859,7 +859,7 @@ proc open_mitglieder_fenster {} {
     # mitglieder.json einlesen und in globale Liste laden
     # =============================================================================
 
-    # Zugriff auf die globale Variable aus main.tcl
+    # Zugriff auf die globale Variable aus svm-journal.tcl
     global mitglieder_json
 
     # Globale Mitgliederliste leeren (für erneutes Öffnen des Fensters)

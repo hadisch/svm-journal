@@ -3,27 +3,38 @@
 # Hauptprogramm für svm-journal
 # Erstellt ein Fenster mit minimaler Größe von 1600x900 Pixeln
 
+# System-Encoding auf UTF-8 setzen (wichtig für Windows-Kompatibilität)
+# Verhindert Probleme mit Umlauten und Sonderzeichen
+encoding system utf-8
+
 # Tcl/Tk-Paket laden
 package require Tk
 
 # =============================================================================
+# Pfad-Management-System laden (MUSS als erstes geladen werden)
+# =============================================================================
+# Verwaltet plattformübergreifend die Verzeichnisstruktur und initialisiert
+# beim ersten Start automatisch die User-Daten-Verzeichnisse
+source [file join [file dirname [info script]] inc pfad_management.tcl]
+
+# =============================================================================
 # JSON-Dateipfade - Zentrale Deklaration aller JSON-Dateien im Projekt
 # =============================================================================
-
-# Basis-Pfad des Skript-Verzeichnisses ermitteln
-set script_dir [file dirname [info script]]
+# Dateien werden jetzt im User-Daten-Verzeichnis gespeichert:
+# - Linux/Mac: ~/.config/svm/
+# - Windows: %APPDATA%\SVM\
 
 # Mitgliederdaten: Informationen über alle Vereinsmitglieder
-set mitglieder_json [file join $script_dir daten mitglieder.json]
+set mitglieder_json [::pfad::get_json_path "daten" "mitglieder.json"]
 
 # Kaliber-Definitionen: Liste aller verfügbaren Kaliber
-set kaliber_json [file join $script_dir preferences kaliber.json]
+set kaliber_json [::pfad::get_json_path "preferences" "kaliber.json"]
 
 # Kaliber-Preise: Preisliste für verschiedene Kaliber
-set kaliber_preise_json [file join $script_dir preferences kaliber-preise.json]
+set kaliber_preise_json [::pfad::get_json_path "preferences" "kaliber-preise.json"]
 
 # Stand-Nutzung: Protokollierung der Standnutzung
-set stand_nutzung_json [file join $script_dir preferences stand-nutzung.json]
+set stand_nutzung_json [::pfad::get_json_path "preferences" "stand-nutzung.json"]
 
 # =============================================================================
 
@@ -114,11 +125,10 @@ menu .menubar.settings -tearoff 0
 .menubar.settings add command -label "Preise Standnutzung..." -command {open_standnutzung_preise_dialog}
 .menubar add cascade -label "Einstellungen" -menu .menubar.settings
 
-# Menü "Hilfe" erstellen
-menu .menubar.help -tearoff 0
-.menubar.help add command -label "Dokumentation" -command {puts "Dokumentation"}
-.menubar.help add command -label "Über..." -command {open_ueber_dialog}
-.menubar add cascade -label "Hilfe" -menu .menubar.help
+# Menü "Info" erstellen
+menu .menubar.info -tearoff 0
+.menubar.info add command -label "Über..." -command {open_ueber_dialog}
+.menubar add cascade -label "Info" -menu .menubar.info
 
 # Menüleiste dem Hauptfenster zuweisen
 . configure -menu .menubar

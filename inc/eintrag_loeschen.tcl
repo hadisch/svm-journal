@@ -87,11 +87,11 @@ proc loesche_ausgewaehlten_eintrag {} {
     # Pfad zur Jahres-JSON-Datei bestimmen
     if {$jahr < $aktuelles_jahr} {
         # Archiv-Datei
-        set archiv_dir [file join $script_dir daten archiv]
+        set archiv_dir [::pfad::get_archiv_directory]
         set jahres_json [file join $archiv_dir "${jahr}.json"]
     } else {
         # Aktuelle Datei
-        set jahres_json [file join $script_dir daten "${jahr}.json"]
+        set jahres_json [::pfad::get_jahres_json_path $jahr]
     }
 
     # Prüfen ob die Datei existiert
@@ -102,7 +102,7 @@ proc loesche_ausgewaehlten_eintrag {} {
     }
 
     # Backup erstellen
-    set backup_dir [file join $script_dir backups]
+    set backup_dir [::pfad::get_backups_directory]
     if {![file exists $backup_dir]} {
         file mkdir $backup_dir
     }

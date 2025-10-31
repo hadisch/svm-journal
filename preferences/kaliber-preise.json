@@ -10,7 +10,7 @@
     },
     {
       "kaliber": ".44 Magnum",
-      "preis": "40,00"
+      "preis": "55,00"
     },
     {
       "kaliber": ".45 ACP",
@@ -22,7 +22,11 @@
     },
     {
       "kaliber": "4,5mm Diabolo",
-      "preis": "5,00"
+      "preis": "9,00"
+    },
+    {
+      "kaliber": "6,5x55 (Preis pro Schuss)",
+      "preis": "2,00"
     },
     {
       "kaliber": "9mm Luger",

@@ -114,6 +114,10 @@ proc loesche_ausgewaehlten_eintrag {} {
     # JSON-Datei als Backup kopieren
     file copy -force $jahres_json $backup_file
 
+    # Alte Backups bereinigen (maximal 10 Backups pro Datei behalten)
+    set backup_pattern "[file tail $jahres_json].*.bak"
+    ::pfad::cleanup_old_backups $backup_dir $backup_pattern 10
+
     # Alle Einträge aus der Datei laden
     set alle_eintraege [::neuer_eintrag::lade_eintraege_aus_datei $jahres_json]
 

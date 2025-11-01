@@ -202,8 +202,107 @@ proc ::pfad::copy_file_if_exists {source dest} {
 }
 
 # =============================================================================
+# Funktion: rotate_log_file
+# Rotiert Logdatei wenn sie größer als 1 MB ist
+# Behält maximal 3 alte Logdateien (.1, .2, .3)
+# Parameter:
+#   log_path - Pfad zur Logdatei
+# =============================================================================
+proc ::pfad::rotate_log_file {log_path} {
+    # Prüfen ob Logdatei existiert
+    if {![file exists $log_path]} {
+        return
+    }
+
+    # Dateigröße prüfen (1 MB = 1048576 Bytes)
+    set file_size [file size $log_path]
+    if {$file_size < 1048576} {
+        # Datei ist kleiner als 1 MB - keine Rotation nötig
+        return
+    }
+
+    # Log-Rotation durchführen
+    # Zuerst alte Logs verschieben: .2 -> .3, .1 -> .2
+    # Dann aktuelles Log -> .1
+
+    # .3 löschen falls vorhanden (ältestes Log)
+    set log_3 "${log_path}.3"
+    if {[file exists $log_3]} {
+        catch {file delete $log_3}
+    }
+
+    # .2 -> .3
+    set log_2 "${log_path}.2"
+    if {[file exists $log_2]} {
+        catch {file rename -force $log_2 $log_3}
+    }
+
+    # .1 -> .2
+    set log_1 "${log_path}.1"
+    if {[file exists $log_1]} {
+        catch {file rename -force $log_1 $log_2}
+    }
+
+    # Aktuelles Log -> .1
+    catch {file rename -force $log_path $log_1}
+
+    # Neue leere Logdatei wird beim nächsten Log-Eintrag automatisch erstellt
+}
+
+# =============================================================================
+# Funktion: cleanup_old_backups
+# Bereinigt alte Backup-Dateien im Backup-Verzeichnis
+# Behält maximal die letzten 10 Backups pro Datei-Typ
+# Parameter:
+#   backup_dir - Pfad zum Backup-Verzeichnis
+#   file_pattern - Datei-Pattern (z.B. "2025.json.*.bak")
+#   max_backups - Maximale Anzahl zu behaltender Backups (Standard: 10)
+# =============================================================================
+proc ::pfad::cleanup_old_backups {backup_dir file_pattern {max_backups 10}} {
+    # Prüfen ob Backup-Verzeichnis existiert
+    if {![file exists $backup_dir]} {
+        return
+    }
+
+    # Alle Backup-Dateien finden, die dem Pattern entsprechen
+    set backup_files [lsort [glob -nocomplain -directory $backup_dir $file_pattern]]
+
+    # Anzahl der gefundenen Backups
+    set backup_count [llength $backup_files]
+
+    # Wenn weniger oder gleich max_backups vorhanden, nichts tun
+    if {$backup_count <= $max_backups} {
+        return
+    }
+
+    # Backup-Dateien nach Änderungsdatum sortieren (älteste zuerst)
+    # Hilfsprozedur zum Vergleichen der Datei-Änderungszeiten
+    set sorted_backups [lsort -command [list apply {{a b} {
+        # Änderungszeit der Dateien vergleichen
+        set mtime_a [file mtime $a]
+        set mtime_b [file mtime $b]
+        return [expr {$mtime_a - $mtime_b}]
+    }}] $backup_files]
+
+    # Anzahl zu löschender Dateien berechnen
+    set delete_count [expr {$backup_count - $max_backups}]
+
+    # Älteste Dateien löschen
+    for {set i 0} {$i < $delete_count} {incr i} {
+        set file_to_delete [lindex $sorted_backups $i]
+        if {[catch {
+            file delete $file_to_delete
+            puts "Altes Backup gelöscht: [file tail $file_to_delete]"
+        } err]} {
+            puts "FEHLER beim Löschen von Backup $file_to_delete: $err"
+        }
+    }
+}
+
+# =============================================================================
 # Funktion: log
 # Schreibt eine Log-Nachricht in die Logdatei und gibt sie auf stdout aus
+# Prüft vor dem Schreiben, ob Log-Rotation nötig ist
 # Parameter:
 #   message - Log-Nachricht
 # =============================================================================
@@ -219,6 +318,9 @@ proc ::pfad::log {message} {
 
     # In Logdatei schreiben (wenn initialisiert)
     if {$log_file ne ""} {
+        # Log-Rotation durchführen falls nötig (vor dem Schreiben)
+        ::pfad::rotate_log_file $log_file
+
         if {[catch {
             set fh [open $log_file a]
             puts $fh $log_entry

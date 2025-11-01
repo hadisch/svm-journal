@@ -5,3 +5,4 @@ daten/*.json
 daten/archiv/*.json
 *.bak
 *.backup
+.directory

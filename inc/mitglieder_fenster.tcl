@@ -15,58 +15,33 @@ set ::markiertes_mitglied -1
 # Speichert für jede angezeigte Zeile den ursprünglichen Index in mitglieder_liste
 set ::angezeigte_indices {}
 
-# Prozedur zum Anzeigen aller Mitglieder im Textwidget
-# Liest die globale Mitgliederliste und zeigt sie formatiert an
+# Prozedur zum Anzeigen aller Mitglieder im Treeview
+# Liest die globale Mitgliederliste und zeigt sie tabellarisch an
 proc zeige_alle_mitglieder {} {
     # Markierung zurücksetzen
     set ::markiertes_mitglied -1
 
-    # Textwidget freischaltbar machen
-    .mitglieder.main.text configure -state normal
+    # Alle vorhandenen Items im Treeview löschen
+    .mitglieder.main.tree delete [.mitglieder.main.tree children {}]
 
-    # Aktuellen Inhalt löschen
-    .mitglieder.main.text delete 1.0 end
-
-    # Kopfzeile für die Mitgliederliste erstellen
-    set header "NACHNAME              VORNAME              STRASSE                      PLZ    ORT               FESTNETZ          MOBILFUNK         EMAIL                          GEBURTSDATUM  EINTRITTSDATUM\n"
-    set separator [string repeat "=" 220]
-    append separator "\n"
-
-    # Header ins Textwidget einfügen
-    .mitglieder.main.text insert end $header
-    .mitglieder.main.text insert end $separator
-
-    # Zähler für Mitglieder und Index-Liste zurücksetzen
-    set mitglieder_count 0
+    # Index-Liste zurücksetzen
     set ::angezeigte_indices {}
 
-    # Alle Mitglieder durchlaufen und anzeigen
+    # Alle Mitglieder durchlaufen und ins Treeview einfügen
     set original_index 0
     foreach mitglied $::mitglieder_liste {
         # Einzelne Felder aus der Liste extrahieren
         lassign $mitglied nachname vorname strasse plz ort festnetz mobilfunk email geburtsdatum eintrittsdatum funktion
 
-        # Formatierte Zeile erstellen
-        set line [format "%-20s  %-19s  %-27s  %-5s  %-16s  %-16s  %-16s  %-29s  %-12s  %-14s\n" \
-            $nachname $vorname $strasse $plz $ort $festnetz $mobilfunk $email $geburtsdatum $eintrittsdatum]
-
-        # Zeile ins Textwidget einfügen
-        .mitglieder.main.text insert end $line
+        # Zeile ins Treeview einfügen
+        .mitglieder.main.tree insert {} end -values [list $nachname $vorname $strasse $plz $ort $festnetz $mobilfunk $email $geburtsdatum $eintrittsdatum]
 
         # Original-Index zur Zuordnungsliste hinzufügen
         lappend ::angezeigte_indices $original_index
 
         # Zähler erhöhen
-        incr mitglieder_count
         incr original_index
     }
-
-    # Fußzeile mit Anzahl der Mitglieder
-    set footer "\n[string repeat "=" 220]\nGesamt: $mitglieder_count Mitglieder"
-    .mitglieder.main.text insert end $footer
-
-    # Textwidget wieder schreibgeschützt setzen
-    .mitglieder.main.text configure -state disabled
 }
 
 # Prozedur zum Filtern der Mitglieder nach Suchbegriff
@@ -75,24 +50,14 @@ proc filtere_mitglieder {suchbegriff} {
     # Markierung zurücksetzen (Löschen ist nur bei vollständiger Liste erlaubt)
     set ::markiertes_mitglied -1
 
-    # Textwidget freischaltbar machen
-    .mitglieder.main.text configure -state normal
+    # Alle vorhandenen Items im Treeview löschen
+    .mitglieder.main.tree delete [.mitglieder.main.tree children {}]
 
-    # Aktuellen Inhalt löschen
-    .mitglieder.main.text delete 1.0 end
-
-    # Kopfzeile für die Mitgliederliste erstellen
-    set header "NACHNAME              VORNAME              STRASSE                      PLZ    ORT               FESTNETZ          MOBILFUNK         EMAIL                          GEBURTSDATUM  EINTRITTSDATUM\n"
-    set separator [string repeat "=" 220]
-    append separator "\n"
-
-    # Header ins Textwidget einfügen
-    .mitglieder.main.text insert end $header
-    .mitglieder.main.text insert end $separator
-
-    # Zähler für gefundene Mitglieder und Index-Liste zurücksetzen
-    set gefunden_count 0
+    # Index-Liste zurücksetzen
     set ::angezeigte_indices {}
+
+    # Zähler für gefundene Mitglieder
+    set gefunden_count 0
 
     # Suchbegriff in Kleinbuchstaben für case-insensitive Suche
     set suchbegriff_lower [string tolower $suchbegriff]
@@ -109,12 +74,8 @@ proc filtere_mitglieder {suchbegriff} {
 
         # Prüfen, ob Suchbegriff im Volltext enthalten ist
         if {[string first $suchbegriff_lower $volltext_lower] != -1} {
-            # Formatierte Zeile erstellen
-            set line [format "%-20s  %-19s  %-27s  %-5s  %-16s  %-16s  %-16s  %-29s  %-12s  %-14s\n" \
-                $nachname $vorname $strasse $plz $ort $festnetz $mobilfunk $email $geburtsdatum $eintrittsdatum]
-
-            # Zeile ins Textwidget einfügen
-            .mitglieder.main.text insert end $line
+            # Zeile ins Treeview einfügen
+            .mitglieder.main.tree insert {} end -values [list $nachname $vorname $strasse $plz $ort $festnetz $mobilfunk $email $geburtsdatum $eintrittsdatum]
 
             # Original-Index zur Zuordnungsliste hinzufügen
             lappend ::angezeigte_indices $original_index
@@ -126,18 +87,6 @@ proc filtere_mitglieder {suchbegriff} {
         # Original-Index immer erhöhen (für alle Mitglieder in der Hauptliste)
         incr original_index
     }
-
-    # Fußzeile mit Anzahl der gefundenen Mitglieder
-    set footer "\n[string repeat "=" 220]\n"
-    if {$gefunden_count > 0} {
-        append footer "Gefunden: $gefunden_count Mitglieder (Suchbegriff: \"$suchbegriff\")"
-    } else {
-        append footer "Keine Mitglieder gefunden für Suchbegriff: \"$suchbegriff\""
-    }
-    .mitglieder.main.text insert end $footer
-
-    # Textwidget wieder schreibgeschützt setzen
-    .mitglieder.main.text configure -state disabled
 
     # Rückgabewert: Anzahl der gefundenen Mitglieder
     return $gefunden_count
@@ -190,77 +139,77 @@ proc oeffne_hinzufuegen_dialog {} {
 
     # Nachname (Pflichtfeld)
     label .mitglieder.hinzufuegen.content.nachname_label -text "Nachname:*" -anchor w
-    entry .mitglieder.hinzufuegen.content.nachname_entry -font {Arial 11}
+    entry .mitglieder.hinzufuegen.content.nachname_entry -font {TkDefaultFont 11}
     grid .mitglieder.hinzufuegen.content.nachname_label -row $row -column 0 -sticky w -pady 5
     grid .mitglieder.hinzufuegen.content.nachname_entry -row $row -column 1 -sticky ew -pady 5
     incr row
 
     # Vorname (Pflichtfeld)
     label .mitglieder.hinzufuegen.content.vorname_label -text "Vorname:*" -anchor w
-    entry .mitglieder.hinzufuegen.content.vorname_entry -font {Arial 11}
+    entry .mitglieder.hinzufuegen.content.vorname_entry -font {TkDefaultFont 11}
     grid .mitglieder.hinzufuegen.content.vorname_label -row $row -column 0 -sticky w -pady 5
     grid .mitglieder.hinzufuegen.content.vorname_entry -row $row -column 1 -sticky ew -pady 5
     incr row
 
     # Geburtsdatum
     label .mitglieder.hinzufuegen.content.geburtsdatum_label -text "Geburtsdatum:" -anchor w
-    entry .mitglieder.hinzufuegen.content.geburtsdatum_entry -font {Arial 11}
+    entry .mitglieder.hinzufuegen.content.geburtsdatum_entry -font {TkDefaultFont 11}
     grid .mitglieder.hinzufuegen.content.geburtsdatum_label -row $row -column 0 -sticky w -pady 5
     grid .mitglieder.hinzufuegen.content.geburtsdatum_entry -row $row -column 1 -sticky ew -pady 5
     incr row
 
     # Straße
     label .mitglieder.hinzufuegen.content.strasse_label -text "Straße:" -anchor w
-    entry .mitglieder.hinzufuegen.content.strasse_entry -font {Arial 11}
+    entry .mitglieder.hinzufuegen.content.strasse_entry -font {TkDefaultFont 11}
     grid .mitglieder.hinzufuegen.content.strasse_label -row $row -column 0 -sticky w -pady 5
     grid .mitglieder.hinzufuegen.content.strasse_entry -row $row -column 1 -sticky ew -pady 5
     incr row
 
     # PLZ
     label .mitglieder.hinzufuegen.content.plz_label -text "PLZ:" -anchor w
-    entry .mitglieder.hinzufuegen.content.plz_entry -font {Arial 11}
+    entry .mitglieder.hinzufuegen.content.plz_entry -font {TkDefaultFont 11}
     grid .mitglieder.hinzufuegen.content.plz_label -row $row -column 0 -sticky w -pady 5
     grid .mitglieder.hinzufuegen.content.plz_entry -row $row -column 1 -sticky ew -pady 5
     incr row
 
     # Ort
     label .mitglieder.hinzufuegen.content.ort_label -text "Ort:" -anchor w
-    entry .mitglieder.hinzufuegen.content.ort_entry -font {Arial 11}
+    entry .mitglieder.hinzufuegen.content.ort_entry -font {TkDefaultFont 11}
     grid .mitglieder.hinzufuegen.content.ort_label -row $row -column 0 -sticky w -pady 5
     grid .mitglieder.hinzufuegen.content.ort_entry -row $row -column 1 -sticky ew -pady 5
     incr row
 
     # Festnetz
     label .mitglieder.hinzufuegen.content.festnetz_label -text "Festnetz:" -anchor w
-    entry .mitglieder.hinzufuegen.content.festnetz_entry -font {Arial 11}
+    entry .mitglieder.hinzufuegen.content.festnetz_entry -font {TkDefaultFont 11}
     grid .mitglieder.hinzufuegen.content.festnetz_label -row $row -column 0 -sticky w -pady 5
     grid .mitglieder.hinzufuegen.content.festnetz_entry -row $row -column 1 -sticky ew -pady 5
     incr row
 
     # Mobilfunk
     label .mitglieder.hinzufuegen.content.mobilfunk_label -text "Mobilfunk:" -anchor w
-    entry .mitglieder.hinzufuegen.content.mobilfunk_entry -font {Arial 11}
+    entry .mitglieder.hinzufuegen.content.mobilfunk_entry -font {TkDefaultFont 11}
     grid .mitglieder.hinzufuegen.content.mobilfunk_label -row $row -column 0 -sticky w -pady 5
     grid .mitglieder.hinzufuegen.content.mobilfunk_entry -row $row -column 1 -sticky ew -pady 5
     incr row
 
     # Email
     label .mitglieder.hinzufuegen.content.email_label -text "Email:" -anchor w
-    entry .mitglieder.hinzufuegen.content.email_entry -font {Arial 11}
+    entry .mitglieder.hinzufuegen.content.email_entry -font {TkDefaultFont 11}
     grid .mitglieder.hinzufuegen.content.email_label -row $row -column 0 -sticky w -pady 5
     grid .mitglieder.hinzufuegen.content.email_entry -row $row -column 1 -sticky ew -pady 5
     incr row
 
     # Eintrittsdatum
     label .mitglieder.hinzufuegen.content.eintrittsdatum_label -text "Eintrittsdatum:" -anchor w
-    entry .mitglieder.hinzufuegen.content.eintrittsdatum_entry -font {Arial 11}
+    entry .mitglieder.hinzufuegen.content.eintrittsdatum_entry -font {TkDefaultFont 11}
     grid .mitglieder.hinzufuegen.content.eintrittsdatum_label -row $row -column 0 -sticky w -pady 5
     grid .mitglieder.hinzufuegen.content.eintrittsdatum_entry -row $row -column 1 -sticky ew -pady 5
     incr row
 
     # Funktion
     label .mitglieder.hinzufuegen.content.funktion_label -text "Funktion:" -anchor w
-    entry .mitglieder.hinzufuegen.content.funktion_entry -font {Arial 11}
+    entry .mitglieder.hinzufuegen.content.funktion_entry -font {TkDefaultFont 11}
     grid .mitglieder.hinzufuegen.content.funktion_label -row $row -column 0 -sticky w -pady 5
     grid .mitglieder.hinzufuegen.content.funktion_entry -row $row -column 1 -sticky ew -pady 5
     incr row
@@ -372,7 +321,7 @@ proc oeffne_bearbeiten_dialog {} {
 
     # Nachname (Pflichtfeld)
     label .mitglieder.bearbeiten.content.nachname_label -text "Nachname:*" -anchor w
-    entry .mitglieder.bearbeiten.content.nachname_entry -font {Arial 11}
+    entry .mitglieder.bearbeiten.content.nachname_entry -font {TkDefaultFont 11}
     .mitglieder.bearbeiten.content.nachname_entry insert 0 $alt_nachname
     grid .mitglieder.bearbeiten.content.nachname_label -row $row -column 0 -sticky w -pady 5
     grid .mitglieder.bearbeiten.content.nachname_entry -row $row -column 1 -sticky ew -pady 5
@@ -380,7 +329,7 @@ proc oeffne_bearbeiten_dialog {} {
 
     # Vorname (Pflichtfeld)
     label .mitglieder.bearbeiten.content.vorname_label -text "Vorname:*" -anchor w
-    entry .mitglieder.bearbeiten.content.vorname_entry -font {Arial 11}
+    entry .mitglieder.bearbeiten.content.vorname_entry -font {TkDefaultFont 11}
     .mitglieder.bearbeiten.content.vorname_entry insert 0 $alt_vorname
     grid .mitglieder.bearbeiten.content.vorname_label -row $row -column 0 -sticky w -pady 5
     grid .mitglieder.bearbeiten.content.vorname_entry -row $row -column 1 -sticky ew -pady 5
@@ -388,7 +337,7 @@ proc oeffne_bearbeiten_dialog {} {
 
     # Geburtsdatum
     label .mitglieder.bearbeiten.content.geburtsdatum_label -text "Geburtsdatum:" -anchor w
-    entry .mitglieder.bearbeiten.content.geburtsdatum_entry -font {Arial 11}
+    entry .mitglieder.bearbeiten.content.geburtsdatum_entry -font {TkDefaultFont 11}
     .mitglieder.bearbeiten.content.geburtsdatum_entry insert 0 $alt_geburtsdatum
     grid .mitglieder.bearbeiten.content.geburtsdatum_label -row $row -column 0 -sticky w -pady 5
     grid .mitglieder.bearbeiten.content.geburtsdatum_entry -row $row -column 1 -sticky ew -pady 5
@@ -396,7 +345,7 @@ proc oeffne_bearbeiten_dialog {} {
 
     # Straße
     label .mitglieder.bearbeiten.content.strasse_label -text "Straße:" -anchor w
-    entry .mitglieder.bearbeiten.content.strasse_entry -font {Arial 11}
+    entry .mitglieder.bearbeiten.content.strasse_entry -font {TkDefaultFont 11}
     .mitglieder.bearbeiten.content.strasse_entry insert 0 $alt_strasse
     grid .mitglieder.bearbeiten.content.strasse_label -row $row -column 0 -sticky w -pady 5
     grid .mitglieder.bearbeiten.content.strasse_entry -row $row -column 1 -sticky ew -pady 5
@@ -404,7 +353,7 @@ proc oeffne_bearbeiten_dialog {} {
 
     # PLZ
     label .mitglieder.bearbeiten.content.plz_label -text "PLZ:" -anchor w
-    entry .mitglieder.bearbeiten.content.plz_entry -font {Arial 11}
+    entry .mitglieder.bearbeiten.content.plz_entry -font {TkDefaultFont 11}
     .mitglieder.bearbeiten.content.plz_entry insert 0 $alt_plz
     grid .mitglieder.bearbeiten.content.plz_label -row $row -column 0 -sticky w -pady 5
     grid .mitglieder.bearbeiten.content.plz_entry -row $row -column 1 -sticky ew -pady 5
@@ -412,7 +361,7 @@ proc oeffne_bearbeiten_dialog {} {
 
     # Ort
     label .mitglieder.bearbeiten.content.ort_label -text "Ort:" -anchor w
-    entry .mitglieder.bearbeiten.content.ort_entry -font {Arial 11}
+    entry .mitglieder.bearbeiten.content.ort_entry -font {TkDefaultFont 11}
     .mitglieder.bearbeiten.content.ort_entry insert 0 $alt_ort
     grid .mitglieder.bearbeiten.content.ort_label -row $row -column 0 -sticky w -pady 5
     grid .mitglieder.bearbeiten.content.ort_entry -row $row -column 1 -sticky ew -pady 5
@@ -420,7 +369,7 @@ proc oeffne_bearbeiten_dialog {} {
 
     # Festnetz
     label .mitglieder.bearbeiten.content.festnetz_label -text "Festnetz:" -anchor w
-    entry .mitglieder.bearbeiten.content.festnetz_entry -font {Arial 11}
+    entry .mitglieder.bearbeiten.content.festnetz_entry -font {TkDefaultFont 11}
     .mitglieder.bearbeiten.content.festnetz_entry insert 0 $alt_festnetz
     grid .mitglieder.bearbeiten.content.festnetz_label -row $row -column 0 -sticky w -pady 5
     grid .mitglieder.bearbeiten.content.festnetz_entry -row $row -column 1 -sticky ew -pady 5
@@ -428,7 +377,7 @@ proc oeffne_bearbeiten_dialog {} {
 
     # Mobilfunk
     label .mitglieder.bearbeiten.content.mobilfunk_label -text "Mobilfunk:" -anchor w
-    entry .mitglieder.bearbeiten.content.mobilfunk_entry -font {Arial 11}
+    entry .mitglieder.bearbeiten.content.mobilfunk_entry -font {TkDefaultFont 11}
     .mitglieder.bearbeiten.content.mobilfunk_entry insert 0 $alt_mobilfunk
     grid .mitglieder.bearbeiten.content.mobilfunk_label -row $row -column 0 -sticky w -pady 5
     grid .mitglieder.bearbeiten.content.mobilfunk_entry -row $row -column 1 -sticky ew -pady 5
@@ -436,7 +385,7 @@ proc oeffne_bearbeiten_dialog {} {
 
     # Email
     label .mitglieder.bearbeiten.content.email_label -text "Email:" -anchor w
-    entry .mitglieder.bearbeiten.content.email_entry -font {Arial 11}
+    entry .mitglieder.bearbeiten.content.email_entry -font {TkDefaultFont 11}
     .mitglieder.bearbeiten.content.email_entry insert 0 $alt_email
     grid .mitglieder.bearbeiten.content.email_label -row $row -column 0 -sticky w -pady 5
     grid .mitglieder.bearbeiten.content.email_entry -row $row -column 1 -sticky ew -pady 5
@@ -444,7 +393,7 @@ proc oeffne_bearbeiten_dialog {} {
 
     # Eintrittsdatum
     label .mitglieder.bearbeiten.content.eintrittsdatum_label -text "Eintrittsdatum:" -anchor w
-    entry .mitglieder.bearbeiten.content.eintrittsdatum_entry -font {Arial 11}
+    entry .mitglieder.bearbeiten.content.eintrittsdatum_entry -font {TkDefaultFont 11}
     .mitglieder.bearbeiten.content.eintrittsdatum_entry insert 0 $alt_eintrittsdatum
     grid .mitglieder.bearbeiten.content.eintrittsdatum_label -row $row -column 0 -sticky w -pady 5
     grid .mitglieder.bearbeiten.content.eintrittsdatum_entry -row $row -column 1 -sticky ew -pady 5
@@ -452,7 +401,7 @@ proc oeffne_bearbeiten_dialog {} {
 
     # Funktion
     label .mitglieder.bearbeiten.content.funktion_label -text "Funktion:" -anchor w
-    entry .mitglieder.bearbeiten.content.funktion_entry -font {Arial 11}
+    entry .mitglieder.bearbeiten.content.funktion_entry -font {TkDefaultFont 11}
     .mitglieder.bearbeiten.content.funktion_entry insert 0 $alt_funktion
     grid .mitglieder.bearbeiten.content.funktion_label -row $row -column 0 -sticky w -pady 5
     grid .mitglieder.bearbeiten.content.funktion_entry -row $row -column 1 -sticky ew -pady 5
@@ -528,41 +477,6 @@ proc oeffne_bearbeiten_dialog {} {
 
     # Fokus auf erstes Eingabefeld setzen
     focus .mitglieder.bearbeiten.content.nachname_entry
-}
-
-# Prozedur zum Markieren einer Zeile im Textwidget
-# Wird beim Klick auf eine Zeile aufgerufen
-proc markiere_zeile {x y} {
-    # Position im Textwidget ermitteln (welche Zeile wurde geklickt)
-    set click_index [.mitglieder.main.text index @$x,$y]
-    set zeile [lindex [split $click_index .] 0]
-
-    # Prüfen ob Header-Bereich geklickt wurde (erste 2 Zeilen)
-    if {$zeile <= 2} {
-        return
-    }
-
-    # Index im angezeigten Bereich berechnen (Zeile 3 = Display-Index 0)
-    set display_index [expr {$zeile - 3}]
-
-    # Prüfen ob der Display-Index gültig ist
-    if {$display_index < 0 || $display_index >= [llength $::angezeigte_indices]} {
-        return
-    }
-
-    # Original-Index aus der Zuordnungsliste holen
-    set original_index [lindex $::angezeigte_indices $display_index]
-
-    # Alte Markierung entfernen
-    .mitglieder.main.text tag remove selected 1.0 end
-
-    # Neue Zeile markieren (gesamte Zeile)
-    set zeile_start "$zeile.0"
-    set zeile_end "$zeile.end"
-    .mitglieder.main.text tag add selected $zeile_start $zeile_end
-
-    # Original-Index als markiertes Mitglied speichern
-    set ::markiertes_mitglied $original_index
 }
 
 # Prozedur zum Löschen eines Mitglieds
@@ -661,8 +575,8 @@ proc oeffne_such_dialog {} {
     label .mitglieder.suchdialog.frame.label -text "Suchbegriff:"
     pack .mitglieder.suchdialog.frame.label -anchor w
 
-    # Eingabefeld für Suchbegriff
-    entry .mitglieder.suchdialog.eingabe -font {Arial 13}
+    # Eingabefeld für Suchbegriff (gleiche Schrift wie im Hauptfenster)
+    entry .mitglieder.suchdialog.eingabe -font {TkDefaultFont 11}
     pack .mitglieder.suchdialog.eingabe -in .mitglieder.suchdialog.frame -fill x -pady 5
 
     # Frame für Buttons
@@ -814,46 +728,82 @@ proc open_mitglieder_fenster {} {
     pack .mitglieder.toolbar.close -side right -padx 5 -pady 3
 
     # =============================================================================
-    # Hauptbereich des Fensters - TextWidget mit Scrollbars
+    # Hauptbereich des Fensters - Treeview-Widget mit Scrollbars
     # =============================================================================
 
     # Hauptframe für Inhalt
     frame .mitglieder.main -bg white
     pack .mitglieder.main -fill both -expand 1
 
-    # Vertikale Scrollbar für das Textwidget
-    scrollbar .mitglieder.main.yscroll -command {.mitglieder.main.text yview} -orient vertical
+    # Vertikale Scrollbar für das Treeview
+    scrollbar .mitglieder.main.yscroll -command {.mitglieder.main.tree yview} -orient vertical
 
-    # Horizontale Scrollbar für das Textwidget
-    scrollbar .mitglieder.main.xscroll -command {.mitglieder.main.text xview} -orient horizontal
+    # Horizontale Scrollbar für das Treeview
+    scrollbar .mitglieder.main.xscroll -command {.mitglieder.main.tree xview} -orient horizontal
 
-    # Textwidget zur Anzeige der Mitglieder-Daten
-    # wrap=none: kein automatischer Zeilenumbruch (horizontale Scrollbar verwenden)
-    text .mitglieder.main.text -yscrollcommand {.mitglieder.main.yscroll set} \
-                               -xscrollcommand {.mitglieder.main.xscroll set} \
-                               -wrap none \
-                               -font {Courier 11} \
-                               -bg white \
-                               -relief sunken \
-                               -bd 1
+    # Schriftgröße für Treeview-Widget konfigurieren (11 Punkte, wie im Hauptfenster)
+    ttk::style configure Treeview -font {TkDefaultFont 11} -rowheight 22
+
+    # Treeview-Widget mit Spalten für Mitgliederdaten
+    ttk::treeview .mitglieder.main.tree \
+        -columns {nachname vorname strasse plz ort festnetz mobilfunk email geburtsdatum eintrittsdatum} \
+        -show headings \
+        -yscrollcommand {.mitglieder.main.yscroll set} \
+        -xscrollcommand {.mitglieder.main.xscroll set}
+
+    # Spaltenüberschriften und Breiten definieren
+    .mitglieder.main.tree heading nachname -text "Nachname"
+    .mitglieder.main.tree heading vorname -text "Vorname"
+    .mitglieder.main.tree heading strasse -text "Straße"
+    .mitglieder.main.tree heading plz -text "PLZ"
+    .mitglieder.main.tree heading ort -text "Ort"
+    .mitglieder.main.tree heading festnetz -text "Festnetz"
+    .mitglieder.main.tree heading mobilfunk -text "Mobilfunk"
+    .mitglieder.main.tree heading email -text "Email"
+    .mitglieder.main.tree heading geburtsdatum -text "Geburtsdatum"
+    .mitglieder.main.tree heading eintrittsdatum -text "Eintrittsdatum"
+
+    # Spaltenbreiten festlegen (in Pixeln)
+    .mitglieder.main.tree column nachname -width 150 -anchor w
+    .mitglieder.main.tree column vorname -width 150 -anchor w
+    .mitglieder.main.tree column strasse -width 200 -anchor w
+    .mitglieder.main.tree column plz -width 60 -anchor w
+    .mitglieder.main.tree column ort -width 150 -anchor w
+    .mitglieder.main.tree column festnetz -width 120 -anchor w
+    .mitglieder.main.tree column mobilfunk -width 120 -anchor w
+    .mitglieder.main.tree column email -width 200 -anchor w
+    .mitglieder.main.tree column geburtsdatum -width 110 -anchor w
+    .mitglieder.main.tree column eintrittsdatum -width 120 -anchor w
 
     # Layout: Grid-Manager für optimale Platzierung
-    # Textwidget nimmt den gesamten verfügbaren Platz ein
-    grid .mitglieder.main.text    -row 0 -column 0 -sticky nsew
+    # Treeview nimmt den gesamten verfügbaren Platz ein
+    grid .mitglieder.main.tree    -row 0 -column 0 -sticky nsew
     grid .mitglieder.main.yscroll -row 0 -column 1 -sticky ns
     grid .mitglieder.main.xscroll -row 1 -column 0 -sticky ew
 
-    # Grid-Gewichtung: Textwidget soll bei Größenänderung mitwachsen
+    # Grid-Gewichtung: Treeview soll bei Größenänderung mitwachsen
     grid rowconfigure    .mitglieder.main 0 -weight 1
     grid columnconfigure .mitglieder.main 0 -weight 1
 
-    # Tag für markierte Zeilen konfigurieren
-    # Hintergrundfarbe für die Markierung (Standard-Blau-Auswahlfarbe)
-    .mitglieder.main.text tag configure selected -background "#B3D7FF" -foreground black
-
-    # Klick-Event binden für Markierung von Zeilen
-    # Bei Linksklick wird markiere_zeile aufgerufen
-    bind .mitglieder.main.text <ButtonPress-1> {markiere_zeile %x %y}
+    # Selection-Event für Treeview binden
+    # Wird aufgerufen, wenn eine Zeile ausgewählt wird
+    bind .mitglieder.main.tree <<TreeviewSelect>> {
+        # Ausgewähltes Item ermitteln
+        set selected_items [.mitglieder.main.tree selection]
+        if {[llength $selected_items] > 0} {
+            # Index des ausgewählten Items im angezeigte_indices Array finden
+            set item_id [lindex $selected_items 0]
+            # Item-Index im Treeview ermitteln
+            set all_items [.mitglieder.main.tree children {}]
+            set display_index [lsearch $all_items $item_id]
+            # Original-Index aus angezeigte_indices holen
+            if {$display_index >= 0 && $display_index < [llength $::angezeigte_indices]} {
+                set ::markiertes_mitglied [lindex $::angezeigte_indices $display_index]
+            }
+        } else {
+            set ::markiertes_mitglied -1
+        }
+    }
 
     # =============================================================================
     # mitglieder.json einlesen und in globale Liste laden

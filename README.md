@@ -2,7 +2,37 @@
 
 Journal für kleinere bis mittlere Schießsportvereine, um die regelmäßigen Aktivitäten auf dem Schießstand zu dokumentieren.
 
+In meinem Schießsportverein wurde der Schießbetrieb und die Mitgliederverwaltung bisher auf diversen, zweckentfremdeten Excel Tabellen dokumentiert. Davon ist im Laufe der Zeit eine große Anzahl entstanden, voller Inkonsistenzen und Fehlern. Um ein bisschen Ordnung in die Verwaltung zu bringen habe ich nach einer, für kleine Vereine geeignete, Software gesucht, wurde aber nicht fündig. Aus diesem Grund habe ich mich entschlossen, mit Hilfe von [Claude Code](https://claude.ai/) für Abhilfe zu sorgen. **SVM Journal** ist das Ergebnis. Das Programm wird in Zukunft noch um diverse Statistik Funktionen erweitert werden.
+
+## Systemvoraussetzungen
+
+SVM Journal setzt einen Tcl/Tk Interpreter voraus.
+
+Unter Linux lässt sich  Tcl/Tk, sofern nicht schon vorhanden, aus den Repositorys installieren. 
+
+**Debian** / **Ubuntu**:
+
+```bash
+sudo apt install tcl
+```
+**RedHat** / **Fedora** / **SUSE**:
+
+```bash
+sudo dnf install tcl
+```
+**Arch Linux**:
+
+```bash
+sudo pacman -S tcl
+```
+
+Unter **Windows** empfiehlt sich die Installation von [Magicsplat Tcl/Tk for Windows](https://www.magicsplat.com/tcl-installer/index.html).
+
+
+
 ## Installation und Start
+
+Eine Installation ist nicht erforderlich. Einfach den Ordner svm-journal an die gewünschte Stelle kopieren. Unter Linux bietet sich /opt an, unter Windows C:\Programme.
 
 Das Programm startet man mit:
 ```bash

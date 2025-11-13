@@ -24,6 +24,9 @@ namespace eval ::neuer_eintrag {
     # Kaliber-Preisliste
     variable kaliber_preise_dict [dict create]
 
+    # Einzelpreis pro Munitionseinheit (wird gespeichert wenn Munition gewählt wird)
+    variable munitions_einzelpreis "0,00"
+
     # Stand-Nutzungs-Preise
     variable stand_preise [dict create]
 
@@ -193,8 +196,15 @@ proc ::neuer_eintrag::berechne_startgeld {} {
     variable stand_preise
     variable startgeld
 
-    # Prüfen, ob der Schütze ein Mitglied ist
-    set ist_mitglied [dict exists $mitglieder_dict $nachname]
+    # Prüfen, ob der Schütze ein Mitglied ist (case-insensitive, auch bei mehreren Vornamen)
+    set ist_mitglied 0
+    dict for {name vornamen} $mitglieder_dict {
+        # Case-insensitive Vergleich: Wenn der eingegebene Nachname mit einem Namen im Dictionary übereinstimmt
+        if {[string equal -nocase $nachname $name]} {
+            set ist_mitglied 1
+            break
+        }
+    }
 
     # Startgeld basierend auf Waffentyp und Mitgliedschaft berechnen
     if {$ist_mitglied} {
@@ -213,6 +223,12 @@ proc ::neuer_eintrag::berechne_startgeld {} {
             "GK" {
                 if {[dict exists $stand_preise "Mitglied Grosskaliber"]} {
                     set startgeld [dict get $stand_preise "Mitglied Grosskaliber"]
+                }
+            }
+            default {
+                # Kein Waffentyp gewählt - Standardpreis für Mitglieder (Kleinkaliber) setzen
+                if {[dict exists $stand_preise "Mitglied Kleinkaliber"]} {
+                    set startgeld [dict get $stand_preise "Mitglied Kleinkaliber"]
                 }
             }
         }
@@ -351,15 +367,44 @@ proc ::neuer_eintrag::waffentyp_geaendert {args} {
 # =============================================================================
 proc ::neuer_eintrag::munition_geaendert {args} {
     variable munition
-    variable munitionspreis
+    variable munitions_einzelpreis
     variable kaliber_preise_dict
 
-    # Preis für gewähltes Kaliber setzen
+    # Einzelpreis für gewähltes Kaliber setzen
     if {$munition eq "Keine"} {
-        set munitionspreis "0,00"
+        set munitions_einzelpreis "0,00"
     } elseif {[dict exists $kaliber_preise_dict $munition]} {
-        set munitionspreis [dict get $kaliber_preise_dict $munition]
+        set munitions_einzelpreis [dict get $kaliber_preise_dict $munition]
     }
+
+    # Gesamtpreis basierend auf Anzahl berechnen
+    berechne_munitionspreis
+}
+
+# =============================================================================
+# Prozedur: berechne_munitionspreis
+# Berechnet den Gesamtpreis der Munition basierend auf Anzahl × Einzelpreis
+# =============================================================================
+proc ::neuer_eintrag::berechne_munitionspreis {args} {
+    variable anzahl
+    variable munitions_einzelpreis
+    variable munitionspreis
+
+    # Einzelpreis und Anzahl in numerisches Format konvertieren (Komma → Punkt)
+    set einzelpreis_numerisch [string map {"," "."} $munitions_einzelpreis]
+    set anzahl_numerisch [string map {"," "."} $anzahl]
+
+    # Validierung: Wenn Anzahl leer oder keine Zahl ist, Standardwert 1 setzen
+    if {[catch {expr {$anzahl_numerisch + 0}}] || $anzahl_numerisch eq ""} {
+        set anzahl_numerisch 1
+    }
+
+    # Gesamtpreis berechnen: Anzahl × Einzelpreis
+    set gesamt_preis [expr {$anzahl_numerisch * $einzelpreis_numerisch}]
+
+    # Zurück zu deutschem Format konvertieren (Punkt → Komma)
+    set munitionspreis [format "%.2f" $gesamt_preis]
+    set munitionspreis [string map {"." ","} $munitionspreis]
 }
 
 # =============================================================================
@@ -898,21 +943,9 @@ proc lade_existierende_eintraege {} {
 
     # Sortierte Einträge ins Treeview einfügen
     foreach eintrag $alle_eintraege {
-        # Munitionspreis mit Anzahl multiplizieren
+        # Munitionspreis direkt verwenden - ist bereits der Gesamtpreis (Anzahl × Einzelpreis)
+        # Der Preis wurde bereits beim Erstellen des Eintrags berechnet und muss nicht nochmals multipliziert werden
         set munitionspreis [dict get $eintrag munitionspreis]
-        set anzahl [dict get $eintrag anzahl]
-
-        # Preis berechnen: Anzahl × Munitionspreis
-        # Komma durch Punkt ersetzen für Berechnung
-        set preis_numerisch [string map {"," "."} $munitionspreis]
-        set anzahl_numerisch [string map {"," "."} $anzahl]
-
-        # Berechnung durchführen
-        set gesamt_preis [expr {$anzahl_numerisch * $preis_numerisch}]
-
-        # Zurück zu deutschem Format (mit Komma)
-        set gesamt_preis_str [format "%.2f" $gesamt_preis]
-        set gesamt_preis_str [string map {"." ","} $gesamt_preis_str]
 
         $treeview insert {} end -values [list \
             [dict get $eintrag datum] \
@@ -924,7 +957,7 @@ proc lade_existierende_eintraege {} {
             [dict get $eintrag kaliber] \
             [dict get $eintrag startgeld] \
             [dict get $eintrag munition] \
-            $gesamt_preis_str]
+            $munitionspreis]
     }
 }
 
@@ -964,6 +997,7 @@ proc ::neuer_eintrag::entferne_traces {} {
     catch {trace remove variable ::neuer_eintrag::nachname write ::neuer_eintrag::pruefe_speichern_button}
     catch {trace remove variable ::neuer_eintrag::vorname write ::neuer_eintrag::pruefe_speichern_button}
     catch {trace remove variable ::neuer_eintrag::kaliber write ::neuer_eintrag::pruefe_speichern_button}
+    catch {trace remove variable ::neuer_eintrag::anzahl write ::neuer_eintrag::berechne_munitionspreis}
 }
 
 # =============================================================================
@@ -1002,6 +1036,7 @@ proc open_neuer_eintrag_fenster {} {
     set ::neuer_eintrag::startgeld "0,00"
     set ::neuer_eintrag::anzahl "1"
     set ::neuer_eintrag::munition "Keine"
+    set ::neuer_eintrag::munitions_einzelpreis "0,00"
     set ::neuer_eintrag::munitionspreis "0,00"
 
     # Daten laden
@@ -1024,8 +1059,8 @@ proc open_neuer_eintrag_fenster {} {
     # Neues Toplevel-Fenster
     toplevel $w
     wm title $w "Neuer Eintrag"
-    # Höhe um 30% verringert (700 * 0.7 = 490), Breite um 20% erhöht (600 * 1.2 = 720)
-    wm geometry $w "720x490"
+    # Optimale Größe für alle Eingabefelder und Buttons
+    wm geometry $w "720x530"
 
     # Hauptframe mit Padding
     frame $w.main -padx 20 -pady 20
@@ -1182,6 +1217,9 @@ proc open_neuer_eintrag_fenster {} {
     # Anzahl-Eingabefeld für Munition (numerischer Wert)
     entry $w.munition_anzahl_frame.anzahl_entry -textvariable ::neuer_eintrag::anzahl -width 10
     pack $w.munition_anzahl_frame.anzahl_entry -side left -padx 5
+
+    # Trace für Live-Berechnung des Munitionspreises bei Anzahländerung
+    trace add variable ::neuer_eintrag::anzahl write ::neuer_eintrag::berechne_munitionspreis
 
     # =========================================================================
     # Munitionspreis-Anzeige (readonly)

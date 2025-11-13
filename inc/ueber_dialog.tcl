@@ -21,7 +21,7 @@ proc open_ueber_dialog {} {
     }
 
     toplevel $w
-    wm title $w "Über SVM Journal"
+    wm title $w "\u00dcber SVM Journal"
     wm geometry $w "500x650"
     wm resizable $w 0 0
 
@@ -119,7 +119,7 @@ proc open_ueber_dialog {} {
     # ==========================================================================
     # Schließen-Button
     # ==========================================================================
-    button $w.main.close -text "Schließen" -bg "#4ACEFA" -width 15 \
+    button $w.main.close -text "Schlie\u00dfen" -bg "#4ACEFA" -width 15 \
         -command "destroy $w"
     pack $w.main.close -pady 15
 

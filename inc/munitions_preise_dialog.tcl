@@ -119,8 +119,8 @@ proc ::munpreise::aktualisiere_kaliber_anzeige {} {
     # Kaliber zur Listbox hinzufügen
     foreach kaliber_preis $kaliber_liste {
         lassign $kaliber_preis kaliber preis
-        # Formatierte Zeile: Kaliber (linksbündig, 30 Zeichen) | Preis (rechtsbündig)
-        set line [format "%-30s  %s €" $kaliber $preis]
+        # Formatierte Zeile: Kaliber (linksbündig, 30 Zeichen) | Preis (rechtsbündig, 10 Zeichen)
+        set line [format "%-30s  %10s €" $kaliber $preis]
         $fenster.main.listbox insert end $line
     }
 }

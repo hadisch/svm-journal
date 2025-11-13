@@ -106,8 +106,8 @@ proc ::standpreise::aktualisiere_kategorie_anzeige {} {
     # Kategorien zur Listbox hinzufügen
     foreach kategorie_preis $kategorie_liste {
         lassign $kategorie_preis kategorie preis
-        # Formatierte Zeile: Kategorie (linksbündig, 30 Zeichen) | Preis (rechtsbündig)
-        set line [format "%-30s  %s €" $kategorie $preis]
+        # Formatierte Zeile: Kategorie (linksbündig, 30 Zeichen) | Preis (rechtsbündig, 10 Zeichen)
+        set line [format "%-30s  %10s €" $kategorie $preis]
         $fenster.main.listbox insert end $line
     }
 }

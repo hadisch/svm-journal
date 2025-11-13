@@ -41,6 +41,9 @@ set stand_nutzung_json [::pfad::get_json_path "preferences" "stand-nutzung.json"
 # Bestätigungsdialog für Programmbeendigung laden
 source [file join [file dirname [info script]] inc exit_confirm.tcl]
 
+# Fenster-Einstellungen - Speichern und Laden von Fenstergröße, Position und Vollbildstatus
+source [file join [file dirname [info script]] inc fenster_einstellungen.tcl]
+
 # JSON-Writer-Funktionen - Schreiben von JSON-Dateien
 source [file join [file dirname [info script]] inc json_writer.tcl]
 
@@ -98,6 +101,11 @@ if {$y_pos < 0} {
 # Fensterposition setzen (zentriert)
 wm geometry . +${x_pos}+${y_pos}
 
+# Gespeicherte Fenstereinstellungen laden und anwenden
+# Falls vorhanden, überschreibt dies die obigen Standard-Einstellungen
+# Stellt Größe, Position und Vollbildstatus vom letzten Programmstart wieder her
+lade_fenster_einstellungen
+
 # Fenster-Schließen-Ereignis abfangen (X-Button)
 # Bei Klick auf X wird confirm_exit aufgerufen statt direkt zu beenden
 wm protocol . WM_DELETE_WINDOW {confirm_exit}
@@ -116,7 +124,7 @@ menu .menubar.file.export -tearoff 0
 
 # Exportieren als Untermenü hinzufügen
 .menubar.file add cascade -label "Exportieren" -menu .menubar.file.export
-.menubar.file add command -label "Beenden" -command {confirm_exit}
+.menubar.file add command -label "Beenden" -command {confirm_exit} -accelerator "Strg+Q"
 .menubar add cascade -label "Datei" -menu .menubar.file
 
 # Menü "Einstellungen" erstellen
@@ -127,7 +135,7 @@ menu .menubar.settings -tearoff 0
 
 # Menü "Info" erstellen
 menu .menubar.info -tearoff 0
-.menubar.info add command -label "Über..." -command {open_ueber_dialog}
+.menubar.info add command -label "\u00dcber..." -command {open_ueber_dialog}
 .menubar add cascade -label "Info" -menu .menubar.info
 
 # Menüleiste dem Hauptfenster zuweisen
@@ -152,6 +160,15 @@ pack .toolbar.members -side left -padx 5 -pady 3
 button .toolbar.quit -text "Beenden" -bg "#4ACEFA" -command {confirm_exit}
 pack .toolbar.quit -side right -padx 5 -pady 3
 
+# Tastatur-Shortcuts für das Hauptfenster
+# Strg+Q für Beenden (Menü und Button)
+bind . <Control-q> {confirm_exit}
+bind . <Control-Q> {confirm_exit}
+
+# Strg+N für Neuer Eintrag
+bind . <Control-n> {.toolbar.new invoke}
+bind . <Control-N> {.toolbar.new invoke}
+
 # Hauptframe erstellen für zukünftige Inhalte
 frame .main -bg white
 pack .main -fill both -expand 1
@@ -167,9 +184,11 @@ scrollbar .main.xscroll -command {.main.tree xview} -orient horizontal
 ttk::style configure Treeview -font {TkDefaultFont 11} -rowheight 22
 
 # Treeview-Widget mit Spalten für Einträge
+# -selectmode browse: Erlaubt nur Einzelauswahl, keine Mehrfachauswahl mit Strg/Shift
 ttk::treeview .main.tree \
     -columns {datum nachname vorname kw lw typ kaliber startgeld munition munpreis} \
     -show headings \
+    -selectmode browse \
     -yscrollcommand {.main.yscroll set} \
     -xscrollcommand {.main.xscroll set}
 

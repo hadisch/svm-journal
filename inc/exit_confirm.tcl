@@ -34,6 +34,8 @@ proc confirm_exit {} {
     button .exit_dialog.buttons.yes -text "Ja" -width 10 -command {
         # Dialog schließen
         destroy .exit_dialog
+        # Fenstereinstellungen speichern (Größe, Position, Vollbildstatus)
+        speichere_fenster_einstellungen
         # Programm beenden
         exit
     }

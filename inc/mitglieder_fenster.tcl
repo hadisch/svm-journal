@@ -125,10 +125,14 @@ proc oeffne_hinzufuegen_dialog {} {
     wm title .mitglieder.hinzufuegen "Neues Mitglied hinzufügen"
 
     # Fenstergröße festlegen
-    wm geometry .mitglieder.hinzufuegen 600x500
+    wm geometry .mitglieder.hinzufuegen 600x515
 
     # Fenster modal machen (im Vordergrund bleiben)
     wm transient .mitglieder.hinzufuegen .mitglieder
+
+    # Frame für Buttons ZUERST erstellen und packen (damit sie sichtbar bleiben)
+    frame .mitglieder.hinzufuegen.buttons -pady 10
+    pack .mitglieder.hinzufuegen.buttons -side bottom -fill x
 
     # Frame für Inhalt mit Scrollbar
     frame .mitglieder.hinzufuegen.content -padx 20 -pady 20
@@ -222,49 +226,55 @@ proc oeffne_hinzufuegen_dialog {} {
     # Spalte 1 soll sich ausdehnen
     grid columnconfigure .mitglieder.hinzufuegen.content 1 -weight 1
 
-    # Frame für Buttons
-    frame .mitglieder.hinzufuegen.buttons -pady 10
-    pack .mitglieder.hinzufuegen.buttons -side bottom -fill x
-
     # Button "Abbrechen" - schließt Dialog ohne Änderungen
-    button .mitglieder.hinzufuegen.buttons.abbrechen -text "Abbrechen" -command {
+    button .mitglieder.hinzufuegen.buttons.abbrechen -text "Abbrechen" -bg "#FFB6C1" -command {
         destroy .mitglieder.hinzufuegen
     }
     pack .mitglieder.hinzufuegen.buttons.abbrechen -side right -padx 5
 
     # Button "Speichern" - speichert neues Mitglied
-    button .mitglieder.hinzufuegen.buttons.speichern -text "Speichern" -state disabled -command {
-        # Werte aus Eingabefeldern holen
-        set nachname [string trim [.mitglieder.hinzufuegen.content.nachname_entry get]]
-        set vorname [string trim [.mitglieder.hinzufuegen.content.vorname_entry get]]
-        set geburtsdatum [string trim [.mitglieder.hinzufuegen.content.geburtsdatum_entry get]]
-        set strasse [string trim [.mitglieder.hinzufuegen.content.strasse_entry get]]
-        set plz [string trim [.mitglieder.hinzufuegen.content.plz_entry get]]
-        set ort [string trim [.mitglieder.hinzufuegen.content.ort_entry get]]
-        set festnetz [string trim [.mitglieder.hinzufuegen.content.festnetz_entry get]]
-        set mobilfunk [string trim [.mitglieder.hinzufuegen.content.mobilfunk_entry get]]
-        set email [string trim [.mitglieder.hinzufuegen.content.email_entry get]]
-        set eintrittsdatum [string trim [.mitglieder.hinzufuegen.content.eintrittsdatum_entry get]]
-        set funktion [string trim [.mitglieder.hinzufuegen.content.funktion_entry get]]
+    button .mitglieder.hinzufuegen.buttons.speichern -text "Speichern" -state disabled -bg "#90EE90" -command {
+        # Error-Handling für gesamten Speichervorgang
+        if {[catch {
+            # Werte aus Eingabefeldern holen
+            set nachname [string trim [.mitglieder.hinzufuegen.content.nachname_entry get]]
+            set vorname [string trim [.mitglieder.hinzufuegen.content.vorname_entry get]]
+            set geburtsdatum [string trim [.mitglieder.hinzufuegen.content.geburtsdatum_entry get]]
+            set strasse [string trim [.mitglieder.hinzufuegen.content.strasse_entry get]]
+            set plz [string trim [.mitglieder.hinzufuegen.content.plz_entry get]]
+            set ort [string trim [.mitglieder.hinzufuegen.content.ort_entry get]]
+            set festnetz [string trim [.mitglieder.hinzufuegen.content.festnetz_entry get]]
+            set mobilfunk [string trim [.mitglieder.hinzufuegen.content.mobilfunk_entry get]]
+            set email [string trim [.mitglieder.hinzufuegen.content.email_entry get]]
+            set eintrittsdatum [string trim [.mitglieder.hinzufuegen.content.eintrittsdatum_entry get]]
+            set funktion [string trim [.mitglieder.hinzufuegen.content.funktion_entry get]]
 
-        # Neues Mitglied zur Liste hinzufügen
-        lappend ::mitglieder_liste [list $nachname $vorname $strasse $plz $ort $festnetz $mobilfunk $email $geburtsdatum $eintrittsdatum $funktion]
+            # Neues Mitglied zur Liste hinzufügen
+            lappend ::mitglieder_liste [list $nachname $vorname $strasse $plz $ort $festnetz $mobilfunk $email $geburtsdatum $eintrittsdatum $funktion]
 
-        # JSON-Datei neu schreiben
-        schreibe_mitglieder_json
+            # JSON-Datei neu schreiben
+            schreibe_mitglieder_json
 
-        # Anzeige aktualisieren
-        zeige_alle_mitglieder
+            # Anzeige aktualisieren
+            zeige_alle_mitglieder
 
-        # Dialog schließen
-        destroy .mitglieder.hinzufuegen
+            # Dialog schließen
+            destroy .mitglieder.hinzufuegen
 
-        # Erfolgs-Meldung
-        tk_messageBox -parent .mitglieder \
-                      -icon info \
-                      -type ok \
-                      -title "Hinzufügen erfolgreich" \
-                      -message "Das Mitglied $vorname $nachname wurde erfolgreich hinzugefügt."
+            # Erfolgs-Meldung
+            tk_messageBox -parent .mitglieder \
+                          -icon info \
+                          -type ok \
+                          -title "Hinzufügen erfolgreich" \
+                          -message "Das Mitglied $vorname $nachname wurde erfolgreich hinzugefügt."
+        } error_msg]} {
+            # Fehler anzeigen falls etwas schief geht
+            tk_messageBox -parent .mitglieder.hinzufuegen \
+                          -icon error \
+                          -type ok \
+                          -title "Fehler beim Speichern" \
+                          -message "Es ist ein Fehler aufgetreten:\n\n$error_msg\n\n$::errorInfo"
+        }
     }
     pack .mitglieder.hinzufuegen.buttons.speichern -side right -padx 5
 
@@ -307,10 +317,14 @@ proc oeffne_bearbeiten_dialog {} {
     wm title .mitglieder.bearbeiten "Mitglied bearbeiten"
 
     # Fenstergröße festlegen
-    wm geometry .mitglieder.bearbeiten 600x500
+    wm geometry .mitglieder.bearbeiten 600x515
 
     # Fenster modal machen
     wm transient .mitglieder.bearbeiten .mitglieder
+
+    # Frame für Buttons ZUERST erstellen und packen (damit sie sichtbar bleiben)
+    frame .mitglieder.bearbeiten.buttons -pady 10
+    pack .mitglieder.bearbeiten.buttons -side bottom -fill x
 
     # Frame für Inhalt
     frame .mitglieder.bearbeiten.content -padx 20 -pady 20
@@ -415,63 +429,69 @@ proc oeffne_bearbeiten_dialog {} {
     # Spalte 1 soll sich ausdehnen
     grid columnconfigure .mitglieder.bearbeiten.content 1 -weight 1
 
-    # Frame für Buttons
-    frame .mitglieder.bearbeiten.buttons -pady 10
-    pack .mitglieder.bearbeiten.buttons -side bottom -fill x
-
     # Button "Abbrechen"
-    button .mitglieder.bearbeiten.buttons.abbrechen -text "Abbrechen" -command {
+    button .mitglieder.bearbeiten.buttons.abbrechen -text "Abbrechen" -bg "#FFB6C1" -command {
         destroy .mitglieder.bearbeiten
     }
     pack .mitglieder.bearbeiten.buttons.abbrechen -side right -padx 5
 
     # Button "Speichern"
-    button .mitglieder.bearbeiten.buttons.speichern -text "Speichern" -command {
-        # Werte aus Eingabefeldern holen
-        set nachname [string trim [.mitglieder.bearbeiten.content.nachname_entry get]]
-        set vorname [string trim [.mitglieder.bearbeiten.content.vorname_entry get]]
-        set geburtsdatum [string trim [.mitglieder.bearbeiten.content.geburtsdatum_entry get]]
-        set strasse [string trim [.mitglieder.bearbeiten.content.strasse_entry get]]
-        set plz [string trim [.mitglieder.bearbeiten.content.plz_entry get]]
-        set ort [string trim [.mitglieder.bearbeiten.content.ort_entry get]]
-        set festnetz [string trim [.mitglieder.bearbeiten.content.festnetz_entry get]]
-        set mobilfunk [string trim [.mitglieder.bearbeiten.content.mobilfunk_entry get]]
-        set email [string trim [.mitglieder.bearbeiten.content.email_entry get]]
-        set eintrittsdatum [string trim [.mitglieder.bearbeiten.content.eintrittsdatum_entry get]]
-        set funktion [string trim [.mitglieder.bearbeiten.content.funktion_entry get]]
+    button .mitglieder.bearbeiten.buttons.speichern -text "Speichern" -bg "#90EE90" -command {
+        # Error-Handling für gesamten Speichervorgang
+        if {[catch {
+            # Werte aus Eingabefeldern holen
+            set nachname [string trim [.mitglieder.bearbeiten.content.nachname_entry get]]
+            set vorname [string trim [.mitglieder.bearbeiten.content.vorname_entry get]]
+            set geburtsdatum [string trim [.mitglieder.bearbeiten.content.geburtsdatum_entry get]]
+            set strasse [string trim [.mitglieder.bearbeiten.content.strasse_entry get]]
+            set plz [string trim [.mitglieder.bearbeiten.content.plz_entry get]]
+            set ort [string trim [.mitglieder.bearbeiten.content.ort_entry get]]
+            set festnetz [string trim [.mitglieder.bearbeiten.content.festnetz_entry get]]
+            set mobilfunk [string trim [.mitglieder.bearbeiten.content.mobilfunk_entry get]]
+            set email [string trim [.mitglieder.bearbeiten.content.email_entry get]]
+            set eintrittsdatum [string trim [.mitglieder.bearbeiten.content.eintrittsdatum_entry get]]
+            set funktion [string trim [.mitglieder.bearbeiten.content.funktion_entry get]]
 
-        # Prüfen ob Pflichtfelder ausgefüllt sind
-        if {$nachname eq "" || $vorname eq ""} {
-            tk_messageBox -parent .mitglieder.bearbeiten \
-                          -icon warning \
+            # Prüfen ob Pflichtfelder ausgefüllt sind
+            if {$nachname eq "" || $vorname eq ""} {
+                tk_messageBox -parent .mitglieder.bearbeiten \
+                              -icon warning \
+                              -type ok \
+                              -title "Fehlende Eingaben" \
+                              -message "Bitte füllen Sie mindestens Nachname und Vorname aus."
+                return
+            }
+
+            # Mitglied in der Liste aktualisieren
+            set ::mitglieder_liste [lreplace $::mitglieder_liste $::markiertes_mitglied $::markiertes_mitglied \
+                [list $nachname $vorname $strasse $plz $ort $festnetz $mobilfunk $email $geburtsdatum $eintrittsdatum $funktion]]
+
+            # Markierung zurücksetzen
+            set ::markiertes_mitglied -1
+
+            # JSON-Datei neu schreiben
+            schreibe_mitglieder_json
+
+            # Anzeige aktualisieren
+            zeige_alle_mitglieder
+
+            # Dialog schließen
+            destroy .mitglieder.bearbeiten
+
+            # Erfolgs-Meldung
+            tk_messageBox -parent .mitglieder \
+                          -icon info \
                           -type ok \
-                          -title "Fehlende Eingaben" \
-                          -message "Bitte füllen Sie mindestens Nachname und Vorname aus."
-            return
+                          -title "Bearbeiten erfolgreich" \
+                          -message "Das Mitglied $vorname $nachname wurde erfolgreich aktualisiert."
+        } error_msg]} {
+            # Fehler anzeigen falls etwas schief geht
+            tk_messageBox -parent .mitglieder.bearbeiten \
+                          -icon error \
+                          -type ok \
+                          -title "Fehler beim Speichern" \
+                          -message "Es ist ein Fehler aufgetreten:\n\n$error_msg\n\n$::errorInfo"
         }
-
-        # Mitglied in der Liste aktualisieren
-        set ::mitglieder_liste [lreplace $::mitglieder_liste $::markiertes_mitglied $::markiertes_mitglied \
-            [list $nachname $vorname $strasse $plz $ort $festnetz $mobilfunk $email $geburtsdatum $eintrittsdatum $funktion]]
-
-        # Markierung zurücksetzen
-        set ::markiertes_mitglied -1
-
-        # JSON-Datei neu schreiben
-        schreibe_mitglieder_json
-
-        # Anzeige aktualisieren
-        zeige_alle_mitglieder
-
-        # Dialog schließen
-        destroy .mitglieder.bearbeiten
-
-        # Erfolgs-Meldung
-        tk_messageBox -parent .mitglieder \
-                      -icon info \
-                      -type ok \
-                      -title "Bearbeiten erfolgreich" \
-                      -message "Das Mitglied $vorname $nachname wurde erfolgreich aktualisiert."
     }
     pack .mitglieder.bearbeiten.buttons.speichern -side right -padx 5
 
@@ -745,9 +765,11 @@ proc open_mitglieder_fenster {} {
     ttk::style configure Treeview -font {TkDefaultFont 11} -rowheight 22
 
     # Treeview-Widget mit Spalten für Mitgliederdaten
+    # -selectmode browse: Erlaubt nur Einzelauswahl, keine Mehrfachauswahl mit Strg/Shift
     ttk::treeview .mitglieder.main.tree \
         -columns {nachname vorname strasse plz ort festnetz mobilfunk email geburtsdatum eintrittsdatum} \
         -show headings \
+        -selectmode browse \
         -yscrollcommand {.mitglieder.main.yscroll set} \
         -xscrollcommand {.mitglieder.main.xscroll set}
 
@@ -879,4 +901,16 @@ proc open_mitglieder_fenster {} {
     bind .mitglieder <Escape> {
         zeige_alle_mitglieder
     }
+
+    # =============================================================================
+    # Tastatur-Shortcuts für das Mitglieder-Fenster
+    # =============================================================================
+
+    # Strg+S für Suchen
+    bind .mitglieder <Control-s> {.mitglieder.toolbar.search invoke}
+    bind .mitglieder <Control-S> {.mitglieder.toolbar.search invoke}
+
+    # Strg+N für Hinzufügen
+    bind .mitglieder <Control-n> {.mitglieder.toolbar.add invoke}
+    bind .mitglieder <Control-N> {.mitglieder.toolbar.add invoke}
 }

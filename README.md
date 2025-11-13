@@ -8,7 +8,7 @@ In meinem Schießsportverein wurde der Schießbetrieb und die Mitgliederverwaltu
 
 SVM Journal setzt einen Tcl/Tk Interpreter voraus.
 
-Unter Linux lässt sich  Tcl/Tk, sofern nicht schon vorhanden, aus den Repositorys installieren. 
+Unter Linux lässt sich  Tcl/Tk, sofern nicht schon vorhanden, aus den Repositorys installieren.
 
 **Debian** / **Ubuntu**:
 
@@ -86,7 +86,6 @@ Alle JSON-Dateien und Benutzerdaten werden dort gespeichert, das Programm-Verzei
 
 - Statusleiste mit Datum- und Uhrzeitanzeige
 
-  
 
 
 

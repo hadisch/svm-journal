@@ -27,6 +27,9 @@ namespace eval ::neuer_eintrag {
     # Einzelpreis pro Munitionseinheit (wird gespeichert wenn Munition gewählt wird)
     variable munitions_einzelpreis "0,00"
 
+    # Liste der hinzugefügten Munitionskäufe (jeder Eintrag: dict mit kaliber, anzahl, einzelpreis, gesamtpreis)
+    variable munitions_liste [list]
+
     # Stand-Nutzungs-Preise
     variable stand_preise [dict create]
 
@@ -183,6 +186,161 @@ proc ::neuer_eintrag::lade_stand_preise {} {
             dict set stand_preise "Gilde" [string trim $preis]
         }
     }
+}
+
+# =============================================================================
+# Prozedur: validiere_preis_eingabe
+# Validiert Eingaben für Preis-Felder (Startgeld, Munitionspreis)
+# Erlaubt nur numerische Werte mit optionalem Komma oder Punkt
+# Parameter:
+#   neuer_wert - Der neue eingegebene Wert
+# Rückgabe: 1 wenn gültig, 0 wenn ungültig (blockiert Eingabe)
+# =============================================================================
+proc ::neuer_eintrag::validiere_preis_eingabe {neuer_wert} {
+    # Leerer String ist erlaubt (Feld kann leer sein während der Eingabe)
+    if {$neuer_wert eq ""} {
+        return 1
+    }
+
+    # Nur Ziffern, Komma und Punkt erlauben
+    # Regex: Optional ein Minus am Anfang, dann Ziffern, optional ein Komma/Punkt, dann weitere Ziffern
+    # Beispiele: "5", "5,00", "5.50", "12,5"
+    if {[regexp {^[0-9]*[,.]?[0-9]*$} $neuer_wert]} {
+        return 1
+    }
+
+    # Ungültiger Wert - Eingabe blockieren
+    return 0
+}
+
+# =============================================================================
+# Prozedur: normalisiere_preis
+# Normalisiert einen Preis-Wert zu einem gültigen Format
+# Wandelt nicht-numerische Werte in "0,00" um
+# Parameter:
+#   wert - Der zu normalisierende Wert
+# Rückgabe: Normalisierter Preis im Format "0,00"
+# =============================================================================
+proc ::neuer_eintrag::normalisiere_preis {wert} {
+    # Wert trimmen
+    set wert [string trim $wert]
+
+    # Prüfen, ob Wert leer ist
+    if {$wert eq ""} {
+        return "0,00"
+    }
+
+    # Komma durch Punkt ersetzen für numerische Prüfung
+    set wert_numerisch [string map {"," "."} $wert]
+
+    # Prüfen, ob der Wert numerisch ist
+    if {[catch {expr {$wert_numerisch + 0}}]} {
+        # Nicht numerisch - auf 0,00 setzen
+        return "0,00"
+    }
+
+    # Numerisch - Format normalisieren auf 2 Dezimalstellen
+    set wert_float [expr {$wert_numerisch + 0.0}]
+    set wert_formatiert [format "%.2f" $wert_float]
+
+    # Punkt zurück zu Komma für deutsches Format
+    set wert_formatiert [string map {"." ","} $wert_formatiert]
+
+    return $wert_formatiert
+}
+
+# =============================================================================
+# Prozedur: startgeld_fokus_verloren
+# Wird aufgerufen, wenn das Startgeld-Feld den Fokus verliert
+# Normalisiert den eingegebenen Wert
+# =============================================================================
+proc ::neuer_eintrag::startgeld_fokus_verloren {} {
+    variable startgeld
+
+    # Wert normalisieren
+    set startgeld [normalisiere_preis $startgeld]
+}
+
+# =============================================================================
+# Prozedur: validiere_anzahl_eingabe
+# Validiert Eingaben für das Anzahl-Feld
+# Erlaubt nur numerische Werte (für Stückzahlen)
+# Parameter:
+#   neuer_wert - Der neue eingegebene Wert
+# Rückgabe: 1 wenn gültig, 0 wenn ungültig (blockiert Eingabe)
+# =============================================================================
+proc ::neuer_eintrag::validiere_anzahl_eingabe {neuer_wert} {
+    # Leerer String ist erlaubt (Feld kann leer sein während der Eingabe)
+    if {$neuer_wert eq ""} {
+        return 1
+    }
+
+    # Nur Ziffern, Komma und Punkt erlauben (für Dezimalzahlen)
+    # Beispiele: "1", "10", "2,5", "3.5"
+    if {[regexp {^[0-9]*[,.]?[0-9]*$} $neuer_wert]} {
+        return 1
+    }
+
+    # Ungültiger Wert - Eingabe blockieren
+    return 0
+}
+
+# =============================================================================
+# Prozedur: normalisiere_anzahl
+# Normalisiert einen Anzahl-Wert zu einem gültigen Format
+# Wandelt nicht-numerische Werte in "1" um
+# Parameter:
+#   wert - Der zu normalisierende Wert
+# Rückgabe: Normalisierte Anzahl (mindestens "1")
+# =============================================================================
+proc ::neuer_eintrag::normalisiere_anzahl {wert} {
+    # Wert trimmen
+    set wert [string trim $wert]
+
+    # Prüfen, ob Wert leer ist
+    if {$wert eq ""} {
+        return "1"
+    }
+
+    # Komma durch Punkt ersetzen für numerische Prüfung
+    set wert_numerisch [string map {"," "."} $wert]
+
+    # Prüfen, ob der Wert numerisch ist
+    if {[catch {expr {$wert_numerisch + 0}}]} {
+        # Nicht numerisch - auf 1 setzen
+        return "1"
+    }
+
+    # Numerisch - prüfen, ob größer als 0
+    set wert_float [expr {$wert_numerisch + 0.0}]
+
+    if {$wert_float <= 0} {
+        # Null oder negativ - auf 1 setzen
+        return "1"
+    }
+
+    # Wenn es eine Ganzzahl ist, ohne Dezimalstellen ausgeben
+    if {$wert_float == int($wert_float)} {
+        return [format "%.0f" $wert_float]
+    }
+
+    # Dezimalzahl - auf 2 Stellen formatieren mit deutschem Komma
+    set wert_formatiert [format "%.2f" $wert_float]
+    set wert_formatiert [string map {"." ","} $wert_formatiert]
+
+    return $wert_formatiert
+}
+
+# =============================================================================
+# Prozedur: anzahl_fokus_verloren
+# Wird aufgerufen, wenn das Anzahl-Feld den Fokus verliert
+# Normalisiert den eingegebenen Wert
+# =============================================================================
+proc ::neuer_eintrag::anzahl_fokus_verloren {} {
+    variable anzahl
+
+    # Wert normalisieren
+    set anzahl [normalisiere_anzahl $anzahl]
 }
 
 # =============================================================================
@@ -383,28 +541,108 @@ proc ::neuer_eintrag::munition_geaendert {args} {
 
 # =============================================================================
 # Prozedur: berechne_munitionspreis
-# Berechnet den Gesamtpreis der Munition basierend auf Anzahl × Einzelpreis
+# Berechnet den Gesamtpreis der Munition über alle hinzugefügten Kaliber
 # =============================================================================
 proc ::neuer_eintrag::berechne_munitionspreis {args} {
-    variable anzahl
-    variable munitions_einzelpreis
+    variable munitions_liste
     variable munitionspreis
 
-    # Einzelpreis und Anzahl in numerisches Format konvertieren (Komma → Punkt)
-    set einzelpreis_numerisch [string map {"," "."} $munitions_einzelpreis]
-    set anzahl_numerisch [string map {"," "."} $anzahl]
+    # Gesamtpreis über alle hinzugefügten Kaliber berechnen
+    set gesamt_preis 0.0
 
-    # Validierung: Wenn Anzahl leer oder keine Zahl ist, Standardwert 1 setzen
-    if {[catch {expr {$anzahl_numerisch + 0}}] || $anzahl_numerisch eq ""} {
-        set anzahl_numerisch 1
+    foreach munitions_eintrag $munitions_liste {
+        # Gesamtpreis für diesen Eintrag holen und addieren
+        set preis_str [dict get $munitions_eintrag gesamtpreis]
+        set preis_numerisch [string map {"," "."} $preis_str]
+        set gesamt_preis [expr {$gesamt_preis + $preis_numerisch}]
     }
-
-    # Gesamtpreis berechnen: Anzahl × Einzelpreis
-    set gesamt_preis [expr {$anzahl_numerisch * $einzelpreis_numerisch}]
 
     # Zurück zu deutschem Format konvertieren (Punkt → Komma)
     set munitionspreis [format "%.2f" $gesamt_preis]
     set munitionspreis [string map {"." ","} $munitionspreis]
+}
+
+# =============================================================================
+# Prozedur: munition_hinzufuegen
+# Fügt das aktuell gewählte Kaliber mit Anzahl zur Munitionsliste hinzu
+# =============================================================================
+proc ::neuer_eintrag::munition_hinzufuegen {} {
+    variable munition
+    variable anzahl
+    variable munitions_einzelpreis
+    variable munitions_liste
+    variable fenster
+
+    # Prüfen, ob ein Kaliber ausgewählt ist (nicht "Keine")
+    if {$munition eq "Keine" || $munition eq ""} {
+        tk_messageBox -parent $fenster -icon warning -title "Keine Munition" \
+            -message "Bitte wählen Sie zuerst ein Kaliber aus."
+        return
+    }
+
+    # Anzahl validieren
+    set anzahl_numerisch [string map {"," "."} $anzahl]
+    if {[catch {expr {$anzahl_numerisch + 0}}] || $anzahl_numerisch eq "" || $anzahl_numerisch <= 0} {
+        tk_messageBox -parent $fenster -icon warning -title "Ungültige Anzahl" \
+            -message "Bitte geben Sie eine gültige Anzahl (größer als 0) ein."
+        return
+    }
+
+    # Gesamtpreis für diesen Eintrag berechnen
+    set einzelpreis_numerisch [string map {"," "."} $munitions_einzelpreis]
+    set eintrag_gesamtpreis [expr {$anzahl_numerisch * $einzelpreis_numerisch}]
+    set eintrag_gesamtpreis_str [format "%.2f" $eintrag_gesamtpreis]
+    set eintrag_gesamtpreis_str [string map {"." ","} $eintrag_gesamtpreis_str]
+
+    # Eintrag zur Liste hinzufügen
+    set neuer_eintrag [dict create \
+        kaliber $munition \
+        anzahl $anzahl \
+        einzelpreis $munitions_einzelpreis \
+        gesamtpreis $eintrag_gesamtpreis_str \
+    ]
+    lappend munitions_liste $neuer_eintrag
+
+    # Listbox aktualisieren
+    aktualisiere_munitions_listbox
+
+    # Gesamtpreis neu berechnen
+    berechne_munitionspreis
+
+    # Felder zurücksetzen für nächste Eingabe
+    set munition "Keine"
+    set anzahl "1"
+    set munitions_einzelpreis "0,00"
+}
+
+# =============================================================================
+# Prozedur: aktualisiere_munitions_listbox
+# Aktualisiert die Anzeige der hinzugefügten Munitionskäufe in der Listbox
+# =============================================================================
+proc ::neuer_eintrag::aktualisiere_munitions_listbox {} {
+    variable munitions_liste
+    variable fenster
+
+    # Prüfen, ob Listbox existiert
+    if {![winfo exists $fenster.munitions_liste_frame.listbox]} {
+        return
+    }
+
+    set listbox $fenster.munitions_liste_frame.listbox
+
+    # Listbox leeren
+    $listbox delete 0 end
+
+    # Alle Einträge hinzufügen
+    foreach munitions_eintrag $munitions_liste {
+        set kaliber [dict get $munitions_eintrag kaliber]
+        set anzahl [dict get $munitions_eintrag anzahl]
+        set gesamtpreis [dict get $munitions_eintrag gesamtpreis]
+
+        # Format: "Kaliber (Anzahl Stk.) - Preis €"
+        set anzeige_text "$kaliber ($anzahl Stk.) - $gesamtpreis €"
+        $listbox insert end $anzeige_text
+    }
 }
 
 # =============================================================================
@@ -545,6 +783,7 @@ proc ::neuer_eintrag::speichern_und_anzeigen {} {
     variable anzahl
     variable munition
     variable munitionspreis
+    variable munitions_liste
     variable fenster
     global script_dir
 
@@ -552,6 +791,27 @@ proc ::neuer_eintrag::speichern_und_anzeigen {} {
     if {![validiere_eingaben]} {
         return
     }
+
+    # Munitions-String aus der Liste erstellen
+    # Format: "Kaliber1 (Anzahl1), Kaliber2 (Anzahl2)" oder "Keine"
+    set munitions_string "Keine"
+    set munitions_anzahl_string "0"
+
+    if {[llength $munitions_liste] > 0} {
+        set munitions_teile [list]
+        foreach munitions_eintrag $munitions_liste {
+            set kal [dict get $munitions_eintrag kaliber]
+            set anz [dict get $munitions_eintrag anzahl]
+            lappend munitions_teile "$kal ($anz)"
+        }
+        set munitions_string [join $munitions_teile ", "]
+        # Gesamtanzahl für Kompatibilität (wird bei mehreren Kalibern nicht mehr aussagekräftig)
+        set munitions_anzahl_string "1"
+    }
+
+    # Überschreibe die Variablen für das Speichern
+    set munition $munitions_string
+    set anzahl $munitions_anzahl_string
 
     # Jahr aus dem eingegebenen Datum extrahieren (Format: DD.MM.YYYY)
     if {[regexp {^\d{2}\.\d{2}\.(\d{4})$} $datum -> jahr]} {
@@ -1038,6 +1298,7 @@ proc open_neuer_eintrag_fenster {} {
     set ::neuer_eintrag::munition "Keine"
     set ::neuer_eintrag::munitions_einzelpreis "0,00"
     set ::neuer_eintrag::munitionspreis "0,00"
+    set ::neuer_eintrag::munitions_liste [list]
 
     # Daten laden
     ::neuer_eintrag::lade_mitglieder_daten
@@ -1059,8 +1320,8 @@ proc open_neuer_eintrag_fenster {} {
     # Neues Toplevel-Fenster
     toplevel $w
     wm title $w "Neuer Eintrag"
-    # Optimale Größe für alle Eingabefelder und Buttons
-    wm geometry $w "720x530"
+    # Optimale Größe für alle Eingabefelder, Listbox und Buttons
+    wm geometry $w "720x650"
 
     # Hauptframe mit Padding
     frame $w.main -padx 20 -pady 20
@@ -1184,8 +1445,13 @@ proc open_neuer_eintrag_fenster {} {
     pack $w.startgeld_frame.label -side left
 
     # Startgeld-Eingabefeld (editierbar für manuelle Anpassungen in Sonderfällen)
-    entry $w.startgeld_frame.entry -textvariable ::neuer_eintrag::startgeld -width 40
+    # Mit Validierung: Nur numerische Werte erlauben
+    entry $w.startgeld_frame.entry -textvariable ::neuer_eintrag::startgeld -width 40 \
+        -validate key -validatecommand {::neuer_eintrag::validiere_preis_eingabe %P}
     pack $w.startgeld_frame.entry -side left -fill x -expand 1
+
+    # Fokus-Verlust-Event: Wert normalisieren (auf 2 Dezimalstellen formatieren)
+    bind $w.startgeld_frame.entry <FocusOut> ::neuer_eintrag::startgeld_fokus_verloren
 
     # =========================================================================
     # Munition und Anzahl in einer Zeile
@@ -1215,11 +1481,40 @@ proc open_neuer_eintrag_fenster {} {
     pack $w.munition_anzahl_frame.anzahl_label -side left -padx "20 0"
 
     # Anzahl-Eingabefeld für Munition (numerischer Wert)
-    entry $w.munition_anzahl_frame.anzahl_entry -textvariable ::neuer_eintrag::anzahl -width 10
+    # Mit Validierung: Nur numerische Werte erlauben
+    entry $w.munition_anzahl_frame.anzahl_entry -textvariable ::neuer_eintrag::anzahl -width 10 \
+        -validate key -validatecommand {::neuer_eintrag::validiere_anzahl_eingabe %P}
     pack $w.munition_anzahl_frame.anzahl_entry -side left -padx 5
 
-    # Trace für Live-Berechnung des Munitionspreises bei Anzahländerung
-    trace add variable ::neuer_eintrag::anzahl write ::neuer_eintrag::berechne_munitionspreis
+    # Fokus-Verlust-Event: Wert normalisieren (auf gültige positive Zahl)
+    bind $w.munition_anzahl_frame.anzahl_entry <FocusOut> ::neuer_eintrag::anzahl_fokus_verloren
+
+    # Enter-Taste im Anzahl-Feld soll Munition hinzufügen
+    bind $w.munition_anzahl_frame.anzahl_entry <Return> ::neuer_eintrag::munition_hinzufuegen
+
+    # Hinzufügen-Button (hellblau, farbig)
+    button $w.munition_anzahl_frame.add_button -text "Hinzufügen" -bg "#ADD8E6" -width 12 \
+        -command ::neuer_eintrag::munition_hinzufuegen
+    pack $w.munition_anzahl_frame.add_button -side left -padx 10
+
+    # =========================================================================
+    # Listbox für hinzugefügte Munitionskäufe
+    # =========================================================================
+    frame $w.munitions_liste_frame
+    pack $w.munitions_liste_frame -in $w.main -fill both -expand 1 -pady 5
+
+    label $w.munitions_liste_frame.label -text "Hinzugefügte Munition:" -anchor w
+    pack $w.munitions_liste_frame.label -side top -anchor w
+
+    # Listbox mit Scrollbar
+    frame $w.munitions_liste_frame.list_container
+    pack $w.munitions_liste_frame.list_container -side top -fill both -expand 1
+
+    scrollbar $w.munitions_liste_frame.list_container.scrollbar -command "$w.munitions_liste_frame.listbox yview"
+    pack $w.munitions_liste_frame.list_container.scrollbar -side right -fill y
+
+    listbox $w.munitions_liste_frame.listbox -height 4 -yscrollcommand "$w.munitions_liste_frame.list_container.scrollbar set"
+    pack $w.munitions_liste_frame.listbox -in $w.munitions_liste_frame.list_container -side left -fill both -expand 1
 
     # =========================================================================
     # Munitionspreis-Anzeige (readonly)

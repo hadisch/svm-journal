@@ -36,6 +36,15 @@ set kaliber_preise_json [::pfad::get_json_path "preferences" "kaliber-preise.jso
 # Stand-Nutzung: Protokollierung der Standnutzung
 set stand_nutzung_json [::pfad::get_json_path "preferences" "stand-nutzung.json"]
 
+# Vereinsdaten: Informationen über den Verein
+set verein_json [::pfad::get_json_path "preferences" "verein.json"]
+
+# Behördendaten: Informationen über die zuständige Waffenbehörde
+set behoerde_json [::pfad::get_json_path "preferences" "behoerde.json"]
+
+# Waffenregister: Liste aller Vereinswaffen
+set waffenregister_json [::pfad::get_json_path "daten" "waffenregister.json"]
+
 # =============================================================================
 
 # Bestätigungsdialog für Programmbeendigung laden
@@ -70,6 +79,21 @@ source [file join [file dirname [info script]] inc standnutzung_preise_dialog.tc
 
 # Über-Dialog - Zeigt Informationen über das Programm
 source [file join [file dirname [info script]] inc ueber_dialog.tcl]
+
+# Verein-Dialog - Verwaltung von Vereinsdaten
+source [file join [file dirname [info script]] inc verein_dialog.tcl]
+
+# Behörden-Dialog - Verwaltung von Behördendaten
+source [file join [file dirname [info script]] inc behoerde_dialog.tcl]
+
+# Waffenregister-Dialog - Verwaltung der Vereinswaffen
+source [file join [file dirname [info script]] inc waffenregister_dialog.tcl]
+
+# Waffenverleih-Dialog - Dokumentation von Waffenausleihen
+source [file join [file dirname [info script]] inc waffenverleih_dialog.tcl]
+
+# Waffenverleih-HTML-Export - HTML-Dokumentengenerierung für Waffenverleih
+source [file join [file dirname [info script]] inc waffenverleih_html_export.tcl]
 
 # Daten-Prüfungs-Dialog - Werkzeug zur Überprüfung und Reparatur der JSON-Datenbank
 source [file join [file dirname [info script]] inc daten_pruefen_dialog.tcl]
@@ -134,10 +158,16 @@ menu .menubar.file.export -tearoff 0
 menu .menubar.settings -tearoff 0
 .menubar.settings add command -label "Preise Munition..." -command {open_munitions_preise_dialog}
 .menubar.settings add command -label "Preise Standnutzung..." -command {open_standnutzung_preise_dialog}
+.menubar.settings add separator
+.menubar.settings add command -label "Verein" -command {open_verein_dialog}
+.menubar.settings add command -label "Beh\u00f6rde" -command {open_behoerde_dialog}
 .menubar add cascade -label "Einstellungen" -menu .menubar.settings
 
 # Menü "Werkzeuge" erstellen
 menu .menubar.tools -tearoff 0
+.menubar.tools add command -label "Waffenregister" -command {open_waffenregister_dialog}
+.menubar.tools add command -label "Waffenverleih" -command {open_waffenverleih_dialog}
+.menubar.tools add separator
 .menubar.tools add command -label "Daten \u00fcberpr\u00fcfen..." -command {open_daten_pruefen_dialog}
 .menubar add cascade -label "Werkzeuge" -menu .menubar.tools
 

@@ -582,6 +582,17 @@ proc ::pfad::get_daten_directory {} {
 }
 
 # =============================================================================
+# Funktion: get_preferences_directory
+# Gibt das Preferences-Verzeichnis zurück
+# Rückgabe:
+#   Absoluter Pfad zum Preferences-Verzeichnis
+# =============================================================================
+proc ::pfad::get_preferences_directory {} {
+    variable preferences_dir
+    return $preferences_dir
+}
+
+# =============================================================================
 # Pfad-Management beim Laden initialisieren
 # =============================================================================
 

@@ -464,6 +464,202 @@ proc ::daten_pruefen::pruefe_datei {datei_pfad} {
 }
 
 # =============================================================================
+# Prozedur: pruefe_kaliber_preise_datei
+# Prüft die kaliber-preise.json Datei und korrigiert Preise
+# Parameter:
+#   datei_pfad - Pfad zur JSON-Datei
+# Rückgabe: Dictionary mit Statistiken {geprueft X korrigiert Y fehler Z}
+# =============================================================================
+proc ::daten_pruefen::pruefe_kaliber_preise_datei {datei_pfad} {
+    variable backups_erstellt
+
+    # Statistik für diese Datei
+    set stat_geprueft 0
+    set stat_korrigiert 0
+    set stat_fehler 0
+
+    # Dateiname extrahieren
+    set dateiname [file tail $datei_pfad]
+
+    log_ausgabe "=========================================="
+    log_ausgabe "Prüfe Datei: $dateiname"
+    log_ausgabe "=========================================="
+
+    # Datei lesen
+    if {[catch {
+        set fp [open $datei_pfad r]
+        fconfigure $fp -encoding utf-8
+        set json_content [read $fp]
+        close $fp
+    } fehler]} {
+        log_fehler "Fehler beim Laden der Datei: $fehler"
+        return [dict create geprueft 0 korrigiert 0 fehler 1]
+    }
+
+    # JSON parsen - Zeile für Zeile
+    set lines [split $json_content "\n"]
+    set neue_lines [list]
+    set backup_erforderlich 0
+
+    foreach line $lines {
+        set neue_line $line
+
+        # Preis-Felder suchen und prüfen
+        if {[string match "*\"preis\":*" $line]} {
+            if {[regexp {"preis":\s*"([^"]*)"} $line -> preis]} {
+                incr stat_geprueft
+
+                # Preis normalisieren
+                set neuer_preis [normalisiere_preis $preis]
+
+                if {$preis ne $neuer_preis} {
+                    log_ausgabe "  Preis normalisiert: '$preis' -> '$neuer_preis'"
+                    incr stat_korrigiert
+                    set backup_erforderlich 1
+
+                    # Zeile aktualisieren
+                    set neue_line [regsub {"preis":\s*"[^"]*"} $line "\"preis\": \"$neuer_preis\""]
+                }
+            }
+        }
+
+        lappend neue_lines $neue_line
+    }
+
+    # Backup erstellen und Datei speichern (nur wenn Änderungen)
+    if {$backup_erforderlich} {
+        set backup_pfad "${datei_pfad}.backup"
+
+        if {[catch {
+            file copy -force $datei_pfad $backup_pfad
+            log_erfolg "  Backup erstellt: [file tail $backup_pfad]"
+            incr backups_erstellt
+        } fehler]} {
+            log_fehler "  Fehler beim Erstellen des Backups: $fehler"
+        }
+
+        # Datei speichern
+        if {[catch {
+            set fp [open $datei_pfad w]
+            fconfigure $fp -encoding utf-8
+            puts $fp [join $neue_lines "\n"]
+            close $fp
+            log_erfolg "  Datei aktualisiert: $stat_korrigiert Korrekturen vorgenommen"
+        } fehler]} {
+            log_fehler "  Fehler beim Speichern der Datei: $fehler"
+            incr stat_fehler
+        }
+    } else {
+        log_erfolg "  Keine Korrekturen erforderlich"
+    }
+
+    log_ausgabe ""
+
+    return [dict create geprueft $stat_geprueft korrigiert $stat_korrigiert fehler $stat_fehler]
+}
+
+# =============================================================================
+# Prozedur: pruefe_stand_nutzung_datei
+# Prüft die stand-nutzung.json Datei und korrigiert Preise
+# Parameter:
+#   datei_pfad - Pfad zur JSON-Datei
+# Rückgabe: Dictionary mit Statistiken {geprueft X korrigiert Y fehler Z}
+# =============================================================================
+proc ::daten_pruefen::pruefe_stand_nutzung_datei {datei_pfad} {
+    variable backups_erstellt
+
+    # Statistik für diese Datei
+    set stat_geprueft 0
+    set stat_korrigiert 0
+    set stat_fehler 0
+
+    # Dateiname extrahieren
+    set dateiname [file tail $datei_pfad]
+
+    log_ausgabe "=========================================="
+    log_ausgabe "Prüfe Datei: $dateiname"
+    log_ausgabe "=========================================="
+
+    # Datei lesen
+    if {[catch {
+        set fp [open $datei_pfad r]
+        fconfigure $fp -encoding utf-8
+        set json_content [read $fp]
+        close $fp
+    } fehler]} {
+        log_fehler "Fehler beim Laden der Datei: $fehler"
+        return [dict create geprueft 0 korrigiert 0 fehler 1]
+    }
+
+    # JSON parsen - Zeile für Zeile
+    set lines [split $json_content "\n"]
+    set neue_lines [list]
+    set backup_erforderlich 0
+
+    # Preis-Felder in stand-nutzung.json:
+    # "Mitglied Luftdruck", "Mitglied Kleinkaliber", "Mitglied Grosskaliber", "Gast"
+    set preis_felder [list "Mitglied Luftdruck" "Mitglied Kleinkaliber" "Mitglied Grosskaliber" "Gast"]
+
+    foreach line $lines {
+        set neue_line $line
+
+        # Jedes Preis-Feld prüfen
+        foreach feld $preis_felder {
+            if {[string match "*\"$feld\":*" $line]} {
+                if {[regexp "\"$feld\":\\s*\"(\[^\"\]*)\"" $line -> preis]} {
+                    incr stat_geprueft
+
+                    # Preis normalisieren
+                    set neuer_preis [normalisiere_preis $preis]
+
+                    if {$preis ne $neuer_preis} {
+                        log_ausgabe "  $feld: '$preis' -> '$neuer_preis'"
+                        incr stat_korrigiert
+                        set backup_erforderlich 1
+
+                        # Zeile aktualisieren
+                        set neue_line [regsub "\"$feld\":\\s*\"(\[^\"\]*)\"" $neue_line "\"$feld\": \"$neuer_preis\""]
+                    }
+                }
+            }
+        }
+
+        lappend neue_lines $neue_line
+    }
+
+    # Backup erstellen und Datei speichern (nur wenn Änderungen)
+    if {$backup_erforderlich} {
+        set backup_pfad "${datei_pfad}.backup"
+
+        if {[catch {
+            file copy -force $datei_pfad $backup_pfad
+            log_erfolg "  Backup erstellt: [file tail $backup_pfad]"
+            incr backups_erstellt
+        } fehler]} {
+            log_fehler "  Fehler beim Erstellen des Backups: $fehler"
+        }
+
+        # Datei speichern
+        if {[catch {
+            set fp [open $datei_pfad w]
+            fconfigure $fp -encoding utf-8
+            puts $fp [join $neue_lines "\n"]
+            close $fp
+            log_erfolg "  Datei aktualisiert: $stat_korrigiert Korrekturen vorgenommen"
+        } fehler]} {
+            log_fehler "  Fehler beim Speichern der Datei: $fehler"
+            incr stat_fehler
+        }
+    } else {
+        log_erfolg "  Keine Korrekturen erforderlich"
+    }
+
+    log_ausgabe ""
+
+    return [dict create geprueft $stat_geprueft korrigiert $stat_korrigiert fehler $stat_fehler]
+}
+
+# =============================================================================
 # Prozedur: starte_pruefung
 # Startet die Datenprüfung für alle JSON-Dateien
 # =============================================================================
@@ -505,34 +701,75 @@ proc ::daten_pruefen::starte_pruefung {} {
     log_ausgabe "Gestartet am: [clock format [clock seconds] -format "%d.%m.%Y %H:%M:%S"]"
     log_ausgabe ""
 
-    # Daten-Verzeichnis und Archiv-Verzeichnis
+    # Daten-Verzeichnis, Archiv-Verzeichnis und Preferences-Verzeichnis
     set daten_dir [::pfad::get_daten_directory]
     set archiv_dir [::pfad::get_archiv_directory]
+    set preferences_dir [::pfad::get_preferences_directory]
 
-    # Alle JSON-Dateien sammeln (außer mitglieder.json)
-    set alle_dateien [list]
+    # Alle JSON-Dateien sammeln
+    # Journal-Dateien (außer mitglieder.json)
+    set journal_dateien [list]
+    # Preferences-Dateien
+    set preferences_dateien [list]
 
+    # Daten-Verzeichnis durchsuchen
     if {[file exists $daten_dir]} {
         foreach datei [glob -nocomplain -directory $daten_dir *.json] {
             # mitglieder.json überspringen
             if {[file tail $datei] ne "mitglieder.json"} {
-                lappend alle_dateien $datei
+                lappend journal_dateien $datei
             }
         }
     }
 
+    # Archiv-Verzeichnis durchsuchen
     if {[file exists $archiv_dir]} {
         foreach datei [glob -nocomplain -directory $archiv_dir *.json] {
-            lappend alle_dateien $datei
+            lappend journal_dateien $datei
         }
     }
 
-    log_ausgabe "Gefundene Dateien: [llength $alle_dateien]"
+    # Preferences-Verzeichnis durchsuchen
+    if {[file exists $preferences_dir]} {
+        foreach datei [glob -nocomplain -directory $preferences_dir *.json] {
+            lappend preferences_dateien $datei
+        }
+    }
+
+    set gesamt_dateien [expr {[llength $journal_dateien] + [llength $preferences_dateien]}]
+    log_ausgabe "Gefundene Dateien: $gesamt_dateien"
+    log_ausgabe "  - Journal-Dateien: [llength $journal_dateien]"
+    log_ausgabe "  - Preferences-Dateien: [llength $preferences_dateien]"
     log_ausgabe ""
 
-    # Jede Datei prüfen
-    foreach datei $alle_dateien {
+    # Journal-Dateien prüfen
+    foreach datei $journal_dateien {
         set ergebnis [pruefe_datei $datei]
+
+        incr dateien_geprueft
+        incr eintraege_geprueft [dict get $ergebnis geprueft]
+        incr eintraege_korrigiert [dict get $ergebnis korrigiert]
+        incr fehler_gefunden [dict get $ergebnis fehler]
+    }
+
+    # Preferences-Dateien prüfen (mit speziellen Prüffunktionen)
+    foreach datei $preferences_dateien {
+        set dateiname [file tail $datei]
+        set ergebnis ""
+
+        # Richtige Prüffunktion basierend auf Dateinamen wählen
+        if {$dateiname eq "kaliber-preise.json"} {
+            set ergebnis [pruefe_kaliber_preise_datei $datei]
+        } elseif {$dateiname eq "stand-nutzung.json"} {
+            set ergebnis [pruefe_stand_nutzung_datei $datei]
+        } else {
+            # Unbekannte Preferences-Datei - überspringen
+            log_ausgabe "=========================================="
+            log_ausgabe "Überspringe unbekannte Datei: $dateiname"
+            log_ausgabe "=========================================="
+            log_ausgabe ""
+            continue
+        }
 
         incr dateien_geprueft
         incr eintraege_geprueft [dict get $ergebnis geprueft]
@@ -614,7 +851,7 @@ proc open_daten_pruefen_dialog {} {
     # =========================================================================
     # Beschreibung
     # =========================================================================
-    label $w.main.beschreibung -text "Dieses Werkzeug prüft alle JSON-Datenbank-Dateien auf Fehler und korrigiert diese automatisch.\n\nGeprüft werden:\n• Preis-Felder (Startgeld, Munitionspreis) auf numerische Werte\n• Datumsformate und Plausibilität\n• Vollständigkeit der Pflichtfelder\n\nVor jeder Änderung wird automatisch ein Backup erstellt." \
+    label $w.main.beschreibung -text "Dieses Werkzeug prüft alle JSON-Datenbank-Dateien auf Fehler und korrigiert diese automatisch.\n\nGeprüfte Verzeichnisse:\n• daten/ - Schießjournal-Einträge\n• archiv/ - Archivierte Einträge\n• preferences/ - Kaliber-Preise und Stand-Nutzungsgebühren\n\nValidierungen:\n• Preis-Felder auf numerische Werte und korrektes Format\n• Datumsformate und Plausibilität\n• Vollständigkeit der Pflichtfelder\n\nVor jeder Änderung wird automatisch ein Backup erstellt." \
         -justify left -anchor w
     pack $w.main.beschreibung -fill x -pady "0 20"
 

@@ -577,15 +577,18 @@ proc ::waffenverleih::validiere_und_exportiere {} {
             -message "Bitte geben Sie den Ort ein."
         return
     }
-    if {$besitzer_wbk_nummer eq ""} {
-        tk_messageBox -parent $fenster -icon warning -title "Fehler" \
-            -message "Bitte geben Sie die WBK-Nummer ein."
-        return
-    }
-    if {$besitzer_wbk_behoerde eq ""} {
-        tk_messageBox -parent $fenster -icon warning -title "Fehler" \
-            -message "Bitte geben Sie die ausstellende Behörde ein."
-        return
+    # WBK-Felder nur validieren, wenn WBK erforderlich ist (Leihe oder Verwahrung)
+    if {$wbk_erforderlich} {
+        if {$besitzer_wbk_nummer eq ""} {
+            tk_messageBox -parent $fenster -icon warning -title "Fehler" \
+                -message "Bei Leihe und Verwahrung ist die WBK-Nummer erforderlich."
+            return
+        }
+        if {$besitzer_wbk_behoerde eq ""} {
+            tk_messageBox -parent $fenster -icon warning -title "Fehler" \
+                -message "Bei Leihe und Verwahrung ist die ausstellende Behörde erforderlich."
+            return
+        }
     }
 
     # SCHRITT 5: Daten-Dict aufbauen
@@ -833,14 +836,14 @@ proc open_waffenverleih_dialog {} {
     grid $w.canvas.main.besitzer_frame.fields.ort_entry -row 7 -column 1 -sticky ew -pady 3
 
     # Zeile 8: WBK-Nummer
-    label $w.canvas.main.besitzer_frame.fields.wbk_label -text "WBK-Nummer:*" -anchor w
+    label $w.canvas.main.besitzer_frame.fields.wbk_label -text "WBK-Nummer:" -anchor w
     entry $w.canvas.main.besitzer_frame.fields.wbk_entry \
         -textvariable ::waffenverleih::besitzer_wbk_nummer -font {Arial 11}
     grid $w.canvas.main.besitzer_frame.fields.wbk_label -row 8 -column 0 -sticky w -pady 3
     grid $w.canvas.main.besitzer_frame.fields.wbk_entry -row 8 -column 1 -sticky ew -pady 3
 
     # Zeile 9: Ausstellende Behörde
-    label $w.canvas.main.besitzer_frame.fields.behoerde_label -text "Ausstellende Behörde:*" -anchor w
+    label $w.canvas.main.besitzer_frame.fields.behoerde_label -text "Ausstellende Behörde:" -anchor w
     entry $w.canvas.main.besitzer_frame.fields.behoerde_entry \
         -textvariable ::waffenverleih::besitzer_wbk_behoerde -font {Arial 11}
     grid $w.canvas.main.besitzer_frame.fields.behoerde_label -row 9 -column 0 -sticky w -pady 3
@@ -850,7 +853,7 @@ proc open_waffenverleih_dialog {} {
     grid columnconfigure $w.canvas.main.besitzer_frame.fields 1 -weight 1
 
     # Hinweis
-    label $w.canvas.main.besitzer_frame.hinweis -text "* Pflichtfelder" -fg "#666666" -font {Arial 9 italic}
+    label $w.canvas.main.besitzer_frame.hinweis -text "* Pflichtfelder\n(WBK nur bei Leihe/Verwahrung erforderlich)" -fg "#666666" -font {Arial 9 italic} -justify left
     pack $w.canvas.main.besitzer_frame.hinweis -anchor w -pady 5
 
     # === SEKTION 4: Überlasser (Read-only) ===

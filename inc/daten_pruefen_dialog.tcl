@@ -436,7 +436,12 @@ proc ::daten_pruefen::pruefe_datei {datei_pfad} {
 
     # Backup erstellen und Datei speichern (nur wenn Änderungen)
     if {$backup_erforderlich} {
-        set backup_pfad "${datei_pfad}.backup"
+        # Backup im zentralen Backup-Verzeichnis erstellen
+        set backup_dir [::pfad::get_backups_directory]
+        set dateiname [file tail $datei_pfad]
+        set timestamp [clock format [clock seconds] -format "%Y%m%d_%H%M%S"]
+        set backup_filename "${dateiname}.${timestamp}.backup"
+        set backup_pfad [file join $backup_dir $backup_filename]
 
         if {[catch {
             file copy -force $datei_pfad $backup_pfad
@@ -528,7 +533,12 @@ proc ::daten_pruefen::pruefe_kaliber_preise_datei {datei_pfad} {
 
     # Backup erstellen und Datei speichern (nur wenn Änderungen)
     if {$backup_erforderlich} {
-        set backup_pfad "${datei_pfad}.backup"
+        # Backup im zentralen Backup-Verzeichnis erstellen
+        set backup_dir [::pfad::get_backups_directory]
+        set dateiname [file tail $datei_pfad]
+        set timestamp [clock format [clock seconds] -format "%Y%m%d_%H%M%S"]
+        set backup_filename "${dateiname}.${timestamp}.backup"
+        set backup_pfad [file join $backup_dir $backup_filename]
 
         if {[catch {
             file copy -force $datei_pfad $backup_pfad
@@ -629,7 +639,12 @@ proc ::daten_pruefen::pruefe_stand_nutzung_datei {datei_pfad} {
 
     # Backup erstellen und Datei speichern (nur wenn Änderungen)
     if {$backup_erforderlich} {
-        set backup_pfad "${datei_pfad}.backup"
+        # Backup im zentralen Backup-Verzeichnis erstellen
+        set backup_dir [::pfad::get_backups_directory]
+        set dateiname [file tail $datei_pfad]
+        set timestamp [clock format [clock seconds] -format "%Y%m%d_%H%M%S"]
+        set backup_filename "${dateiname}.${timestamp}.backup"
+        set backup_pfad [file join $backup_dir $backup_filename]
 
         if {[catch {
             file copy -force $datei_pfad $backup_pfad
@@ -787,6 +802,8 @@ proc ::daten_pruefen::starte_pruefung {} {
     log_ausgabe "Fehler gefunden:      $fehler_gefunden"
     log_ausgabe "Backups erstellt:     $backups_erstellt"
     log_ausgabe ""
+    log_ausgabe "Backup-Speicherort: [::pfad::get_backups_directory]"
+    log_ausgabe ""
 
     if {$backups_erstellt > 0} {
         log_ausgabe "HINWEIS: Backup-Dateien wurden mit der Endung .backup erstellt."
@@ -842,7 +859,7 @@ proc open_daten_pruefen_dialog {} {
     # Neues Toplevel-Fenster
     toplevel $w
     wm title $w "Daten überprüfen"
-    wm geometry $w "900x600"
+    wm geometry $w "900x750"
 
     # Hauptframe mit Padding
     frame $w.main -padx 20 -pady 20

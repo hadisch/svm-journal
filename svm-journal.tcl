@@ -18,6 +18,10 @@ package require Tk
 source [file join [file dirname [info script]] inc pfad_management.tcl]
 
 # =============================================================================
+# Lock-Mechanismus - Verhindert mehrere Programminstanzen
+source [file join [file dirname [info script]] inc programm_lock.tcl]
+
+# =============================================================================
 # JSON-Dateipfade - Zentrale Deklaration aller JSON-Dateien im Projekt
 # =============================================================================
 # Dateien werden jetzt im User-Daten-Verzeichnis gespeichert:
@@ -98,6 +102,16 @@ source [file join [file dirname [info script]] inc waffenverleih_html_export.tcl
 # Daten-Prüfungs-Dialog - Werkzeug zur Überprüfung und Reparatur der JSON-Datenbank
 source [file join [file dirname [info script]] inc daten_pruefen_dialog.tcl]
 
+# =============================================================================
+# Lock-Mechanismus: Prüfen ob bereits eine Instanz läuft
+# =============================================================================
+if {![::programm_lock::acquire_lock]} {
+    # Eine andere Instanz läuft bereits - Warnung anzeigen und beenden
+    tk_messageBox -icon warning -type ok -title "Warnung" \
+        -message "Es läuft bereits eine Instanz des SVM-Journal.\n\nDas Programm wird beendet."
+    exit
+}
+
 # Fenstertitel setzen
 wm title . "SVM Journal"
 
@@ -134,8 +148,11 @@ wm geometry . +${x_pos}+${y_pos}
 lade_fenster_einstellungen
 
 # Fenster-Schließen-Ereignis abfangen (X-Button)
-# Bei Klick auf X wird confirm_exit aufgerufen statt direkt zu beenden
-wm protocol . WM_DELETE_WINDOW {confirm_exit}
+# Bei Klick auf X wird Lock freigegeben und dann confirm_exit aufgerufen
+wm protocol . WM_DELETE_WINDOW {
+    ::programm_lock::release_lock
+    confirm_exit
+}
 
 # Menüleiste erstellen
 # Hauptmenü als Menüleiste definieren

@@ -12,6 +12,36 @@ namespace eval ::waffenregister {
 }
 
 # =============================================================================
+# Prozedur: lade_behoerde_name
+# Beschreibung: Lädt den Behördennamen aus behoerde.json
+# Rückgabe: Behördenname oder leerer String bei Fehler
+# =============================================================================
+proc ::waffenregister::lade_behoerde_name {} {
+    # Lädt den Behördennamen aus behoerde.json
+    set behoerde_json [::pfad::get_json_path "preferences" "behoerde.json"]
+
+    if {![file exists $behoerde_json]} {
+        return ""
+    }
+
+    if {[catch {
+        set fp [open $behoerde_json r]
+        fconfigure $fp -encoding utf-8
+        set content [read $fp]
+        close $fp
+
+        # Behördennamen extrahieren
+        if {[regexp {"name":\s*"([^"]*)"} $content -> name]} {
+            return $name
+        }
+    }]} {
+        return ""
+    }
+
+    return ""
+}
+
+# =============================================================================
 # Prozedur: lade_waffenregister
 # Lädt alle Waffen aus der JSON-Datei
 # Rückgabe: Liste von Dicts mit Waffendaten
@@ -66,6 +96,14 @@ proc ::waffenregister::lade_waffenregister {} {
             if {[regexp {"hersteller":\s*"([^"]*)"} $line -> wert]} {
                 dict set current_weapon hersteller [string trim $wert]
             }
+            # Ausstellende Behörde extrahieren
+            if {[regexp {"ausstellende_behoerde":\s*"([^"]*)"} $line -> wert]} {
+                dict set current_weapon ausstellende_behoerde [string trim $wert]
+            }
+            # Bemerkungen extrahieren
+            if {[regexp {"bemerkungen":\s*"([^"]*)"} $line -> wert]} {
+                dict set current_weapon bemerkungen [string trim $wert]
+            }
 
             # Ende eines Waffen-Objekts erkennen
             if {[regexp {\}\s*,?\s*$} $line]} {
@@ -105,13 +143,26 @@ proc ::waffenregister::speichere_waffenregister {waffen_liste} {
         set seriennummer [dict get $waffe seriennummer]
         set wbk_nummer [dict get $waffe wbk_nummer]
         set hersteller [dict get $waffe hersteller]
+        # Neue Felder mit Standardwerten für Abwärtskompatibilität
+        if {[dict exists $waffe ausstellende_behoerde]} {
+            set ausstellende_behoerde [dict get $waffe ausstellende_behoerde]
+        } else {
+            set ausstellende_behoerde ""
+        }
+        if {[dict exists $waffe bemerkungen]} {
+            set bemerkungen [dict get $waffe bemerkungen]
+        } else {
+            set bemerkungen ""
+        }
 
         lappend lines "    \{"
         lappend lines "      \"art\": \"$art\","
         lappend lines "      \"kaliber\": \"$kaliber\","
         lappend lines "      \"seriennummer\": \"$seriennummer\","
         lappend lines "      \"wbk_nummer\": \"$wbk_nummer\","
-        lappend lines "      \"hersteller\": \"$hersteller\""
+        lappend lines "      \"hersteller\": \"$hersteller\","
+        lappend lines "      \"ausstellende_behoerde\": \"$ausstellende_behoerde\","
+        lappend lines "      \"bemerkungen\": \"$bemerkungen\""
 
         incr counter
         # Komma nur wenn nicht das letzte Element
@@ -198,8 +249,10 @@ proc ::waffenregister::speichere_neue_waffe {dialog} {
     set seriennummer [string trim [$dialog.main.seriennummer_entry get]]
     set wbk_nummer [string trim [$dialog.main.wbk_nummer_entry get]]
     set hersteller [string trim [$dialog.main.hersteller_entry get]]
+    set ausstellende_behoerde [string trim [$dialog.main.behoerde_entry get]]
+    set bemerkungen [string trim [$dialog.main.bemerkungen_text get 1.0 end]]
 
-    # Pflichtfelder validieren (alle außer Hersteller)
+    # Pflichtfelder validieren (alle außer Hersteller, Ausstellende Behörde und Bemerkungen)
     if {$art eq ""} {
         tk_messageBox -parent $dialog -icon warning -title "Fehler" \
             -message "Bitte geben Sie die Art der Waffe ein."
@@ -237,7 +290,9 @@ proc ::waffenregister::speichere_neue_waffe {dialog} {
         kaliber $kaliber \
         seriennummer $seriennummer \
         wbk_nummer $wbk_nummer \
-        hersteller $hersteller]
+        hersteller $hersteller \
+        ausstellende_behoerde $ausstellende_behoerde \
+        bemerkungen $bemerkungen]
 
     # Zur Liste hinzufügen
     lappend waffen_liste $neue_waffe
@@ -275,7 +330,7 @@ proc ::waffenregister::oeffne_hinzufuegen_dialog {} {
     toplevel $dialog
     wm transient $dialog $fenster
     wm title $dialog "Waffe hinzufügen"
-    wm geometry $dialog "550x450"
+    wm geometry $dialog "550x550"
     wm resizable $dialog 0 0
 
     # Hauptframe
@@ -314,12 +369,30 @@ proc ::waffenregister::oeffne_hinzufuegen_dialog {} {
     grid $dialog.main.hersteller_label -row 4 -column 0 -sticky w -pady 5
     grid $dialog.main.hersteller_entry -row 4 -column 1 -sticky ew -pady 5
 
+    # Zeile 5: Ausstellende Behörde (optional, aus behoerde.json vorausgefüllt)
+    label $dialog.main.behoerde_label -text "Ausstellende Behörde:" -anchor w
+    entry $dialog.main.behoerde_entry -font {Arial 11}
+    grid $dialog.main.behoerde_label -row 5 -column 0 -sticky w -pady 5
+    grid $dialog.main.behoerde_entry -row 5 -column 1 -sticky ew -pady 5
+
+    # Vorausfüllen mit Behördennamen aus behoerde.json
+    set behoerde_name [::waffenregister::lade_behoerde_name]
+    $dialog.main.behoerde_entry insert 0 $behoerde_name
+
+    # Zeile 6: Bemerkungen (optional, mehrzeilig)
+    label $dialog.main.bemerkungen_label -text "Bemerkungen:" -anchor nw
+    text $dialog.main.bemerkungen_text -font {Arial 11} -height 4 -width 30 -wrap word
+    scrollbar $dialog.main.bemerkungen_scroll -command "$dialog.main.bemerkungen_text yview"
+    $dialog.main.bemerkungen_text configure -yscrollcommand "$dialog.main.bemerkungen_scroll set"
+    grid $dialog.main.bemerkungen_label -row 6 -column 0 -sticky nw -pady 5
+    grid $dialog.main.bemerkungen_text -row 6 -column 1 -sticky ew -pady 5
+
     # Spalte 1 soll sich ausdehnen
     grid columnconfigure $dialog.main 1 -weight 1
 
-    # Zeile 5: Hinweis für Pflichtfelder
+    # Zeile 7: Hinweis für Pflichtfelder
     label $dialog.main.hinweis -text "* Pflichtfelder" -fg "#666666" -font {Arial 9 italic}
-    grid $dialog.main.hinweis -row 5 -column 0 -columnspan 2 -sticky w -pady 10
+    grid $dialog.main.hinweis -row 7 -column 0 -columnspan 2 -sticky w -pady 10
 
     # === Button-Frame ===
     frame $dialog.button_frame -pady 10

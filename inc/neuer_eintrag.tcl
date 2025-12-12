@@ -36,9 +36,13 @@ namespace eval ::neuer_eintrag {
     # Fenster-Referenz
     variable fenster ""
 
-    # Autovervollständigungs-Listbox
+    # Autovervollständigungs-Listbox für Nachnamen
     variable autocomplete_listbox ""
     variable autocomplete_visible 0
+
+    # Autovervollständigungs-Listbox für Vornamen
+    variable vorname_autocomplete_listbox ""
+    variable vorname_autocomplete_visible 0
 }
 
 # =============================================================================
@@ -508,6 +512,117 @@ proc ::neuer_eintrag::autocomplete_ausgewaehlt {args} {
 
     # Startgeld neu berechnen
     berechne_startgeld
+}
+
+# =============================================================================
+# Prozedur: vorname_geaendert
+# Beschreibung: Wird aufgerufen, wenn sich das Vorname-Feld ändert
+#               Zeigt passende Vornamen für den aktuellen Nachnamen an
+# =============================================================================
+proc ::neuer_eintrag::vorname_geaendert {args} {
+    variable nachname
+    variable vorname
+    variable mitglieder_dict
+    variable fenster
+    variable vorname_autocomplete_listbox
+    variable vorname_autocomplete_visible
+
+    # Startgeld neu berechnen
+    berechne_startgeld
+
+    # Wenn Vorname leer oder kein Nachname vorhanden, Autovervollständigung ausblenden
+    if {$vorname eq "" || $nachname eq ""} {
+        if {$vorname_autocomplete_visible} {
+            pack forget $vorname_autocomplete_listbox
+            set vorname_autocomplete_visible 0
+        }
+        return
+    }
+
+    # Prüfen ob Nachname im Dictionary existiert
+    set nachname_gefunden ""
+    dict for {name vornamen} $mitglieder_dict {
+        if {[string equal -nocase $nachname $name]} {
+            set nachname_gefunden $name
+            break
+        }
+    }
+
+    if {$nachname_gefunden eq ""} {
+        # Nachname nicht gefunden - keine Vorschläge
+        if {$vorname_autocomplete_visible} {
+            pack forget $vorname_autocomplete_listbox
+            set vorname_autocomplete_visible 0
+        }
+        return
+    }
+
+    # Vornamen für diesen Nachnamen holen
+    set vornamen_liste [dict get $mitglieder_dict $nachname_gefunden]
+
+    # Nach passenden Vornamen suchen
+    set matches [list]
+    foreach vn $vornamen_liste {
+        # Case-insensitive Matching
+        if {[string match -nocase "${vorname}*" $vn]} {
+            lappend matches $vn
+        }
+    }
+
+    # Autovervollständigungs-Listbox aktualisieren
+    $vorname_autocomplete_listbox delete 0 end
+    foreach match $matches {
+        $vorname_autocomplete_listbox insert end $match
+    }
+
+    # Listbox anzeigen, wenn Treffer vorhanden
+    if {[llength $matches] > 0} {
+        if {!$vorname_autocomplete_visible} {
+            pack $vorname_autocomplete_listbox -in $fenster.vorname_frame -side bottom -fill x -after $fenster.vorname_frame.vorname_entry
+            set vorname_autocomplete_visible 1
+        }
+
+        # Wenn genau ein Treffer und exakte Übereinstimmung, Vorname korrigieren
+        if {[llength $matches] == 1} {
+            set exact_match [lindex $matches 0]
+            if {[string equal -nocase $vorname $exact_match]} {
+                # Korrekten Vornamen setzen (mit richtiger Groß-/Kleinschreibung)
+                set vorname $exact_match
+                # Autovervollständigung ausblenden
+                pack forget $vorname_autocomplete_listbox
+                set vorname_autocomplete_visible 0
+            }
+        }
+    } else {
+        # Keine Treffer - ausblenden
+        if {$vorname_autocomplete_visible} {
+            pack forget $vorname_autocomplete_listbox
+            set vorname_autocomplete_visible 0
+        }
+    }
+}
+
+# =============================================================================
+# Prozedur: vorname_autocomplete_ausgewaehlt
+# Beschreibung: Wird aufgerufen, wenn ein Eintrag aus der Vorname-Autovervollständigung ausgewählt wird
+# =============================================================================
+proc ::neuer_eintrag::vorname_autocomplete_ausgewaehlt {} {
+    variable vorname
+    variable vorname_autocomplete_listbox
+    variable vorname_autocomplete_visible
+
+    # Ausgewählten Vornamen holen
+    set selection [$vorname_autocomplete_listbox curselection]
+    if {$selection ne ""} {
+        set selected_vorname [$vorname_autocomplete_listbox get $selection]
+
+        # Vorname setzen
+        set vorname $selected_vorname
+
+        # Autovervollständigung ausblenden
+        pack forget $vorname_autocomplete_listbox
+        set vorname_autocomplete_visible 0
+    }
 }
 
 # =============================================================================
@@ -1376,8 +1491,18 @@ proc open_neuer_eintrag_fenster {} {
     label $w.vorname_frame.label -text "Vorname:" -width 20 -anchor w
     pack $w.vorname_frame.label -side left
 
-    entry $w.vorname_frame.entry -textvariable ::neuer_eintrag::vorname -width 40
-    pack $w.vorname_frame.entry -side left -fill x -expand 1
+    entry $w.vorname_frame.vorname_entry -textvariable ::neuer_eintrag::vorname -width 40
+    pack $w.vorname_frame.vorname_entry -side left -fill x -expand 1
+
+    # Autovervollständigungs-Listbox für Vornamen
+    listbox $w.vorname_frame.autocomplete -height 5 -exportselection 0
+    set ::neuer_eintrag::vorname_autocomplete_listbox $w.vorname_frame.autocomplete
+
+    # Trace für Vornamen-Autovervollständigung
+    trace add variable ::neuer_eintrag::vorname write ::neuer_eintrag::vorname_geaendert
+
+    # Binding für Vorname-Autovervollständigung
+    bind $w.vorname_frame.autocomplete <<ListboxSelect>> ::neuer_eintrag::vorname_autocomplete_ausgewaehlt
 
     # Trace für Validierung des Speichern-Buttons
     trace add variable ::neuer_eintrag::vorname write ::neuer_eintrag::pruefe_speichern_button

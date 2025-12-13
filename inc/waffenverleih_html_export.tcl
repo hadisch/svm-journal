@@ -195,7 +195,7 @@ proc ::waffenverleih::export::erstelle_html_dokument {data_dict} {
             set hersteller ""
         }
 
-        # Optional: Ausstellende Behörde (aus Aufgabe 5)
+        # Optional: Ausstellende Behörde
         if {[dict exists $waffe ausstellende_behoerde]} {
             set behoerde [html_escape [dict get $waffe ausstellende_behoerde]]
         } else {
@@ -203,16 +203,20 @@ proc ::waffenverleih::export::erstelle_html_dokument {data_dict} {
         }
 
         # Basis-Info: Art - Kaliber (Ser: ..., WBK: ...)
-        set waffen_info "$art - $kaliber (Ser: $seriennr, WBK: $wbk_nr)"
+        # Behörde wird direkt hinter der WBK Nr. eingefügt
+        set waffen_info "$art - $kaliber (Ser: $seriennr, WBK: $wbk_nr"
+
+        # Behörde direkt hinter WBK Nr. einfügen, falls vorhanden
+        if {$behoerde ne ""} {
+            append waffen_info ", $behoerde"
+        }
+
+        # Klammer schließen
+        append waffen_info ")"
 
         # Hersteller hinzufügen, falls vorhanden
         if {$hersteller ne ""} {
             append waffen_info ", Hersteller: $hersteller"
-        }
-
-        # Behörde hinzufügen, falls vorhanden
-        if {$behoerde ne ""} {
-            append waffen_info ", Behörde: $behoerde"
         }
 
         append html "      <div>\u2022 $waffen_info</div>\n"

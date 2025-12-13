@@ -1,5 +1,46 @@
 # Änderungshistorie - SVM-Journal
 
+## Version 1.2.3 (2025-12-13)
+
+### Neue Features
+- **Eintrag-Bearbeiten-Funktionalität für Hauptfenster**
+  - Neue Datei: `inc/eintrag_bearbeiten.tcl`
+  - Neuer Button "Eintrag bearbeiten" zwischen "Neuer Eintrag" und "Mitglieder"
+  - Bearbeitungsdialog mit vorausgefüllten Feldern (analog zum Mitgliederverzeichnis)
+  - TreeviewSelect-Event zum Speichern des markierten Eintrags
+  - Automatische Aktualisierung der Ansicht nach Bearbeitung
+  - Datei: `svm-journal.tcl`
+    - Source-Anweisung für `eintrag_bearbeiten.tcl` (Zeile 78-79)
+    - Button "Eintrag bearbeiten" (Zeile 212-214)
+    - TreeviewSelect-Event-Binding (Zeile 294-329)
+
+- **Waffenbehörden-Name im Waffenverleihformular**
+  - Behörden-Name wird automatisch aus `behoerde.json` geladen
+  - Anzeige direkt hinter der WBK-Nummer im HTML-Export
+  - Format: "Pistole - 9mm Luger (Ser: ABC123, WBK: 12345, Jagd- und Waffenbehörde Kreis Plön)"
+  - Datei: `inc/waffenverleih_dialog.tcl`
+    - Erweiterte Prozedur `lade_waffen_fuer_checkboxen` (Zeile 58-75, 116-119)
+    - Behörden-Name als `ausstellende_behoerde` zu jeder Waffe hinzugefügt
+  - Datei: `inc/waffenverleih_html_export.tcl`
+    - Behörde wird direkt hinter WBK Nr. eingefügt (Zeile 205-215)
+
+### Bugfixes
+- **Lock-Mechanismus: MessageBox erschien im Hintergrund**
+  - Hauptfenster wird beim Lock-Check jetzt korrekt versteckt
+  - MessageBox erscheint garantiert im Vordergrund
+  - Kein leeres Fenster mehr bei zweiter Programminstanz
+  - Datei: `svm-journal.tcl`
+    - Fenster wird beim Lock-Fehler mit `wm withdraw .` versteckt (Zeile 114)
+    - `update` erzwingt sofortige Ausführung des Versteckens (Zeile 117)
+    - MessageBox ohne Parent für Vordergrund-Anzeige (Zeile 120-121)
+
+### Technische Details
+- Globale Variable `::markierter_eintrag` zum Speichern des ausgewählten Eintrags
+- Bearbeitungsdialog verwendet vorhandene Funktionen aus `neuer_eintrag.tcl` und `eintrag_loeschen.tcl`
+- Vollständige Integration in bestehendes Backup- und JSON-System
+
+---
+
 ## Version 1.2.2 (2025-12-12)
 
 ### Neue Features

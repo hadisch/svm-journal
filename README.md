@@ -13,17 +13,17 @@ Unter Linux lässt sich  Tcl/Tk, sofern nicht schon vorhanden, aus den Repositor
 **Debian** / **Ubuntu**:
 
 ```bash
-sudo apt install tcl
+sudo apt install tcl tk
 ```
 **RedHat** / **Fedora** / **SUSE**:
 
 ```bash
-sudo dnf install tcl
+sudo dnf install tcl tk
 ```
 **Arch Linux**:
 
 ```bash
-sudo pacman -S tcl
+sudo pacman -S tcl tk
 ```
 
 Unter **Windows** empfiehlt sich die Installation von [Magicsplat Tcl/Tk for Windows](https://www.magicsplat.com/tcl-installer/index.html).
@@ -85,7 +85,6 @@ Alle JSON-Dateien und Benutzerdaten werden dort gespeichert, das Programm-Verzei
 - Intuitive Bedienung
 
 - Statusleiste mit Datum- und Uhrzeitanzeige
-
 
 
 

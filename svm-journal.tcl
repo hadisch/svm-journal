@@ -75,6 +75,9 @@ source [file join [file dirname [info script]] inc export_dialog.tcl]
 # Eintrag-Löschen - Funktionalität zum Löschen von Einträgen
 source [file join [file dirname [info script]] inc eintrag_loeschen.tcl]
 
+# Eintrag-Bearbeiten - Funktionalität zum Bearbeiten von Einträgen
+source [file join [file dirname [info script]] inc eintrag_bearbeiten.tcl]
+
 # Munitions-Preise-Dialog - Dialog zur Verwaltung von Kalibern und Preisen
 source [file join [file dirname [info script]] inc munitions_preise_dialog.tcl]
 
@@ -107,7 +110,14 @@ source [file join [file dirname [info script]] inc daten_pruefen_dialog.tcl]
 # =============================================================================
 if {![::programm_lock::acquire_lock]} {
     # Eine andere Instanz läuft bereits - Warnung anzeigen und beenden
-    tk_messageBox -icon warning -type ok -title "Warnung" \
+    # Hauptfenster verstecken, damit nur die MessageBox sichtbar ist
+    wm withdraw .
+
+    # Update erzwingen, damit das Fenster wirklich versteckt ist
+    update
+
+    # MessageBox ohne Parent anzeigen (erscheint im Vordergrund)
+    tk_messageBox -icon warning -type ok -title "SVM-Journal - Warnung" \
         -message "Es läuft bereits eine Instanz des SVM-Journal.\n\nDas Programm wird beendet."
     exit
 }
@@ -201,10 +211,14 @@ menu .menubar.info -tearoff 0
 frame .toolbar -bg #E0E0E0 -relief raised -bd 1
 pack .toolbar -fill x -pady 2
 
-# Linke Button-Gruppe (Neuer Eintrag, Mitglieder) in gelblichem Ton
+# Linke Button-Gruppe (Neuer Eintrag, Eintrag bearbeiten, Mitglieder) in gelblichem Ton
 # Button "Neuer Eintrag" - öffnet Dialog für neuen Journal-Eintrag
 button .toolbar.new -text "Neuer Eintrag" -bg "#FDF1AF" -command {open_neuer_eintrag_fenster}
 pack .toolbar.new -side left -padx 5 -pady 3
+
+# Button "Eintrag bearbeiten" - öffnet Dialog zum Bearbeiten des ausgewählten Eintrags
+button .toolbar.edit -text "Eintrag bearbeiten" -bg "#FDF1AF" -command {oeffne_bearbeiten_dialog}
+pack .toolbar.edit -side left -padx 5 -pady 3
 
 # Button "Mitglieder" - zeigt Mitgliederverwaltung
 button .toolbar.members -text "Mitglieder" -bg "#FDF1AF" -command {open_mitglieder_fenster}
@@ -283,6 +297,43 @@ grid columnconfigure .main 0 -weight 1
 
 # Rechtsklick-Binding für Kontextmenü (Eintrag löschen)
 bind .main.tree <Button-3> {zeige_kontext_menu %x %y}
+
+# TreeviewSelect-Event zum Speichern des markierten Eintrags
+# Wird aufgerufen, wenn eine Zeile im Treeview ausgewählt wird
+bind .main.tree <<TreeviewSelect>> {
+    # Ausgewähltes Item ermitteln
+    set selected_items [.main.tree selection]
+    if {[llength $selected_items] > 0} {
+        # Item-ID des ersten ausgewählten Items
+        set item_id [lindex $selected_items 0]
+
+        # Werte des ausgewählten Eintrags holen
+        set values [.main.tree item $item_id -values]
+
+        # Einzelne Felder extrahieren (Reihenfolge: datum, nachname, vorname, kw, lw, typ, kaliber, startgeld, munition, munpreis)
+        lassign $values datum nachname vorname kw lw typ kaliber startgeld munition munpreis
+
+        # Markierten Eintrag als Dictionary speichern
+        # Hinweis: Die Uhrzeit ist im Treeview nicht sichtbar, daher wird sie auf "00:00:00" gesetzt
+        # Bei der Bearbeitung wird die ursprüngliche Uhrzeit aus der JSON-Datei wiederhergestellt
+        set ::markierter_eintrag [dict create \
+            "datum" $datum \
+            "uhrzeit" "00:00:00" \
+            "nachname" $nachname \
+            "vorname" $vorname \
+            "kurzwaffe" $kw \
+            "langwaffe" $lw \
+            "waffentyp" $typ \
+            "kaliber" $kaliber \
+            "startgeld" $startgeld \
+            "munition" $munition \
+            "munitionspreis" $munpreis \
+        ]
+    } else {
+        # Keine Auswahl - markierter Eintrag zurücksetzen
+        set ::markierter_eintrag [dict create]
+    }
+}
 
 # Statusleiste am unteren Rand für Datum und Uhrzeit
 # Frame für Statusleiste mit leicht erhöhtem Rand

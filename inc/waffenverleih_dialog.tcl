@@ -46,12 +46,32 @@ namespace eval ::waffenverleih {
 # =============================================================================
 proc ::waffenverleih::lade_waffen_fuer_checkboxen {} {
     global waffenregister_json
+    global behoerde_json
 
     set waffen_liste [list]
 
     # Prüfen, ob Datei existiert
     if {![file exists $waffenregister_json]} {
         return $waffen_liste
+    }
+
+    # Behörden-Name laden
+    set behoerden_name ""
+    if {[file exists $behoerde_json]} {
+        # Behörden-JSON öffnen und parsen
+        set fp_beh [open $behoerde_json r]
+        fconfigure $fp_beh -encoding utf-8
+        set json_beh_content [read $fp_beh]
+        close $fp_beh
+
+        # Name extrahieren
+        set beh_lines [split $json_beh_content "\n"]
+        foreach beh_line $beh_lines {
+            if {[regexp {"name":\s*"([^"]*)"} $beh_line -> wert]} {
+                set behoerden_name [string trim $wert]
+                break
+            }
+        }
     }
 
     # Datei öffnen und parsen (gleiche Logik wie Waffenregister)
@@ -93,6 +113,10 @@ proc ::waffenverleih::lade_waffen_fuer_checkboxen {} {
             # Ende eines Waffen-Objekts erkennen
             if {[regexp {\}\s*,?\s*$} $line]} {
                 if {[dict size $current_weapon] > 0} {
+                    # Behörden-Name zur Waffe hinzufügen (ausstellende Behörde der WBK)
+                    if {$behoerden_name ne ""} {
+                        dict set current_weapon ausstellende_behoerde $behoerden_name
+                    }
                     lappend waffen_liste $current_weapon
                     set current_weapon [dict create]
                 }

@@ -288,7 +288,7 @@ proc oeffne_hinzufuegen_dialog {} {
 
 # Prozedur zum Öffnen des Bearbeiten-Dialogs
 # Erstellt ein Fenster mit vorausgefüllten Eingabefeldern für das markierte Mitglied
-proc oeffne_bearbeiten_dialog {} {
+proc oeffne_mitglied_bearbeiten_dialog {} {
     # Prüfen ob ein Mitglied markiert ist
     if {$::markiertes_mitglied < 0} {
         tk_messageBox -parent .mitglieder \
@@ -732,7 +732,7 @@ proc open_mitglieder_fenster {} {
 
     # Button "Bearbeiten" - Ausgewähltes Mitglied bearbeiten
     button .mitglieder.toolbar.edit -text "Bearbeiten" -bg "#FDF1AF" \
-        -command {oeffne_bearbeiten_dialog}
+        -command {oeffne_mitglied_bearbeiten_dialog}
     pack .mitglieder.toolbar.edit -side left -padx 5 -pady 3
 
     # Button "Löschen" - Ausgewähltes Mitglied löschen

@@ -1322,8 +1322,11 @@ proc lade_existierende_eintraege {} {
         # Der Preis wurde bereits beim Erstellen des Eintrags berechnet und muss nicht nochmals multipliziert werden
         set munitionspreis [dict get $eintrag munitionspreis]
 
+        # Reihenfolge der Spalten: datum, uhrzeit, nachname, vorname, kw, lw, typ, kaliber, startgeld, munition, munpreis
+        # Die Uhrzeit wird in der versteckten Spalte gespeichert
         $treeview insert {} end -values [list \
             [dict get $eintrag datum] \
+            [dict get $eintrag uhrzeit] \
             [dict get $eintrag nachname] \
             [dict get $eintrag vorname] \
             [dict get $eintrag kurzwaffe] \

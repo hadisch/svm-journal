@@ -187,16 +187,16 @@ proc ::waffenregister::speichere_waffenregister {waffen_liste} {
 
 # =============================================================================
 # Prozedur: aktualisiere_waffen_anzeige
-# Aktualisiert die Listbox mit allen Waffen
+# Aktualisiert das Treeview mit allen Waffen
 # =============================================================================
 proc ::waffenregister::aktualisiere_waffen_anzeige {} {
     variable fenster
     variable waffen_liste
 
-    # Listbox leeren
-    $fenster.main.listbox delete 0 end
+    # Treeview leeren
+    $fenster.main.tree delete [$fenster.main.tree children {}]
 
-    # Waffen zur Listbox hinzufügen
+    # Waffen zum Treeview hinzufügen
     foreach waffe $waffen_liste {
         set art [dict get $waffe art]
         set kaliber [dict get $waffe kaliber]
@@ -204,26 +204,43 @@ proc ::waffenregister::aktualisiere_waffen_anzeige {} {
         set wbk_nummer [dict get $waffe wbk_nummer]
         set hersteller [dict get $waffe hersteller]
 
-        # Formatierte Zeile erstellen
-        set line [format "%-20s  %-15s  %-20s  %-15s  %-15s" \
-            $art $kaliber $seriennummer $wbk_nummer $hersteller]
-        $fenster.main.listbox insert end $line
+        # Neue Felder mit Standardwerten für Abwärtskompatibilität
+        if {[dict exists $waffe ausstellende_behoerde]} {
+            set ausstellende_behoerde [dict get $waffe ausstellende_behoerde]
+        } else {
+            set ausstellende_behoerde ""
+        }
+        if {[dict exists $waffe bemerkungen]} {
+            set bemerkungen [dict get $waffe bemerkungen]
+        } else {
+            set bemerkungen ""
+        }
+
+        # Zeile zum Treeview hinzufügen
+        $fenster.main.tree insert {} end -values [list \
+            $art $kaliber $seriennummer $wbk_nummer $hersteller $ausstellende_behoerde $bemerkungen]
     }
 }
 
 # =============================================================================
-# Prozedur: listbox_auswahl_geaendert
-# Wird aufgerufen, wenn eine Auswahl in der Listbox geändert wird
+# Prozedur: treeview_auswahl_geaendert
+# Wird aufgerufen, wenn eine Auswahl im Treeview geändert wird
 # =============================================================================
-proc ::waffenregister::listbox_auswahl_geaendert {} {
+proc ::waffenregister::treeview_auswahl_geaendert {} {
     variable fenster
     variable ausgewaehlter_index
 
-    # Aktuell ausgewählten Index holen
-    set selection [$fenster.main.listbox curselection]
+    # Aktuell ausgewählte Items holen
+    set selection [$fenster.main.tree selection]
 
     if {$selection ne "" && [llength $selection] > 0} {
-        set ausgewaehlter_index [lindex $selection 0]
+        # Item-ID des ersten ausgewählten Items
+        set item_id [lindex $selection 0]
+
+        # Index des Items ermitteln (Position in der Treeview-Kinderliste)
+        set all_items [$fenster.main.tree children {}]
+        set ausgewaehlter_index [lsearch -exact $all_items $item_id]
+
         # Löschen-Button aktivieren
         $fenster.button_frame.loeschen configure -state normal
     } else {
@@ -484,8 +501,11 @@ proc open_waffenregister_dialog {} {
     # Toplevel-Fenster erstellen
     toplevel $w
     wm title $w "Waffenregister"
-    wm geometry $w "900x600"
+    wm geometry $w "1200x600"
     wm resizable $w 1 1
+
+    # Schriftgröße für Treeview-Widget konfigurieren (11 Punkte)
+    ttk::style configure Treeview -font {TkDefaultFont 11} -rowheight 22
 
     # Hauptframe
     frame $w.main -padx 20 -pady 20
@@ -495,23 +515,48 @@ proc open_waffenregister_dialog {} {
     label $w.main.header -text "Vereinswaffen" -font {Arial 12 bold}
     pack $w.main.header -pady {0 10}
 
-    # === Listbox mit Scrollbar ===
-    frame $w.main.list_frame
-    pack $w.main.list_frame -fill both -expand 1 -pady 10
+    # === Treeview mit Scrollbars ===
+    frame $w.main.tree_frame
+    pack $w.main.tree_frame -fill both -expand 1 -pady 10
 
-    # Scrollbar
-    scrollbar $w.main.list_frame.scroll -command {.waffenregister.main.listbox yview}
-    pack $w.main.list_frame.scroll -side right -fill y
+    # Vertikale Scrollbar
+    scrollbar $w.main.tree_frame.yscroll -command {.waffenregister.main.tree yview} -orient vertical
+    pack $w.main.tree_frame.yscroll -side right -fill y
 
-    # Listbox
-    listbox $w.main.listbox \
-        -yscrollcommand {.waffenregister.main.list_frame.scroll set} \
-        -font {Courier 11} \
-        -height 20
-    pack $w.main.listbox -in $w.main.list_frame -fill both -expand 1
+    # Horizontale Scrollbar
+    scrollbar $w.main.tree_frame.xscroll -command {.waffenregister.main.tree xview} -orient horizontal
+    pack $w.main.tree_frame.xscroll -side bottom -fill x
 
-    # Bindings für Listbox
-    bind $w.main.listbox <<ListboxSelect>> {::waffenregister::listbox_auswahl_geaendert}
+    # Treeview-Widget mit Spalten für Waffendaten
+    ttk::treeview $w.main.tree \
+        -columns {art kaliber seriennummer wbk_nummer hersteller behoerde bemerkungen} \
+        -show headings \
+        -selectmode browse \
+        -yscrollcommand {.waffenregister.main.tree_frame.yscroll set} \
+        -xscrollcommand {.waffenregister.main.tree_frame.xscroll set}
+
+    # Spaltenüberschriften definieren
+    $w.main.tree heading art -text "Art der Waffe"
+    $w.main.tree heading kaliber -text "Kaliber"
+    $w.main.tree heading seriennummer -text "Seriennummer"
+    $w.main.tree heading wbk_nummer -text "WBK-Nummer"
+    $w.main.tree heading hersteller -text "Hersteller"
+    $w.main.tree heading behoerde -text "Ausst. Behörde"
+    $w.main.tree heading bemerkungen -text "Bemerkungen"
+
+    # Spaltenbreiten festlegen (in Pixeln)
+    $w.main.tree column art -width 150 -anchor w
+    $w.main.tree column kaliber -width 100 -anchor w
+    $w.main.tree column seriennummer -width 150 -anchor w
+    $w.main.tree column wbk_nummer -width 120 -anchor w
+    $w.main.tree column hersteller -width 120 -anchor w
+    $w.main.tree column behoerde -width 150 -anchor w
+    $w.main.tree column bemerkungen -width 200 -anchor w
+
+    pack $w.main.tree -in $w.main.tree_frame -fill both -expand 1
+
+    # Bindings für Treeview
+    bind $w.main.tree <<TreeviewSelect>> {::waffenregister::treeview_auswahl_geaendert}
 
     # === Button-Frame ===
     frame $w.button_frame -pady 10

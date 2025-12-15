@@ -102,9 +102,19 @@ proc ::waffenverleih::export::erstelle_html_dokument {data_dict} {
     append html "    h1 {\n"
     append html "      text-align: center;\n"
     append html "      font-size: 16pt;\n"
-    append html "      margin-bottom: 30px;\n"
+    append html "      margin-bottom: 5px;\n"
+    append html "    }\n"
+    append html "    .subtitle {\n"
+    append html "      text-align: center;\n"
+    append html "      font-size: 11pt;\n"
+    append html "      font-style: italic;\n"
+    append html "      color: #555;\n"
+    append html "      margin-bottom: 10px;\n"
+    append html "    }\n"
+    append html "    .title-separator {\n"
+    append html "      border: none;\n"
     append html "      border-bottom: 2px solid #333;\n"
-    append html "      padding-bottom: 10px;\n"
+    append html "      margin-bottom: 30px;\n"
     append html "    }\n"
     append html "    .section {\n"
     append html "      margin-bottom: 25px;\n"
@@ -146,6 +156,8 @@ proc ::waffenverleih::export::erstelle_html_dokument {data_dict} {
 
     # Überschrift
     append html "  <h1>Waffenverleihformular</h1>\n"
+    append html "  <div class=\"subtitle\">nach \u00a7 12 Abs. 1 WaffG</div>\n"
+    append html "  <hr class=\"title-separator\">\n"
 
     # SEKTION 1: Vereins-Kopf
     append html "  <div class=\"section\">\n"
@@ -173,7 +185,6 @@ proc ::waffenverleih::export::erstelle_html_dokument {data_dict} {
     append html "  <div class=\"section\">\n"
     append html "    <div class=\"section-title\">Art des Verleihs</div>\n"
     append html "    <div>$loan_types_text</div>\n"
-    append html "    <div><em>nach § 12 Abs. 1 WaffG</em></div>\n"
     append html "    <div><strong>$wbk_status_text</strong></div>\n"
     append html "  </div>\n"
 

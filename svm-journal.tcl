@@ -254,15 +254,18 @@ ttk::style configure Treeview -font {TkDefaultFont 11} -rowheight 22
 
 # Treeview-Widget mit Spalten für Einträge
 # -selectmode browse: Erlaubt nur Einzelauswahl, keine Mehrfachauswahl mit Strg/Shift
+# Spalte "uhrzeit" ist versteckt (nicht in -show headings), wird aber für die Bearbeitung benötigt
 ttk::treeview .main.tree \
-    -columns {datum nachname vorname kw lw typ kaliber startgeld munition munpreis} \
+    -columns {datum uhrzeit nachname vorname kw lw typ kaliber startgeld munition munpreis} \
     -show headings \
     -selectmode browse \
     -yscrollcommand {.main.yscroll set} \
-    -xscrollcommand {.main.xscroll set}
+    -xscrollcommand {.main.xscroll set} \
+    -displaycolumns {datum nachname vorname kw lw typ kaliber startgeld munition munpreis}
 
 # Spaltenüberschriften und Breiten definieren
 .main.tree heading datum -text "Datum"
+.main.tree heading uhrzeit -text "Uhrzeit"
 .main.tree heading nachname -text "Nachname"
 .main.tree heading vorname -text "Vorname"
 .main.tree heading kw -text "KW"
@@ -275,6 +278,7 @@ ttk::treeview .main.tree \
 
 # Spaltenbreiten festlegen (in Pixeln)
 .main.tree column datum -width 100 -anchor w
+.main.tree column uhrzeit -width 80 -anchor w
 .main.tree column nachname -width 150 -anchor w
 .main.tree column vorname -width 150 -anchor w
 .main.tree column kw -width 50 -anchor center
@@ -310,15 +314,14 @@ bind .main.tree <<TreeviewSelect>> {
         # Werte des ausgewählten Eintrags holen
         set values [.main.tree item $item_id -values]
 
-        # Einzelne Felder extrahieren (Reihenfolge: datum, nachname, vorname, kw, lw, typ, kaliber, startgeld, munition, munpreis)
-        lassign $values datum nachname vorname kw lw typ kaliber startgeld munition munpreis
+        # Einzelne Felder extrahieren (Reihenfolge: datum, uhrzeit, nachname, vorname, kw, lw, typ, kaliber, startgeld, munition, munpreis)
+        lassign $values datum uhrzeit nachname vorname kw lw typ kaliber startgeld munition munpreis
 
         # Markierten Eintrag als Dictionary speichern
-        # Hinweis: Die Uhrzeit ist im Treeview nicht sichtbar, daher wird sie auf "00:00:00" gesetzt
-        # Bei der Bearbeitung wird die ursprüngliche Uhrzeit aus der JSON-Datei wiederhergestellt
+        # Die Uhrzeit wird jetzt korrekt aus der versteckten Spalte gelesen
         set ::markierter_eintrag [dict create \
             "datum" $datum \
-            "uhrzeit" "00:00:00" \
+            "uhrzeit" $uhrzeit \
             "nachname" $nachname \
             "vorname" $vorname \
             "kurzwaffe" $kw \

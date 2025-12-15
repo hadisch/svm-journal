@@ -33,6 +33,10 @@ proc zeige_kontext_menu {x y} {
     # Kontextmenü erstellen (falls noch nicht vorhanden)
     if {![winfo exists .context_menu]} {
         menu .context_menu -tearoff 0
+        # Bearbeiten-Befehl (öffnet den Bearbeiten-Dialog)
+        .context_menu add command -label "Bearbeiten" -command {oeffne_bearbeiten_dialog}
+        .context_menu add separator
+        # Löschen-Befehl (löscht den Eintrag nach Bestätigung)
         .context_menu add command -label "Löschen" -command {loesche_ausgewaehlten_eintrag}
     }
 
@@ -193,6 +197,7 @@ proc schreibe_eintraege_json {dateiPfad eintraege} {
         lappend lines "      \"waffentyp\": \"[dict get $entry waffentyp]\","
         lappend lines "      \"kaliber\": \"[dict get $entry kaliber]\","
         lappend lines "      \"startgeld\": \"[dict get $entry startgeld]\","
+        lappend lines "      \"anzahl\": \"[dict get $entry anzahl]\","
         lappend lines "      \"munition\": \"[dict get $entry munition]\","
         lappend lines "      \"munitionspreis\": \"[dict get $entry munitionspreis]\""
 

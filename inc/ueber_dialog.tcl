@@ -67,7 +67,7 @@ proc open_ueber_dialog {} {
     pack $w.main.appname -pady 5
 
     # Version
-    label $w.main.version -text "Version 1.2.3" -font {Arial 10} -fg "#666666" -bg white
+    label $w.main.version -text "Version 1.2.4" -font {Arial 10} -fg "#666666" -bg white
     pack $w.main.version -pady 3
 
     # Separator

@@ -1,5 +1,65 @@
 # Änderungshistorie - SVM-Journal
 
+## Version 1.2.4 (2025-12-15)
+
+### Bugfixes
+- **Eintrag-Bearbeitung: Einträge werden jetzt korrekt übernommen**
+  - Problem: Bearbeitete Einträge wurden nicht im Hauptfenster aktualisiert
+  - Ursache: Uhrzeit ging bei der Auswahl verloren (wurde auf "00:00:00" gesetzt)
+  - Lösung: Versteckte Spalte "uhrzeit" im Treeview hinzugefügt
+  - Die Spalte wird über `-displaycolumns` ausgeblendet, speichert aber die Daten
+  - Bearbeitete Einträge werden nun korrekt identifiziert und aktualisiert
+  - Datei: `svm-journal.tcl`
+    - Treeview um Spalte "uhrzeit" erweitert (Zeile 259, 264, 268, 281)
+    - TreeviewSelect-Event liest jetzt korrekte Uhrzeit (Zeile 317-318, 324)
+  - Datei: `inc/neuer_eintrag.tcl`
+    - Uhrzeit wird beim Laden in versteckte Spalte eingefügt (Zeile 1329)
+  - Datei: `inc/eintrag_loeschen.tcl`
+    - Feld "anzahl" wird nun korrekt beim Speichern berücksichtigt (Zeile 196)
+
+### Neue Features
+- **Bearbeiten-Option im Kontextmenü**
+  - Rechtsklick auf Eintrag zeigt nun "Bearbeiten" und "Löschen"
+  - Menü-Einträge durch Trennlinie getrennt
+  - "Bearbeiten" öffnet den Bearbeitungsdialog für den ausgewählten Eintrag
+  - Datei: `inc/eintrag_loeschen.tcl`
+    - Kontextmenü um Bearbeiten-Befehl erweitert (Zeile 37-40)
+
+### Verbesserungen
+- **Waffenregister: Strukturierte Tabellenansicht**
+  - Listbox durch Treeview-Widget ersetzt für bessere Übersicht
+  - Alle 7 Felder in klaren Spalten dargestellt:
+    - Art der Waffe, Kaliber, Seriennummer, WBK-Nummer
+    - Hersteller, Ausstellende Behörde, Bemerkungen
+  - Horizontale und vertikale Scrollbars für einfache Navigation
+  - Fenstergröße erhöht auf 1200x600 (statt 900x600)
+  - Einheitliche Schriftgröße (11pt) wie im Hauptfenster
+  - Datei: `inc/waffenregister_dialog.tcl`
+    - Prozedur `aktualisiere_waffen_anzeige` auf Treeview umgestellt (Zeile 192-223)
+    - Prozedur `listbox_auswahl_geaendert` in `treeview_auswahl_geaendert` umbenannt (Zeile 229-251)
+    - Dialog-Layout mit Treeview statt Listbox (Zeile 504-556)
+
+- **Waffenverleihformular: Verbessertes Layout**
+  - "nach § 12 Abs. 1 WaffG" nun direkt unter der Überschrift
+  - Mittig platziert, vor der Trennlinie
+  - Kursiv und grau formatiert für bessere Lesbarkeit
+  - Doppelte Zeile in Sektion "Art des Verleihs" entfernt
+  - Datei: `inc/waffenverleih_html_export.tcl`
+    - CSS-Klasse "subtitle" für Untertitel hinzugefügt (Zeile 107-113)
+    - CSS-Klasse "title-separator" für Trennlinie hinzugefügt (Zeile 114-118)
+    - Untertitel und Trennlinie unter Überschrift eingefügt (Zeile 159-160)
+    - Doppelte Zeile aus Sektion 2 entfernt (Zeile 187)
+
+### Technische Details
+- **Archivierungs-Funktionalität überprüft und bestätigt**
+  - Laden: Funktioniert aus beiden Verzeichnissen (daten/ und archiv/)
+  - Speichern: Neue Einträge landen automatisch im richtigen Verzeichnis
+  - Bearbeiten: Archivierte Einträge können problemlos bearbeitet werden
+  - Löschen: Archivierte Einträge können problemlos gelöscht werden
+  - Jahreswechsel-Sicherheit: Alle Funktionen arbeiten korrekt mit archivierten Daten
+
+---
+
 ## Version 1.2.3 (2025-12-13)
 
 ### Neue Features

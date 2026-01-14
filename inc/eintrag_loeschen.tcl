@@ -85,18 +85,8 @@ proc loesche_ausgewaehlten_eintrag {} {
         return
     }
 
-    # Aktuelles Jahr ermitteln (für Prüfung ob Archiv)
-    set aktuelles_jahr [clock format [clock seconds] -format "%Y"]
-
-    # Pfad zur Jahres-JSON-Datei bestimmen
-    if {$jahr < $aktuelles_jahr} {
-        # Archiv-Datei
-        set archiv_dir [::pfad::get_archiv_directory]
-        set jahres_json [file join $archiv_dir "${jahr}.json"]
-    } else {
-        # Aktuelle Datei
-        set jahres_json [::pfad::get_jahres_json_path $jahr]
-    }
+    # Pfad zur Jahres-JSON-Datei bestimmen (alle Jahre in daten/)
+    set jahres_json [::pfad::get_jahres_json_path $jahr]
 
     # Prüfen ob die Datei existiert
     if {![file exists $jahres_json]} {

@@ -265,15 +265,9 @@ proc oeffne_bearbeiten_dialog {} {
             # Alten Eintrag aus JSON-Datei löschen
             # Jahr aus dem Datum extrahieren
             regexp {^\d{2}\.\d{2}\.(\d{4})$} $datum -> jahr
-            set aktuelles_jahr [clock format [clock seconds] -format "%Y"]
 
-            # Pfad zur Jahres-JSON-Datei bestimmen
-            if {$jahr < $aktuelles_jahr} {
-                set archiv_dir [::pfad::get_archiv_directory]
-                set jahres_json [file join $archiv_dir "${jahr}.json"]
-            } else {
-                set jahres_json [::pfad::get_jahres_json_path $jahr]
-            }
+            # Pfad zur Jahres-JSON-Datei bestimmen (alle Jahre in daten/)
+            set jahres_json [::pfad::get_jahres_json_path $jahr]
 
             # Alle Einträge aus der Datei laden
             set alle_eintraege [::neuer_eintrag::lade_eintraege_aus_datei $jahres_json]

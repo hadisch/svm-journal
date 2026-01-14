@@ -17,7 +17,6 @@ namespace eval ::pfad {
     variable daten_dir ""      ;# Unterverzeichnis für Daten
     variable preferences_dir "" ;# Unterverzeichnis für Einstellungen
     variable backups_dir ""    ;# Unterverzeichnis für Backups
-    variable archiv_dir ""     ;# Unterverzeichnis für Archiv (unter daten/)
     variable resources_dir ""  ;# Verzeichnis für Ressourcen (im Programm-Verzeichnis)
     variable log_file ""       ;# Logdatei für Fehlersuche
 }
@@ -345,7 +344,6 @@ proc ::pfad::initialize_directories {} {
     variable daten_dir
     variable preferences_dir
     variable backups_dir
-    variable archiv_dir
     variable resources_dir
     variable log_file
 
@@ -360,7 +358,6 @@ proc ::pfad::initialize_directories {} {
     set daten_dir [file join $user_data_dir "daten"]
     set preferences_dir [file join $user_data_dir "preferences"]
     set backups_dir [file join $user_data_dir "backups"]
-    set archiv_dir [file join $daten_dir "archiv"]
 
     # Resources-Verzeichnis im Programm-Verzeichnis
     set resources_dir [file join $script_dir "resources"]
@@ -380,7 +377,6 @@ proc ::pfad::initialize_directories {} {
     ::pfad::log "Daten-Verzeichnis: $daten_dir"
     ::pfad::log "Preferences-Verzeichnis: $preferences_dir"
     ::pfad::log "Backups-Verzeichnis: $backups_dir"
-    ::pfad::log "Archiv-Verzeichnis: $archiv_dir"
     ::pfad::log "Resources-Verzeichnis: $resources_dir"
     ::pfad::log "Logdatei: $log_file"
 
@@ -411,12 +407,6 @@ proc ::pfad::initialize_directories {} {
     if {![::pfad::create_directory_if_needed $backups_dir]} {
         tk_messageBox -icon error -title "Fehler" \
             -message "Konnte Backups-Verzeichnis nicht erstellen:\n$backups_dir"
-        return 0
-    }
-
-    if {![::pfad::create_directory_if_needed $archiv_dir]} {
-        tk_messageBox -icon error -title "Fehler" \
-            -message "Konnte Archiv-Verzeichnis nicht erstellen:\n$archiv_dir"
         return 0
     }
 
@@ -520,17 +510,6 @@ proc ::pfad::get_script_directory {} {
 proc ::pfad::get_user_data_directory_path {} {
     variable user_data_dir
     return $user_data_dir
-}
-
-# =============================================================================
-# Funktion: get_archiv_directory
-# Gibt das Archiv-Verzeichnis zurück
-# Rückgabe:
-#   Absoluter Pfad zum Archiv-Verzeichnis
-# =============================================================================
-proc ::pfad::get_archiv_directory {} {
-    variable archiv_dir
-    return $archiv_dir
 }
 
 # =============================================================================

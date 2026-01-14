@@ -939,19 +939,8 @@ proc ::neuer_eintrag::speichern_und_anzeigen {} {
     # Uhrzeit für JSON-Datei ermitteln
     set uhrzeit [clock format [clock seconds] -format "%H:%M:%S"]
 
-    # Aktuelles Jahr ermitteln (für Prüfung ob Archiv)
-    set aktuelles_jahr [clock format [clock seconds] -format "%Y"]
-
-    # Pfad zur Jahres-JSON-Datei bestimmen
-    # Wenn das Jahr des Eintrags kleiner als das aktuelle Jahr ist, ins Archiv
-    if {$jahr < $aktuelles_jahr} {
-        # Archiv-Verzeichnis (wird vom Pfad-Management bereits erstellt)
-        set archiv_dir [::pfad::get_archiv_directory]
-        set jahres_json [file join $archiv_dir "${jahr}.json"]
-    } else {
-        # Aktuelles Jahr - in daten/ speichern
-        set jahres_json [::pfad::get_jahres_json_path $jahr]
-    }
+    # Pfad zur Jahres-JSON-Datei bestimmen (alle Jahre in daten/ speichern)
+    set jahres_json [::pfad::get_jahres_json_path $jahr]
 
     # Eintrag als Dictionary erstellen
     set eintrag [dict create \
@@ -1279,7 +1268,7 @@ proc ::neuer_eintrag::lade_eintraege_aus_datei {datei_pfad} {
 # =============================================================================
 # Prozedur: lade_existierende_eintraege
 # Lädt existierende Einträge aus allen Jahres-JSON-Dateien und zeigt sie an
-# Lädt sowohl aus daten/ als auch aus daten/archiv/
+# Lädt alle JSON-Dateien aus dem daten-Verzeichnis
 # Einträge werden nach Datum und Uhrzeit sortiert angezeigt
 # =============================================================================
 proc lade_existierende_eintraege {} {
@@ -1291,22 +1280,12 @@ proc lade_existierende_eintraege {} {
     # Liste für alle Einträge aus allen Dateien
     set alle_eintraege [list]
 
-    # Daten-Verzeichnis und Archiv-Verzeichnis vom Pfad-Management abrufen
+    # Daten-Verzeichnis vom Pfad-Management abrufen
     set daten_dir [::pfad::get_daten_directory]
-    set archiv_dir [::pfad::get_archiv_directory]
 
     # Alle JSON-Dateien im daten-Verzeichnis finden und laden
     if {[file exists $daten_dir]} {
         foreach datei [glob -nocomplain -directory $daten_dir *.json] {
-            # Einträge aus dieser Datei laden und zur Gesamtliste hinzufügen
-            set eintraege [::neuer_eintrag::lade_eintraege_aus_datei $datei]
-            set alle_eintraege [concat $alle_eintraege $eintraege]
-        }
-    }
-
-    # Alle JSON-Dateien im archiv-Verzeichnis finden und laden
-    if {[file exists $archiv_dir]} {
-        foreach datei [glob -nocomplain -directory $archiv_dir *.json] {
             # Einträge aus dieser Datei laden und zur Gesamtliste hinzufügen
             set eintraege [::neuer_eintrag::lade_eintraege_aus_datei $datei]
             set alle_eintraege [concat $alle_eintraege $eintraege]

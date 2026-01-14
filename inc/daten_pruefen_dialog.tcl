@@ -716,9 +716,8 @@ proc ::daten_pruefen::starte_pruefung {} {
     log_ausgabe "Gestartet am: [clock format [clock seconds] -format "%d.%m.%Y %H:%M:%S"]"
     log_ausgabe ""
 
-    # Daten-Verzeichnis, Archiv-Verzeichnis und Preferences-Verzeichnis
+    # Daten-Verzeichnis und Preferences-Verzeichnis
     set daten_dir [::pfad::get_daten_directory]
-    set archiv_dir [::pfad::get_archiv_directory]
     set preferences_dir [::pfad::get_preferences_directory]
 
     # Alle JSON-Dateien sammeln
@@ -734,13 +733,6 @@ proc ::daten_pruefen::starte_pruefung {} {
             if {[file tail $datei] ne "mitglieder.json"} {
                 lappend journal_dateien $datei
             }
-        }
-    }
-
-    # Archiv-Verzeichnis durchsuchen
-    if {[file exists $archiv_dir]} {
-        foreach datei [glob -nocomplain -directory $archiv_dir *.json] {
-            lappend journal_dateien $datei
         }
     }
 

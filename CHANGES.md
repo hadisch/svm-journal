@@ -1,5 +1,31 @@
 # Änderungshistorie - SVM-Journal
 
+## Version 1.2.5 (2026-01-14)
+
+### Neue Features
+- **Export-Dialog: Feldauswahl für Markdown- und HTML-Export**
+  - Neue Checkbox-Auswahl ermöglicht individuelle Feldauswahl beim Export
+  - 10 auswählbare Felder: Datum, Nachname, Vorname, KW, LW, Typ, Kaliber, Startgeld, Munition, Mun.Preis
+  - Standard-Vorauswahl: 7 Felder (Datum bis Kaliber) aktiviert, 3 Felder (Startgeld, Munition, Mun.Preis) deaktiviert
+  - Buttons "Alle auswählen" / "Alle abwählen" für schnelle Massenauswahl
+  - Verwendungszweck: Export für Behördennachweise ohne Preisfelder möglich
+  - 2-Spalten-Layout für übersichtliche Darstellung der Checkboxen
+  - Datei: `inc/export_dialog.tcl`
+    - 10 neue Namespace-Variablen für Feldauswahl (Zeile 29-39)
+    - Neue Prozedur `get_feld_definitionen`: Zentrale Feld-Definition (Zeile 42-61)
+    - Neue Prozedur `get_ausgewaehlte_felder`: Filtert ausgewählte Felder (Zeile 63-83)
+    - Neue Prozedur `pruefe_feldauswahl`: Validiert Mindestauswahl (Zeile 85-112)
+    - Neue Prozedur `waehle_alle_felder`: Aktiviert alle Felder (Zeile 114-141)
+    - Neue Prozedur `waehle_keine_felder`: Deaktiviert alle Felder (Zeile 143-170)
+    - `erstelle_markdown_tabelle`: Dynamische Spaltenauswahl (Zeile 520-559)
+    - `erstelle_html_tabelle`: Dynamische Spaltenauswahl (Zeile 569-630)
+    - `exportiere_daten`: Validierung für Mindestauswahl (Zeile 653-659)
+    - LabelFrame "Felder für Export" mit Checkboxen hinzugefügt (Zeile 815-885)
+    - Feldauswahl-Variablen werden beim Dialog-Öffnen zurückgesetzt (Zeile 715-725)
+    - 10 Traces für Feldauswahl-Validierung (Zeile 925-935)
+    - Trace-Cleanup beim Dialog-Schließen (Zeile 317-327)
+    - Fenstergröße von 600x450 auf 600x700 erhöht (Zeile 769)
+
 ## Version 1.2.4 (2025-12-15)
 
 ### Bugfixes

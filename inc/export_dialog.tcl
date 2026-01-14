@@ -25,6 +25,148 @@ namespace eval ::export {
     # Autovervollständigungs-Listbox
     variable person_listbox ""
     variable person_listbox_visible 0
+
+    # Feldauswahl-Variablen (1 = ausgewählt, 0 = nicht ausgewählt)
+    variable feld_datum 1
+    variable feld_nachname 1
+    variable feld_vorname 1
+    variable feld_kw 1
+    variable feld_lw 1
+    variable feld_typ 1
+    variable feld_kaliber 1
+    variable feld_startgeld 0
+    variable feld_munition 0
+    variable feld_munpreis 0
+}
+
+# =============================================================================
+# Prozedur: get_feld_definitionen
+# Gibt eine Liste aller verfügbaren Exportfelder zurück
+# Jedes Feld ist eine Liste mit: {anzeigename dict_key variable_name}
+# Rückgabe: Liste von Feld-Definitionen
+# =============================================================================
+proc ::export::get_feld_definitionen {} {
+    return [list \
+        [list "Datum" "datum" "::export::feld_datum"] \
+        [list "Nachname" "nachname" "::export::feld_nachname"] \
+        [list "Vorname" "vorname" "::export::feld_vorname"] \
+        [list "KW" "kurzwaffe" "::export::feld_kw"] \
+        [list "LW" "langwaffe" "::export::feld_lw"] \
+        [list "Typ" "waffentyp" "::export::feld_typ"] \
+        [list "Kaliber" "kaliber" "::export::feld_kaliber"] \
+        [list "Startgeld" "startgeld" "::export::feld_startgeld"] \
+        [list "Munition" "munition" "::export::feld_munition"] \
+        [list "Mun.Preis" "munitionspreis" "::export::feld_munpreis"] \
+    ]
+}
+
+# =============================================================================
+# Prozedur: get_ausgewaehlte_felder
+# Filtert die Feld-Definitionen nach ausgewählten Checkboxen
+# Rückgabe: Liste von Feld-Definitionen, die exportiert werden sollen
+# =============================================================================
+proc ::export::get_ausgewaehlte_felder {} {
+    set alle_felder [get_feld_definitionen]
+    set ausgewaehlte [list]
+
+    # Durch alle Felder iterieren und nur die ausgewählten behalten
+    foreach feld $alle_felder {
+        lassign $feld anzeigename dict_key var_name
+
+        # Prüfen, ob die zugehörige Variable auf 1 gesetzt ist
+        if {[set $var_name] == 1} {
+            lappend ausgewaehlte $feld
+        }
+    }
+
+    return $ausgewaehlte
+}
+
+# =============================================================================
+# Prozedur: pruefe_feldauswahl
+# Prüft, ob mindestens ein Feld ausgewählt ist
+# Wird aufgerufen, wenn eine Checkbox geändert wird
+# Deaktiviert den Export-Button, wenn keine Felder ausgewählt sind
+# =============================================================================
+proc ::export::pruefe_feldauswahl {args} {
+    variable fenster
+
+    # Prüfen ob das Fenster noch existiert (wichtig bei Traces!)
+    if {$fenster eq "" || ![winfo exists $fenster]} {
+        return
+    }
+
+    # Prüfen ob mindestens ein Feld ausgewählt ist
+    set ausgewaehlte_felder [get_ausgewaehlte_felder]
+
+    # Export-Button existiert und ist normal aktiviert
+    if {[winfo exists $fenster.button_frame.export]} {
+        # Wenn keine Felder ausgewählt: deaktivieren
+        if {[llength $ausgewaehlte_felder] == 0} {
+            $fenster.button_frame.export configure -state disabled
+        } else {
+            # Sonst: normale Prüfung über pruefe_export_button
+            pruefe_export_button
+        }
+    }
+}
+
+# =============================================================================
+# Prozedur: waehle_alle_felder
+# Setzt alle Feldauswahl-Variablen auf 1 (ausgewählt)
+# =============================================================================
+proc ::export::waehle_alle_felder {} {
+    variable feld_datum
+    variable feld_nachname
+    variable feld_vorname
+    variable feld_kw
+    variable feld_lw
+    variable feld_typ
+    variable feld_kaliber
+    variable feld_startgeld
+    variable feld_munition
+    variable feld_munpreis
+
+    # Alle Felder auf 1 setzen
+    set feld_datum 1
+    set feld_nachname 1
+    set feld_vorname 1
+    set feld_kw 1
+    set feld_lw 1
+    set feld_typ 1
+    set feld_kaliber 1
+    set feld_startgeld 1
+    set feld_munition 1
+    set feld_munpreis 1
+}
+
+# =============================================================================
+# Prozedur: waehle_keine_felder
+# Setzt alle Feldauswahl-Variablen auf 0 (nicht ausgewählt)
+# =============================================================================
+proc ::export::waehle_keine_felder {} {
+    variable feld_datum
+    variable feld_nachname
+    variable feld_vorname
+    variable feld_kw
+    variable feld_lw
+    variable feld_typ
+    variable feld_kaliber
+    variable feld_startgeld
+    variable feld_munition
+    variable feld_munpreis
+
+    # Alle Felder auf 0 setzen
+    set feld_datum 0
+    set feld_nachname 0
+    set feld_vorname 0
+    set feld_kw 0
+    set feld_lw 0
+    set feld_typ 0
+    set feld_kaliber 0
+    set feld_startgeld 0
+    set feld_munition 0
+    set feld_munpreis 0
 }
 
 # =============================================================================
@@ -172,6 +314,18 @@ proc ::export::schliesse_export_dialog {} {
     trace remove variable ::export::bis_datum write ::export::pruefe_export_button
     trace remove variable ::export::person_suche write ::export::person_suche_geaendert
 
+    # Traces für Feldauswahl entfernen
+    trace remove variable ::export::feld_datum write ::export::pruefe_feldauswahl
+    trace remove variable ::export::feld_nachname write ::export::pruefe_feldauswahl
+    trace remove variable ::export::feld_vorname write ::export::pruefe_feldauswahl
+    trace remove variable ::export::feld_kw write ::export::pruefe_feldauswahl
+    trace remove variable ::export::feld_lw write ::export::pruefe_feldauswahl
+    trace remove variable ::export::feld_typ write ::export::pruefe_feldauswahl
+    trace remove variable ::export::feld_kaliber write ::export::pruefe_feldauswahl
+    trace remove variable ::export::feld_startgeld write ::export::pruefe_feldauswahl
+    trace remove variable ::export::feld_munition write ::export::pruefe_feldauswahl
+    trace remove variable ::export::feld_munpreis write ::export::pruefe_feldauswahl
+
     # Fenster schließen
     if {[winfo exists $fenster]} {
         destroy $fenster
@@ -269,7 +423,7 @@ proc ::export::person_modus_geaendert {args} {
 
 # =============================================================================
 # Prozedur: lade_alle_eintraege
-# Lädt alle Einträge aus den JSON-Dateien (daten/ und daten/archiv/)
+# Lädt alle Einträge aus den JSON-Dateien im daten-Verzeichnis
 # Rückgabe: Liste von Eintrags-Dictionaries
 # =============================================================================
 proc ::export::lade_alle_eintraege {} {
@@ -278,9 +432,8 @@ proc ::export::lade_alle_eintraege {} {
     # Liste für alle Einträge
     set alle_eintraege [list]
 
-    # Daten-Verzeichnis und Archiv-Verzeichnis vom Pfad-Management abrufen
+    # Daten-Verzeichnis vom Pfad-Management abrufen
     set daten_dir [::pfad::get_daten_directory]
-    set archiv_dir [::pfad::get_archiv_directory]
 
     # Alle JSON-Dateien im daten-Verzeichnis laden
     if {[file exists $daten_dir]} {
@@ -290,14 +443,6 @@ proc ::export::lade_alle_eintraege {} {
                 set eintraege [::neuer_eintrag::lade_eintraege_aus_datei $datei]
                 set alle_eintraege [concat $alle_eintraege $eintraege]
             }
-        }
-    }
-
-    # Alle JSON-Dateien im archiv-Verzeichnis laden
-    if {[file exists $archiv_dir]} {
-        foreach datei [glob -nocomplain -directory $archiv_dir *.json] {
-            set eintraege [::neuer_eintrag::lade_eintraege_aus_datei $datei]
-            set alle_eintraege [concat $alle_eintraege $eintraege]
         }
     }
 
@@ -379,32 +524,46 @@ proc ::export::filtere_eintraege {eintraege} {
 # =============================================================================
 # Prozedur: erstelle_markdown_tabelle
 # Konvertiert Einträge in eine Markdown-Tabelle
+# Exportiert nur die ausgewählten Felder
 # Parameter:
 #   eintraege - Liste von Eintrags-Dictionaries
 # Rückgabe: Markdown-String
 # =============================================================================
 proc ::export::erstelle_markdown_tabelle {eintraege} {
-    # Markdown-Tabellen-Header erstellen
+    # Ausgewählte Felder ermitteln
+    set felder [get_ausgewaehlte_felder]
+
+    # Markdown-Header erstellen
     set markdown "# SVM Journal Export\n\n"
     append markdown "Exportiert am: [clock format [clock seconds] -format "%d.%m.%Y %H:%M:%S"]\n\n"
-    append markdown "| Datum | Nachname | Vorname | KW | LW | Typ | Kaliber | Startgeld | Munition | Mun.Preis |\n"
-    append markdown "|-------|----------|---------|----|----|-----|---------|-----------|----------|----------|\n"
+
+    # Tabellen-Header-Zeile erstellen (| Feld1 | Feld2 | ... |)
+    append markdown "|"
+    foreach feld $felder {
+        lassign $feld anzeigename dict_key var_name
+        append markdown " $anzeigename |"
+    }
+    append markdown "\n"
+
+    # Trennlinie erstellen (|-------|-------|-----|)
+    append markdown "|"
+    foreach feld $felder {
+        append markdown "-------|"
+    }
+    append markdown "\n"
 
     # Einträge zur Tabelle hinzufügen
     foreach eintrag $eintraege {
-        append markdown "| "
-        append markdown [dict get $eintrag datum] " | "
-        append markdown [dict get $eintrag nachname] " | "
-        append markdown [dict get $eintrag vorname] " | "
-        append markdown [dict get $eintrag kurzwaffe] " | "
-        append markdown [dict get $eintrag langwaffe] " | "
-        append markdown [dict get $eintrag waffentyp] " | "
-        append markdown [dict get $eintrag kaliber] " | "
-        append markdown [dict get $eintrag startgeld] " | "
-        append markdown [dict get $eintrag munition] " | "
-        append markdown [dict get $eintrag munitionspreis] " |\n"
+        append markdown "|"
+        foreach feld $felder {
+            lassign $feld anzeigename dict_key var_name
+            set wert [dict get $eintrag $dict_key]
+            append markdown " $wert |"
+        }
+        append markdown "\n"
     }
 
+    # Fußzeile
     append markdown "\n---\n\n"
     append markdown "Anzahl Einträge: [llength $eintraege]\n"
 
@@ -414,12 +573,16 @@ proc ::export::erstelle_markdown_tabelle {eintraege} {
 # =============================================================================
 # Prozedur: erstelle_html_tabelle
 # Konvertiert Einträge in eine HTML-Tabelle mit CSS
+# Exportiert nur die ausgewählten Felder
 # Parameter:
 #   eintraege - Liste von Eintrags-Dictionaries
 # Rückgabe: HTML-String
 # =============================================================================
 proc ::export::erstelle_html_tabelle {eintraege} {
-    # HTML-Dokument erstellen
+    # Ausgewählte Felder ermitteln
+    set felder [get_ausgewaehlte_felder]
+
+    # HTML-Dokument erstellen mit CSS
     set html "<!DOCTYPE html>\n"
     append html "<html lang=\"de\">\n"
     append html "<head>\n"
@@ -443,16 +606,13 @@ proc ::export::erstelle_html_tabelle {eintraege} {
     append html "  <table>\n"
     append html "    <thead>\n"
     append html "      <tr>\n"
-    append html "        <th>Datum</th>\n"
-    append html "        <th>Nachname</th>\n"
-    append html "        <th>Vorname</th>\n"
-    append html "        <th>KW</th>\n"
-    append html "        <th>LW</th>\n"
-    append html "        <th>Typ</th>\n"
-    append html "        <th>Kaliber</th>\n"
-    append html "        <th>Startgeld</th>\n"
-    append html "        <th>Munition</th>\n"
-    append html "        <th>Mun.Preis</th>\n"
+
+    # Tabellen-Header (TH-Elemente)
+    foreach feld $felder {
+        lassign $feld anzeigename dict_key var_name
+        append html "        <th>$anzeigename</th>\n"
+    }
+
     append html "      </tr>\n"
     append html "    </thead>\n"
     append html "    <tbody>\n"
@@ -460,19 +620,18 @@ proc ::export::erstelle_html_tabelle {eintraege} {
     # Einträge zur Tabelle hinzufügen
     foreach eintrag $eintraege {
         append html "      <tr>\n"
-        append html "        <td>[dict get $eintrag datum]</td>\n"
-        append html "        <td>[dict get $eintrag nachname]</td>\n"
-        append html "        <td>[dict get $eintrag vorname]</td>\n"
-        append html "        <td>[dict get $eintrag kurzwaffe]</td>\n"
-        append html "        <td>[dict get $eintrag langwaffe]</td>\n"
-        append html "        <td>[dict get $eintrag waffentyp]</td>\n"
-        append html "        <td>[dict get $eintrag kaliber]</td>\n"
-        append html "        <td>[dict get $eintrag startgeld]</td>\n"
-        append html "        <td>[dict get $eintrag munition]</td>\n"
-        append html "        <td>[dict get $eintrag munitionspreis]</td>\n"
+
+        # Daten-Zellen (TD-Elemente)
+        foreach feld $felder {
+            lassign $feld anzeigename dict_key var_name
+            set wert [dict get $eintrag $dict_key]
+            append html "        <td>$wert</td>\n"
+        }
+
         append html "      </tr>\n"
     }
 
+    # Abschluss der Tabelle und Dokument
     append html "    </tbody>\n"
     append html "  </table>\n"
     append html "  <div class=\"footer\">Anzahl Einträge: [llength $eintraege]</div>\n"
@@ -490,6 +649,14 @@ proc ::export::erstelle_html_tabelle {eintraege} {
 proc ::export::exportiere_daten {} {
     variable fenster
     variable export_format
+
+    # Prüfen ob mindestens ein Feld ausgewählt ist
+    set ausgewaehlte_felder [get_ausgewaehlte_felder]
+    if {[llength $ausgewaehlte_felder] == 0} {
+        tk_messageBox -parent $fenster -icon warning -title "Export" \
+            -message "Bitte w\u00e4hlen Sie mindestens ein Feld f\u00fcr den Export aus."
+        return
+    }
 
     # Alle Einträge laden
     set alle_eintraege [lade_alle_eintraege]
@@ -565,6 +732,18 @@ proc open_export_dialog {format} {
     set ::export::person_suche ""
     set ::export::person_ausgewaehlt ""
 
+    # Feldauswahl zurücksetzen (Standard-Vorauswahl)
+    set ::export::feld_datum 1
+    set ::export::feld_nachname 1
+    set ::export::feld_vorname 1
+    set ::export::feld_kw 1
+    set ::export::feld_lw 1
+    set ::export::feld_typ 1
+    set ::export::feld_kaliber 1
+    set ::export::feld_startgeld 0
+    set ::export::feld_munition 0
+    set ::export::feld_munpreis 0
+
     # Mitglieder für Suche laden
     ::export::lade_mitglieder_fuer_suche
 
@@ -587,7 +766,7 @@ proc open_export_dialog {format} {
         wm title $w "Export als HTML"
     }
 
-    wm geometry $w "600x450"
+    wm geometry $w "600x700"
 
     # Hauptframe mit Padding
     frame $w.main -padx 20 -pady 20
@@ -666,6 +845,78 @@ proc open_export_dialog {format} {
     bind $w.person_frame.person_content.listbox <Double-Button-1> ::export::person_ausgewaehlt
 
     # =========================================================================
+    # Feldauswahl - Checkboxen für zu exportierende Felder
+    # =========================================================================
+    labelframe $w.felder_frame -text "Felder f\u00fcr Export" -padx 10 -pady 10
+    pack $w.felder_frame -in $w.main -fill x -pady 10
+
+    # Frame für "Alle auswählen" / "Alle abwählen" Buttons
+    frame $w.felder_frame.button_row
+    pack $w.felder_frame.button_row -anchor w -pady 5
+
+    # Button "Alle auswählen"
+    button $w.felder_frame.button_row.alle -text "Alle ausw\u00e4hlen" -bg "#E0E0E0" -width 15 \
+        -command ::export::waehle_alle_felder
+    pack $w.felder_frame.button_row.alle -side left -padx 5
+
+    # Button "Alle abwählen"
+    button $w.felder_frame.button_row.keine -text "Alle abw\u00e4hlen" -bg "#E0E0E0" -width 15 \
+        -command ::export::waehle_keine_felder
+    pack $w.felder_frame.button_row.keine -side left -padx 5
+
+    # Frame für Checkboxen (2 Spalten Layout)
+    frame $w.felder_frame.checks
+    pack $w.felder_frame.checks -fill x
+
+    # Linke Spalte (Felder 1-5)
+    frame $w.felder_frame.checks.left
+    pack $w.felder_frame.checks.left -side left -fill both -expand 1
+
+    checkbutton $w.felder_frame.checks.left.datum -text "Datum" \
+        -variable ::export::feld_datum -font {Arial 11}
+    pack $w.felder_frame.checks.left.datum -anchor w -pady 3
+
+    checkbutton $w.felder_frame.checks.left.nachname -text "Nachname" \
+        -variable ::export::feld_nachname -font {Arial 11}
+    pack $w.felder_frame.checks.left.nachname -anchor w -pady 3
+
+    checkbutton $w.felder_frame.checks.left.vorname -text "Vorname" \
+        -variable ::export::feld_vorname -font {Arial 11}
+    pack $w.felder_frame.checks.left.vorname -anchor w -pady 3
+
+    checkbutton $w.felder_frame.checks.left.kw -text "KW" \
+        -variable ::export::feld_kw -font {Arial 11}
+    pack $w.felder_frame.checks.left.kw -anchor w -pady 3
+
+    checkbutton $w.felder_frame.checks.left.lw -text "LW" \
+        -variable ::export::feld_lw -font {Arial 11}
+    pack $w.felder_frame.checks.left.lw -anchor w -pady 3
+
+    # Rechte Spalte (Felder 6-10)
+    frame $w.felder_frame.checks.right
+    pack $w.felder_frame.checks.right -side right -fill both -expand 1
+
+    checkbutton $w.felder_frame.checks.right.typ -text "Typ" \
+        -variable ::export::feld_typ -font {Arial 11}
+    pack $w.felder_frame.checks.right.typ -anchor w -pady 3
+
+    checkbutton $w.felder_frame.checks.right.kaliber -text "Kaliber" \
+        -variable ::export::feld_kaliber -font {Arial 11}
+    pack $w.felder_frame.checks.right.kaliber -anchor w -pady 3
+
+    checkbutton $w.felder_frame.checks.right.startgeld -text "Startgeld" \
+        -variable ::export::feld_startgeld -font {Arial 11}
+    pack $w.felder_frame.checks.right.startgeld -anchor w -pady 3
+
+    checkbutton $w.felder_frame.checks.right.munition -text "Munition" \
+        -variable ::export::feld_munition -font {Arial 11}
+    pack $w.felder_frame.checks.right.munition -anchor w -pady 3
+
+    checkbutton $w.felder_frame.checks.right.munpreis -text "Mun.Preis" \
+        -variable ::export::feld_munpreis -font {Arial 11}
+    pack $w.felder_frame.checks.right.munpreis -anchor w -pady 3
+
+    # =========================================================================
     # Buttons (Exportieren / Abbrechen)
     # =========================================================================
     frame $w.button_frame
@@ -690,6 +941,18 @@ proc open_export_dialog {format} {
 
     # Trace für Live-Suche
     trace add variable ::export::person_suche write ::export::person_suche_geaendert
+
+    # Traces für Feldauswahl-Checkboxen - Validierung
+    trace add variable ::export::feld_datum write ::export::pruefe_feldauswahl
+    trace add variable ::export::feld_nachname write ::export::pruefe_feldauswahl
+    trace add variable ::export::feld_vorname write ::export::pruefe_feldauswahl
+    trace add variable ::export::feld_kw write ::export::pruefe_feldauswahl
+    trace add variable ::export::feld_lw write ::export::pruefe_feldauswahl
+    trace add variable ::export::feld_typ write ::export::pruefe_feldauswahl
+    trace add variable ::export::feld_kaliber write ::export::pruefe_feldauswahl
+    trace add variable ::export::feld_startgeld write ::export::pruefe_feldauswahl
+    trace add variable ::export::feld_munition write ::export::pruefe_feldauswahl
+    trace add variable ::export::feld_munpreis write ::export::pruefe_feldauswahl
 
     # =========================================================================
     # Initiale Prüfung des Export-Buttons

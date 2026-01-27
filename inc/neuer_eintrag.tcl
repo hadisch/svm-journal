@@ -350,21 +350,36 @@ proc ::neuer_eintrag::anzahl_fokus_verloren {} {
 # =============================================================================
 # Prozedur: berechne_startgeld
 # Berechnet das Startgeld basierend auf den eingegebenen Daten
+# Prüft Mitgliedschaft anhand von Nachname UND Vorname
 # =============================================================================
 proc ::neuer_eintrag::berechne_startgeld {} {
     variable nachname
+    variable vorname
     variable waffentyp
     variable mitglieder_dict
     variable stand_preise
     variable startgeld
 
-    # Prüfen, ob der Schütze ein Mitglied ist (case-insensitive, auch bei mehreren Vornamen)
+    # Prüfen, ob der Schütze ein Mitglied ist (case-insensitive)
+    # Wichtig: Sowohl Nachname ALS AUCH Vorname müssen übereinstimmen
+    # Damit wird verhindert, dass z.B. "Anna Müller" als Mitglied erkannt wird,
+    # nur weil "Karl Müller" Mitglied ist
     set ist_mitglied 0
     dict for {name vornamen} $mitglieder_dict {
-        # Case-insensitive Vergleich: Wenn der eingegebene Nachname mit einem Namen im Dictionary übereinstimmt
+        # Case-insensitive Vergleich des Nachnamens
         if {[string equal -nocase $nachname $name]} {
-            set ist_mitglied 1
-            break
+            # Nachname gefunden - jetzt prüfen, ob der Vorname auch in der Liste ist
+            foreach vn $vornamen {
+                if {[string equal -nocase $vorname $vn]} {
+                    # Vollständige Übereinstimmung: Nachname + Vorname
+                    set ist_mitglied 1
+                    break
+                }
+            }
+            # Wenn Mitglied gefunden, Schleife beenden
+            if {$ist_mitglied} {
+                break
+            }
         }
     }
 

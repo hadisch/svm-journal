@@ -105,6 +105,9 @@ source [file join [file dirname [info script]] inc waffenverleih_html_export.tcl
 # Daten-Prüfungs-Dialog - Werkzeug zur Überprüfung und Reparatur der JSON-Datenbank
 source [file join [file dirname [info script]] inc daten_pruefen_dialog.tcl]
 
+# Journal-Suche - Suchfunktion für das Hauptfenster (Nachname/Vorname)
+source [file join [file dirname [info script]] inc journal_suche.tcl]
+
 # =============================================================================
 # Lock-Mechanismus: Prüfen ob bereits eine Instanz läuft
 # =============================================================================
@@ -181,6 +184,13 @@ menu .menubar.file.export -tearoff 0
 .menubar.file add command -label "Beenden" -command {confirm_exit} -accelerator "Strg+Q"
 .menubar add cascade -label "Datei" -menu .menubar.file
 
+# Menü "Bearbeiten" erstellen (zwischen Datei und Einstellungen)
+menu .menubar.bearbeiten -tearoff 0
+# Suchen-Befehl mit Tastenkürzel Strg+S
+.menubar.bearbeiten add command -label "Suchen" -command {oeffne_journal_such_dialog} -accelerator "Strg+S"
+# Bearbeiten-Menü zur Menüleiste hinzufügen
+.menubar add cascade -label "Bearbeiten" -menu .menubar.bearbeiten
+
 # Menü "Einstellungen" erstellen
 menu .menubar.settings -tearoff 0
 .menubar.settings add command -label "Preise Munition..." -command {open_munitions_preise_dialog}
@@ -220,6 +230,10 @@ pack .toolbar.new -side left -padx 5 -pady 3
 button .toolbar.edit -text "Eintrag bearbeiten" -bg "#FDF1AF" -command {oeffne_bearbeiten_dialog}
 pack .toolbar.edit -side left -padx 5 -pady 3
 
+# Button "Suchen" - öffnet Such-Dialog für Nachname/Vorname-Suche im Journal
+button .toolbar.search -text "Suchen" -bg "#FDF1AF" -command {oeffne_journal_such_dialog}
+pack .toolbar.search -side left -padx 5 -pady 3
+
 # Button "Mitglieder" - zeigt Mitgliederverwaltung
 button .toolbar.members -text "Mitglieder" -bg "#FDF1AF" -command {open_mitglieder_fenster}
 pack .toolbar.members -side left -padx 5 -pady 3
@@ -237,6 +251,10 @@ bind . <Control-Q> {confirm_exit}
 # Strg+N für Neuer Eintrag
 bind . <Control-n> {.toolbar.new invoke}
 bind . <Control-N> {.toolbar.new invoke}
+
+# Strg+S für Suchen im Journal
+bind . <Control-s> {oeffne_journal_such_dialog}
+bind . <Control-S> {oeffne_journal_such_dialog}
 
 # Hauptframe erstellen für zukünftige Inhalte
 frame .main -bg white

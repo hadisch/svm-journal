@@ -16,6 +16,7 @@ namespace eval ::waffenverleih {
     variable typ_verwahrung 0
     variable typ_transport 0
     variable typ_vereinsbeauftragter 0
+    variable typ_wettkampf 0
 
     # Vorübergehender Besitzer (alle Pflicht)
     variable besitzer_name ""
@@ -497,6 +498,7 @@ proc ::waffenverleih::validiere_und_exportiere {} {
     variable typ_verwahrung
     variable typ_transport
     variable typ_vereinsbeauftragter
+    variable typ_wettkampf
     variable besitzer_name
     variable besitzer_vorname
     variable besitzer_geburtsdatum
@@ -539,7 +541,7 @@ proc ::waffenverleih::validiere_und_exportiere {} {
     }
 
     # SCHRITT 2: Mindestens ein Verleihtyp ausgewählt
-    if {!$typ_leihe && !$typ_verwahrung && !$typ_transport && !$typ_vereinsbeauftragter} {
+    if {!$typ_leihe && !$typ_verwahrung && !$typ_transport && !$typ_vereinsbeauftragter && !$typ_wettkampf} {
         tk_messageBox -parent $fenster -icon warning -title "Fehler" \
             -message "Bitte wählen Sie mindestens eine Art des Verleihs aus."
         return
@@ -626,6 +628,7 @@ proc ::waffenverleih::validiere_und_exportiere {} {
     dict set export_data typ_verwahrung $typ_verwahrung
     dict set export_data typ_transport $typ_transport
     dict set export_data typ_vereinsbeauftragter $typ_vereinsbeauftragter
+    dict set export_data typ_wettkampf $typ_wettkampf
     dict set export_data wbk_erforderlich $wbk_erforderlich
 
     # Besitzer-Daten
@@ -694,6 +697,7 @@ proc open_waffenverleih_dialog {} {
     set ::waffenverleih::typ_verwahrung 0
     set ::waffenverleih::typ_transport 0
     set ::waffenverleih::typ_vereinsbeauftragter 0
+    set ::waffenverleih::typ_wettkampf 0
 
     # Alle Besitzer-Felder zurücksetzen
     set ::waffenverleih::besitzer_name ""
@@ -783,6 +787,13 @@ proc open_waffenverleih_dialog {} {
         -variable ::waffenverleih::typ_vereinsbeauftragter \
         -anchor w
     pack $w.canvas.main.typ_frame.vereinsbeauftragter -anchor w -pady 2
+
+    # Checkbox für Wettkampf-Verleih
+    checkbutton $w.canvas.main.typ_frame.wettkampf \
+        -text "Wettkampf" \
+        -variable ::waffenverleih::typ_wettkampf \
+        -anchor w
+    pack $w.canvas.main.typ_frame.wettkampf -anchor w -pady 2
 
     # === SEKTION 3: Vorübergehender Besitzer ===
     labelframe $w.canvas.main.besitzer_frame \

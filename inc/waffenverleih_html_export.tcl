@@ -34,6 +34,8 @@ proc ::waffenverleih::export::erstelle_html_dokument {data_dict} {
     set typ_verwahrung [dict get $data_dict typ_verwahrung]
     set typ_transport [dict get $data_dict typ_transport]
     set typ_vereinsbeauftragter [dict get $data_dict typ_vereinsbeauftragter]
+    # Wettkampf-Verleihtyp aus Dict holen
+    set typ_wettkampf [dict get $data_dict typ_wettkampf]
     set wbk_erforderlich [dict get $data_dict wbk_erforderlich]
 
     set besitzer_name [dict get $data_dict besitzer_name]
@@ -61,6 +63,7 @@ proc ::waffenverleih::export::erstelle_html_dokument {data_dict} {
     if {$typ_verwahrung} { lappend loan_types_list "Verwahrung" }
     if {$typ_transport} { lappend loan_types_list "Gewerblicher Transport" }
     if {$typ_vereinsbeauftragter} { lappend loan_types_list "Vereinsbeauftragter" }
+    if {$typ_wettkampf} { lappend loan_types_list "Wettkampf" }
     set loan_types_text [join $loan_types_list ", "]
 
     # WBK-Status-Text

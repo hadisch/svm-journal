@@ -1,5 +1,62 @@
 # Änderungshistorie - SVM-Journal
 
+## Version 1.2.6 (2026-01-27)
+
+### Neue Features
+- **Suchfunktion im Hauptfenster (Nachname/Vorname)**
+  - Neuer Such-Dialog mit Live-Filterung der Eintragsliste
+  - Suche beschränkt sich auf Nachname und Vorname (case-insensitive)
+  - Neues Menü "Bearbeiten" in der Menüleiste (zwischen Datei und Einstellungen)
+  - Menüpunkt "Suchen" mit Tastenkürzel Strg+S
+  - Neuer Button "Suchen" in der Toolbar (zwischen "Eintrag bearbeiten" und "Mitglieder")
+  - Live-Vorschau: Treeview wird bei jeder Tasteneingabe gefiltert
+  - Escape-Taste setzt die Anzeige auf alle Einträge zurück
+  - Treeview-Cache verhindert Disk-I/O während der Live-Suche
+  - Neue Datei: `inc/journal_suche.tcl`
+    - Prozedur `cache_journal_eintraege`: Cached Treeview-Einträge beim Dialog-Öffnen
+    - Prozedur `filtere_journal_eintraege`: Filtert nach Nachname (Index 2) und Vorname (Index 3)
+    - Prozedur `oeffne_journal_such_dialog`: Modaler Dialog mit Entry-Feld und Suchen-Button
+  - Datei: `svm-journal.tcl`
+    - Source-Anweisung für `journal_suche.tcl` (Zeile 108-109)
+    - Menü "Bearbeiten" mit "Suchen"-Eintrag (Zeile 187-192)
+    - Toolbar-Button "Suchen" (Zeile 233-235)
+    - Tastatur-Shortcuts Strg+S (Zeile 255-257)
+
+- **Waffenverleih: Neuer Verleihtyp "Wettkampf"**
+  - Neue Checkbox "Wettkampf" im Waffenverleih-Dialog
+  - Wird bei der Validierung als gültiger Verleihtyp erkannt
+  - Erscheint im HTML-Export als eigenständiger Verleihtyp
+  - Datei: `inc/waffenverleih_dialog.tcl`
+    - Variable `typ_wettkampf` hinzugefügt (Zeile 19)
+    - Validierung um Wettkampf erweitert (Zeile 544)
+    - Export-Daten um Wettkampf erweitert (Zeile 631)
+    - Checkbox im Dialog eingefügt (Zeile 791-796)
+  - Datei: `inc/waffenverleih_html_export.tcl`
+    - Wettkampf-Typ aus Export-Daten gelesen (Zeile 37-38)
+    - "Wettkampf" zur Verleihtyp-Liste hinzugefügt (Zeile 66)
+
+### Bugfixes
+- **Startgeld-Berechnung: Mitgliedschaft wird jetzt anhand von Nachname UND Vorname geprüft**
+  - Problem: Nur der Nachname wurde geprüft, was zu falscher Mitglied-Erkennung führen konnte
+  - Beispiel: "Anna Müller" wurde als Mitglied erkannt, nur weil "Karl Müller" Mitglied ist
+  - Lösung: Beide Felder müssen übereinstimmen (case-insensitive)
+  - Datei: `inc/neuer_eintrag.tcl`
+    - Prozedur `berechne_startgeld`: Erweiterte Mitgliedschaftsprüfung (Zeile 353-383)
+
+- **Datenprüfung: Keine Fehlmeldungen mehr bei bekannten Dateien**
+  - Problem: `verein.json`, `behoerde.json`, `fenster.json` wurden als "unbekannte Datei" gemeldet
+  - Problem: `waffenregister.json` wurde fälschlich als Journal-Datei geprüft
+  - Lösung: Nur Jahres-Dateien (z.B. `2025.json`) werden als Journal-Dateien behandelt
+  - Lösung: Bekannte Konfigurationsdateien werden erkannt und übersprungen
+  - Verweis auf nicht mehr existierendes `archiv/`-Verzeichnis aus Beschreibung entfernt
+  - Beschreibungstext mit Unicode-Escapes für Windows-Kompatibilität
+  - Datei: `inc/daten_pruefen_dialog.tcl`
+    - Jahres-Regex-Filter für Daten-Verzeichnis (Zeile 729-740)
+    - Bekannte Konfigurationsdateien erkannt (Zeile 777-783)
+    - Beschreibungstext aktualisiert (Zeile 875)
+
+---
+
 ## Version 1.2.5 (2026-01-14)
 
 ### Neue Features

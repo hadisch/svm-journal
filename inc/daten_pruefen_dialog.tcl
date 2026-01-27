@@ -727,10 +727,13 @@ proc ::daten_pruefen::starte_pruefung {} {
     set preferences_dateien [list]
 
     # Daten-Verzeichnis durchsuchen
+    # Nur Jahres-JSON-Dateien (z.B. 2025.json) als Journal-Dateien behandeln
+    # mitglieder.json und waffenregister.json haben eine andere Struktur
     if {[file exists $daten_dir]} {
         foreach datei [glob -nocomplain -directory $daten_dir *.json] {
-            # mitglieder.json überspringen
-            if {[file tail $datei] ne "mitglieder.json"} {
+            set dateiname [file tail $datei]
+            # Nur Dateien mit Jahreszahl als Name sind Journal-Dateien
+            if {[regexp {^\d{4}\.json$} $dateiname]} {
                 lappend journal_dateien $datei
             }
         }
@@ -766,11 +769,20 @@ proc ::daten_pruefen::starte_pruefung {} {
 
         # Richtige Prüffunktion basierend auf Dateinamen wählen
         if {$dateiname eq "kaliber-preise.json"} {
+            # Kaliber-Preise: Preisfelder auf numerisches Format prüfen
             set ergebnis [pruefe_kaliber_preise_datei $datei]
         } elseif {$dateiname eq "stand-nutzung.json"} {
+            # Stand-Nutzung: Preisfelder auf numerisches Format prüfen
             set ergebnis [pruefe_stand_nutzung_datei $datei]
+        } elseif {$dateiname in {verein.json behoerde.json fenster.json kaliber.json}} {
+            # Konfigurations-Dateien ohne spezielle Validierung - überspringen
+            log_ausgabe "=========================================="
+            log_ausgabe "Überspringe Konfigurationsdatei: $dateiname (keine Validierung nötig)"
+            log_ausgabe "=========================================="
+            log_ausgabe ""
+            continue
         } else {
-            # Unbekannte Preferences-Datei - überspringen
+            # Unbekannte Preferences-Datei - überspringen mit Hinweis
             log_ausgabe "=========================================="
             log_ausgabe "Überspringe unbekannte Datei: $dateiname"
             log_ausgabe "=========================================="
@@ -860,7 +872,7 @@ proc open_daten_pruefen_dialog {} {
     # =========================================================================
     # Beschreibung
     # =========================================================================
-    label $w.main.beschreibung -text "Dieses Werkzeug prüft alle JSON-Datenbank-Dateien auf Fehler und korrigiert diese automatisch.\n\nGeprüfte Verzeichnisse:\n• daten/ - Schießjournal-Einträge\n• archiv/ - Archivierte Einträge\n• preferences/ - Kaliber-Preise und Stand-Nutzungsgebühren\n\nValidierungen:\n• Preis-Felder auf numerische Werte und korrektes Format\n• Datumsformate und Plausibilität\n• Vollständigkeit der Pflichtfelder\n\nVor jeder Änderung wird automatisch ein Backup erstellt." \
+    label $w.main.beschreibung -text "Dieses Werkzeug pr\u00fcft alle JSON-Datenbank-Dateien auf Fehler und korrigiert diese automatisch.\n\nGepr\u00fcfte Verzeichnisse:\n\u2022 daten/ - Schie\u00dfjournal-Eintr\u00e4ge (Jahres-Dateien)\n\u2022 preferences/ - Kaliber-Preise und Stand-Nutzungsgeb\u00fchren\n\nValidierungen:\n\u2022 Preis-Felder auf numerische Werte und korrektes Format\n\u2022 Datumsformate und Plausibilit\u00e4t\n\u2022 Vollst\u00e4ndigkeit der Pflichtfelder\n\nVor jeder \u00c4nderung wird automatisch ein Backup erstellt." \
         -justify left -anchor w
     pack $w.main.beschreibung -fill x -pady "0 20"
 

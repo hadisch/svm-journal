@@ -143,6 +143,15 @@ proc oeffne_journal_such_dialog {} {
             } else {
                 # Ergebnisse gefunden - Dialog schließen
                 destroy .journal_suchdialog
+
+                # ESC-Binding auf dem Hauptfenster setzen, damit der Benutzer
+                # mit ESC zur vollständigen Ansicht zurückkehren kann
+                bind . <Escape> {
+                    # Alle Einträge wiederherstellen (von Disk laden)
+                    aktualisiere_treeview
+                    # Einmaliges Binding - nach Verwendung wieder entfernen
+                    bind . <Escape> {}
+                }
             }
         }
     }

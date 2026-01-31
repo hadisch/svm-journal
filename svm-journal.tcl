@@ -108,6 +108,15 @@ source [file join [file dirname [info script]] inc daten_pruefen_dialog.tcl]
 # Journal-Suche - Suchfunktion für das Hauptfenster (Nachname/Vorname)
 source [file join [file dirname [info script]] inc journal_suche.tcl]
 
+# Tooltip-System - Tooltips für Buttons und andere Widgets
+source [file join [file dirname [info script]] inc tooltip.tcl]
+
+# Toolbar-Icons - Lädt und verwaltet Button-Icons
+source [file join [file dirname [info script]] inc toolbar_icons.tcl]
+
+# Statistik-Dialog - Statistiken über den Schießbetrieb
+source [file join [file dirname [info script]] inc statistik_dialog.tcl]
+
 # =============================================================================
 # Lock-Mechanismus: Prüfen ob bereits eine Instanz läuft
 # =============================================================================
@@ -206,6 +215,8 @@ menu .menubar.tools -tearoff 0
 .menubar.tools add command -label "Waffenverleih" -command {open_waffenverleih_dialog}
 .menubar.tools add separator
 .menubar.tools add command -label "Daten \u00fcberpr\u00fcfen..." -command {open_daten_pruefen_dialog}
+.menubar.tools add separator
+.menubar.tools add command -label "Statistik" -command {::statistik::open_zeitraum_dialog}
 .menubar add cascade -label "Werkzeuge" -menu .menubar.tools
 
 # Menü "Info" erstellen
@@ -216,32 +227,66 @@ menu .menubar.info -tearoff 0
 # Menüleiste dem Hauptfenster zuweisen
 . configure -menu .menubar
 
+# =============================================================================
+# Toolbar-Icons laden
+# =============================================================================
+::toolbar_icons::load_all
+
 # Button-Toolbar unterhalb der Menüleiste erstellen
 # Frame für die Button-Leiste mit hellgrauem Hintergrund
 frame .toolbar -bg #E0E0E0 -relief raised -bd 1
 pack .toolbar -fill x -pady 2
 
-# Linke Button-Gruppe (Neuer Eintrag, Eintrag bearbeiten, Mitglieder) in gelblichem Ton
+# Linke Button-Gruppe mit Icon-Buttons
 # Button "Neuer Eintrag" - öffnet Dialog für neuen Journal-Eintrag
-button .toolbar.new -text "Neuer Eintrag" -bg "#FDF1AF" -command {open_neuer_eintrag_fenster}
+button .toolbar.new -image [::toolbar_icons::get neuer_eintrag] \
+    -command {open_neuer_eintrag_fenster}
 pack .toolbar.new -side left -padx 5 -pady 3
+# Tooltip für "Neuer Eintrag"-Button registrieren
+::tooltip::register .toolbar.new "Neuer Eintrag - Strg+N"
 
 # Button "Eintrag bearbeiten" - öffnet Dialog zum Bearbeiten des ausgewählten Eintrags
-button .toolbar.edit -text "Eintrag bearbeiten" -bg "#FDF1AF" -command {oeffne_bearbeiten_dialog}
+button .toolbar.edit -image [::toolbar_icons::get bearbeiten] \
+    -command {oeffne_bearbeiten_dialog}
 pack .toolbar.edit -side left -padx 5 -pady 3
+# Tooltip für "Eintrag bearbeiten"-Button registrieren
+::tooltip::register .toolbar.edit "Eintrag bearbeiten"
 
 # Button "Suchen" - öffnet Such-Dialog für Nachname/Vorname-Suche im Journal
-button .toolbar.search -text "Suchen" -bg "#FDF1AF" -command {oeffne_journal_such_dialog}
+button .toolbar.search -image [::toolbar_icons::get suchen] \
+    -command {oeffne_journal_such_dialog}
 pack .toolbar.search -side left -padx 5 -pady 3
+# Tooltip für "Suchen"-Button registrieren
+::tooltip::register .toolbar.search "Suchen - Strg+S"
 
 # Button "Mitglieder" - zeigt Mitgliederverwaltung
-button .toolbar.members -text "Mitglieder" -bg "#FDF1AF" -command {open_mitglieder_fenster}
+button .toolbar.members -image [::toolbar_icons::get mitglieder] \
+    -command {open_mitglieder_fenster}
 pack .toolbar.members -side left -padx 5 -pady 3
+# Tooltip für "Mitglieder"-Button registrieren
+::tooltip::register .toolbar.members "Liste der Mitglieder"
 
-# Rechter Button (Beenden) in blauem Ton
+# Button "Statistik" - zeigt Statistiken über den Schießbetrieb
+button .toolbar.stats -image [::toolbar_icons::get statistik] \
+    -command {::statistik::open_zeitraum_dialog}
+pack .toolbar.stats -side left -padx 5 -pady 3
+# Tooltip für "Statistik"-Button registrieren
+::tooltip::register .toolbar.stats "Statistiken \u00fcber den Schie\u00dfbetrieb"
+
+# Button "Löschen" - löscht den ausgewählten Eintrag
+button .toolbar.delete -image [::toolbar_icons::get loeschen] \
+    -command {loesche_ausgewaehlten_eintrag}
+pack .toolbar.delete -side left -padx 5 -pady 3
+# Tooltip für "Löschen"-Button registrieren
+::tooltip::register .toolbar.delete "Ausgewählten Eintrag löschen"
+
+# Rechter Button (Beenden)
 # Button "Beenden" - zeigt Bestätigungsdialog vor dem Schließen
-button .toolbar.quit -text "Beenden" -bg "#4ACEFA" -command {confirm_exit}
+button .toolbar.quit -image [::toolbar_icons::get beenden] \
+    -command {confirm_exit}
 pack .toolbar.quit -side right -padx 5 -pady 3
+# Tooltip für "Beenden"-Button registrieren
+::tooltip::register .toolbar.quit "Programm beenden - Strg+Q"
 
 # Tastatur-Shortcuts für das Hauptfenster
 # Strg+Q für Beenden (Menü und Button)
@@ -329,6 +374,9 @@ bind .main.tree <<TreeviewSelect>> {
         # Item-ID des ersten ausgewählten Items
         set item_id [lindex $selected_items 0]
 
+        # Ausgewählten Eintrag für Lösch-Funktion speichern
+        set ::ausgewaehlter_eintrag $item_id
+
         # Werte des ausgewählten Eintrags holen
         set values [.main.tree item $item_id -values]
 
@@ -353,6 +401,8 @@ bind .main.tree <<TreeviewSelect>> {
     } else {
         # Keine Auswahl - markierter Eintrag zurücksetzen
         set ::markierter_eintrag [dict create]
+        # Auch ausgewählten Eintrag für Lösch-Funktion zurücksetzen
+        set ::ausgewaehlter_eintrag ""
     }
 }
 

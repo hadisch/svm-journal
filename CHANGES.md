@@ -1,5 +1,59 @@
 # Änderungshistorie - SVM-Journal
 
+## Version 1.3.0 (2026-01-31)
+
+### Neue Features
+- **Statistik-Funktion für den Schießbetrieb**
+  - Neuer Menüeintrag "Werkzeuge → Statistik"
+  - Neuer Toolbar-Button "Statistik" (links neben dem Löschen-Icon)
+  - Tooltip: "Statistiken über den Schießbetrieb"
+  - Zeitraum-Auswahl-Dialog mit vorausgefüllten Datumsfeldern:
+    - Von: 01.01. des aktuellen Jahres
+    - Bis: Aktuelles Datum
+  - Ergebnis-Dialog mit folgenden Statistiken:
+    - Gesamtzahl der Schützen im Zeitraum
+    - Anzahl der Vereinsmitglieder (Abgleich mit mitglieder.json)
+    - Anzahl der Einträge insgesamt
+    - Häufigster Teilnehmer bei Luftdruck (LD)
+    - Häufigster Teilnehmer bei Kleinkaliber (KK)
+    - Häufigster Teilnehmer bei Großkaliber (GK)
+    - Häufigster Teilnehmer gesamt (alle Waffentypen)
+  - Canvas-basiertes Kreisdiagramm mit prozentualer Verteilung:
+    - Türkis (#4ACEFA) für Luftdruck
+    - Gold (#FFD700) für Kleinkaliber
+    - Rot (#FF6B6B) für Großkaliber
+  - Legende mit Prozentangaben und absoluten Zahlen
+  - HTML-Export mit eingebettetem SVG-Kreisdiagramm
+  - Modernes, responsives CSS-Layout im HTML-Export
+  - Neue Datei: `inc/statistik_dialog.tcl` (~800 Zeilen)
+    - Namespace `::statistik` mit allen Variablen und Prozeduren
+    - Prozedur `open_zeitraum_dialog`: Zeitraum-Auswahl
+    - Prozedur `berechne_statistik`: Hauptberechnung
+    - Prozedur `lade_eintraege_im_zeitraum`: Datenladung mit Datumsfilter
+    - Prozedur `zaehle_unique_schuetzen`: Eindeutige Personen zählen
+    - Prozedur `zaehle_vereinsmitglieder`: Mitglieder-Abgleich
+    - Prozedur `finde_haeufigsten_teilnehmer`: Top-Teilnehmer ermitteln
+    - Prozedur `berechne_prozentuale_verteilung`: Verteilung LD/KK/GK
+    - Prozedur `zeige_ergebnis_dialog`: Ergebnisanzeige
+    - Prozedur `zeichne_kreisdiagramm`: Canvas Pie-Chart
+    - Prozedur `erstelle_svg_kreisdiagramm`: SVG für HTML-Export
+    - Prozedur `exportiere_html`: HTML-Datei speichern
+  - Datei: `inc/toolbar_icons.tcl`
+    - Variable `icon_statistik` hinzugefügt
+    - `Statistik.png` zur Icon-Liste hinzugefügt
+    - Switch-Case für "statistik" in get-Prozedur
+  - Datei: `svm-journal.tcl`
+    - Source-Anweisung für `statistik_dialog.tcl`
+    - Menüeintrag unter Werkzeuge hinzugefügt
+    - Toolbar-Button zwischen Mitglieder und Löschen eingefügt
+
+### Verbesserungen
+- **Statistik-Icon optimiert**
+  - Von 188x188 auf 64x64 Pixel skaliert (konsistent mit anderen Icons)
+  - Transparenter Hintergrund für bessere Integration in die Toolbar
+
+---
+
 ## Version 1.2.6 (2026-01-27)
 
 ### Neue Features

@@ -199,21 +199,17 @@ proc ::statistik::schliesse_zeitraum_dialog {} {
 # Rückgabe: 1 wenn gültig, 0 wenn ungültig
 # =============================================================================
 proc ::statistik::validiere_datum {datum_str} {
+    # Leerzeichen am Anfang und Ende entfernen
+    set datum_str [string trim $datum_str]
+
     # Prüfen ob Format TT.MM.JJJJ (mit optionaler führender Null)
     if {![regexp {^(\d{1,2})\.(\d{1,2})\.(\d{4})$} $datum_str -> tag monat jahr]} {
         return 0
     }
 
-    # Führende Nullen hinzufügen falls nötig
-    set tag [format "%02d" [scan $tag %d]]
-    set monat [format "%02d" [scan $monat %d]]
-
-    # Plausibilitätsprüfung
-    if {$monat < 1 || $monat > 12} {
-        return 0
-    }
-
-    if {$tag < 1 || $tag > 31} {
+    # Datum mit clock scan validieren - prüft Format UND kalendarische Gültigkeit
+    # Vermeidet Probleme mit Oktal-Interpretation von führenden Nullen (z.B. "08")
+    if {[catch {clock scan "$tag.$monat.$jahr" -format "%d.%m.%Y"}]} {
         return 0
     }
 

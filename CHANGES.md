@@ -1,5 +1,45 @@
 # Änderungshistorie - SVM-Journal
 
+## Version 1.3.1 (2026-02-08)
+
+### Neue Features
+- **Bemerkungen-Feld im Hauptfenster**
+  - Neue Spalte "Bemerkungen" am Ende der Treeview-Tabelle
+  - Eingabefeld im "Neuer Eintrag"-Dialog
+  - Eingabefeld im "Eintrag bearbeiten"-Dialog
+  - Checkbox im Export-Dialog zur optionalen Einbeziehung
+  - Abwärtskompatibilität: Alte Einträge ohne Bemerkungen werden automatisch mit leerem String ergänzt
+  - Spaltenbreiten optimiert: Munition (130→100), Mun.Preis (80→70), Bemerkungen (170)
+
+### Technische Details
+- Datei: `svm-journal.tcl`
+  - Treeview um Spalte "bemerkungen" erweitert
+  - Spaltenbreiten angepasst für optimale Platznutzung
+  - Dictionary-Erstellung und lassign erweitert
+- Datei: `inc/neuer_eintrag.tcl`
+  - Variable `bemerkungen` im Namespace
+  - Eingabefeld nach Munitionspreis
+  - JSON-Reader/Writer mit Abwärtskompatibilität
+  - Treeview-Insert um Bemerkungen erweitert
+- Datei: `inc/eintrag_bearbeiten.tcl`
+  - Eingabefeld für Bemerkungen
+  - Fensterhöhe auf 600px erhöht
+  - Dictionary beim Speichern erweitert
+- Datei: `inc/eintrag_loeschen.tcl`
+  - lassign und JSON-Writer angepasst
+- Datei: `inc/export_dialog.tcl`
+  - Neue Variable `feld_bemerkungen`
+  - Checkbox und Traces hinzugefügt
+- Datei: `inc/daten_pruefen_dialog.tcl`
+  - JSON-Reader/Writer mit Abwärtskompatibilität
+  - Automatisches Ergänzen fehlender Bemerkungen-Felder
+- Datei: `inc/journal_suche.tcl`
+  - Kommentare aktualisiert
+- Dateien: `daten/2025.json`, `daten/2026.json`
+  - Alle Einträge um `"bemerkungen": ""` ergänzt
+
+---
+
 ## Version 1.3.0 (2026-01-31)
 
 ### Neue Features

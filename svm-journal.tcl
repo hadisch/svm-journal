@@ -319,12 +319,12 @@ ttk::style configure Treeview -font {TkDefaultFont 11} -rowheight 22
 # -selectmode browse: Erlaubt nur Einzelauswahl, keine Mehrfachauswahl mit Strg/Shift
 # Spalte "uhrzeit" ist versteckt (nicht in -show headings), wird aber für die Bearbeitung benötigt
 ttk::treeview .main.tree \
-    -columns {datum uhrzeit nachname vorname kw lw typ kaliber startgeld munition munpreis} \
+    -columns {datum uhrzeit nachname vorname kw lw typ kaliber startgeld munition munpreis bemerkungen} \
     -show headings \
     -selectmode browse \
     -yscrollcommand {.main.yscroll set} \
     -xscrollcommand {.main.xscroll set} \
-    -displaycolumns {datum nachname vorname kw lw typ kaliber startgeld munition munpreis}
+    -displaycolumns {datum nachname vorname kw lw typ kaliber startgeld munition munpreis bemerkungen}
 
 # Spaltenüberschriften und Breiten definieren
 .main.tree heading datum -text "Datum"
@@ -338,19 +338,22 @@ ttk::treeview .main.tree \
 .main.tree heading startgeld -text "Startgeld"
 .main.tree heading munition -text "Munition"
 .main.tree heading munpreis -text "Mun.Preis"
+.main.tree heading bemerkungen -text "Bemerkungen"
 
 # Spaltenbreiten festlegen (in Pixeln)
-.main.tree column datum -width 100 -anchor w
+# Breiten wurden angepasst um Platz für Bemerkungen-Spalte zu schaffen
+.main.tree column datum -width 85 -anchor w
 .main.tree column uhrzeit -width 80 -anchor w
-.main.tree column nachname -width 150 -anchor w
-.main.tree column vorname -width 150 -anchor w
-.main.tree column kw -width 50 -anchor center
-.main.tree column lw -width 50 -anchor center
-.main.tree column typ -width 50 -anchor center
-.main.tree column kaliber -width 120 -anchor w
-.main.tree column startgeld -width 70 -anchor e
-.main.tree column munition -width 150 -anchor w
-.main.tree column munpreis -width 90 -anchor e
+.main.tree column nachname -width 130 -anchor w
+.main.tree column vorname -width 130 -anchor w
+.main.tree column kw -width 40 -anchor center
+.main.tree column lw -width 40 -anchor center
+.main.tree column typ -width 45 -anchor center
+.main.tree column kaliber -width 100 -anchor w
+.main.tree column startgeld -width 65 -anchor e
+.main.tree column munition -width 100 -anchor w
+.main.tree column munpreis -width 70 -anchor e
+.main.tree column bemerkungen -width 170 -anchor w
 
 # Layout: Grid-Manager für optimale Platzierung
 # Treeview nimmt den gesamten verfügbaren Platz ein
@@ -380,8 +383,8 @@ bind .main.tree <<TreeviewSelect>> {
         # Werte des ausgewählten Eintrags holen
         set values [.main.tree item $item_id -values]
 
-        # Einzelne Felder extrahieren (Reihenfolge: datum, uhrzeit, nachname, vorname, kw, lw, typ, kaliber, startgeld, munition, munpreis)
-        lassign $values datum uhrzeit nachname vorname kw lw typ kaliber startgeld munition munpreis
+        # Einzelne Felder extrahieren (Reihenfolge: datum, uhrzeit, nachname, vorname, kw, lw, typ, kaliber, startgeld, munition, munpreis, bemerkungen)
+        lassign $values datum uhrzeit nachname vorname kw lw typ kaliber startgeld munition munpreis bemerkungen
 
         # Markierten Eintrag als Dictionary speichern
         # Die Uhrzeit wird jetzt korrekt aus der versteckten Spalte gelesen
@@ -397,6 +400,7 @@ bind .main.tree <<TreeviewSelect>> {
             "startgeld" $startgeld \
             "munition" $munition \
             "munitionspreis" $munpreis \
+            "bemerkungen" $bemerkungen \
         ]
     } else {
         # Keine Auswahl - markierter Eintrag zurücksetzen

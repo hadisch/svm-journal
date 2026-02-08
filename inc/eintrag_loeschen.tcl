@@ -53,6 +53,9 @@ proc loesche_ausgewaehlten_eintrag {} {
 
     # Prüfen ob ein Eintrag ausgewählt ist
     if {$::ausgewaehlter_eintrag eq ""} {
+        # Hinweis anzeigen, dass kein Eintrag ausgewählt ist
+        tk_messageBox -icon info -type ok -title "Hinweis" \
+            -message "Bitte wählen Sie zuerst einen Eintrag aus."
         return
     }
 
@@ -62,8 +65,8 @@ proc loesche_ausgewaehlten_eintrag {} {
     # Daten des ausgewählten Eintrags holen
     set values [$tree item $::ausgewaehlter_eintrag -values]
 
-    # Einzelne Felder extrahieren
-    lassign $values datum nachname vorname kw lw typ kaliber startgeld munition munpreis
+    # Einzelne Felder extrahieren (Reihenfolge muss mit Treeview-Spalten übereinstimmen)
+    lassign $values datum uhrzeit nachname vorname kw lw typ kaliber startgeld munition munpreis bemerkungen
 
     # Sicherheitsabfrage anzeigen
     set antwort [tk_messageBox -icon question \
@@ -189,7 +192,13 @@ proc schreibe_eintraege_json {dateiPfad eintraege} {
         lappend lines "      \"startgeld\": \"[dict get $entry startgeld]\","
         lappend lines "      \"anzahl\": \"[dict get $entry anzahl]\","
         lappend lines "      \"munition\": \"[dict get $entry munition]\","
-        lappend lines "      \"munitionspreis\": \"[dict get $entry munitionspreis]\""
+        lappend lines "      \"munitionspreis\": \"[dict get $entry munitionspreis]\","
+        # Bemerkungen-Feld hinzufügen (leer wenn nicht vorhanden)
+        set bemerkungen_wert ""
+        if {[dict exists $entry bemerkungen]} {
+            set bemerkungen_wert [dict get $entry bemerkungen]
+        }
+        lappend lines "      \"bemerkungen\": \"$bemerkungen_wert\""
 
         incr counter
         if {$counter < $anzahl} {

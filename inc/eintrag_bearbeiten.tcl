@@ -40,6 +40,11 @@ proc oeffne_bearbeiten_dialog {} {
     set alt_startgeld [dict get $::markierter_eintrag startgeld]
     set alt_munition [dict get $::markierter_eintrag munition]
     set alt_munitionspreis [dict get $::markierter_eintrag munitionspreis]
+    # Bemerkungen abrufen (leer wenn nicht vorhanden für Abwärtskompatibilität)
+    set alt_bemerkungen ""
+    if {[dict exists $::markierter_eintrag bemerkungen]} {
+        set alt_bemerkungen [dict get $::markierter_eintrag bemerkungen]
+    }
 
     # Kurzwaffe und Langwaffe in Boolesche Werte konvertieren
     set kurzwaffe_bool [expr {$alt_kurzwaffe eq "Ja" ? 1 : 0}]
@@ -51,8 +56,8 @@ proc oeffne_bearbeiten_dialog {} {
     # Fenstertitel setzen
     wm title .eintrag_bearbeiten "Eintrag bearbeiten"
 
-    # Fenstergröße festlegen
-    wm geometry .eintrag_bearbeiten 720x550
+    # Fenstergröße festlegen (erhöht um Platz für Bemerkungen-Feld)
+    wm geometry .eintrag_bearbeiten 720x600
 
     # Hauptframe mit Padding
     frame .eintrag_bearbeiten.main -padx 20 -pady 20
@@ -195,6 +200,19 @@ proc oeffne_bearbeiten_dialog {} {
     pack .eintrag_bearbeiten.main.munitionspreis_frame.entry -side left -fill x -expand 1
 
     # =========================================================================
+    # Bemerkungen-Eingabefeld
+    # =========================================================================
+    frame .eintrag_bearbeiten.main.bemerkungen_frame
+    pack .eintrag_bearbeiten.main.bemerkungen_frame -fill x -pady 5
+
+    label .eintrag_bearbeiten.main.bemerkungen_frame.label -text "Bemerkungen:" -width 20 -anchor w
+    pack .eintrag_bearbeiten.main.bemerkungen_frame.label -side left
+
+    entry .eintrag_bearbeiten.main.bemerkungen_frame.entry -font {TkDefaultFont 11}
+    .eintrag_bearbeiten.main.bemerkungen_frame.entry insert 0 $alt_bemerkungen
+    pack .eintrag_bearbeiten.main.bemerkungen_frame.entry -side left -fill x -expand 1
+
+    # =========================================================================
     # Hinweis-Label
     # =========================================================================
     label .eintrag_bearbeiten.main.hinweis -text "Hinweis: Datum und Uhrzeit können nicht geändert werden." \
@@ -228,6 +246,7 @@ proc oeffne_bearbeiten_dialog {} {
             set startgeld [string trim [.eintrag_bearbeiten.main.startgeld_frame.entry get]]
             set munition [string trim [.eintrag_bearbeiten.main.munition_frame.entry get]]
             set munitionspreis [string trim [.eintrag_bearbeiten.main.munitionspreis_frame.entry get]]
+            set bemerkungen [string trim [.eintrag_bearbeiten.main.bemerkungen_frame.entry get]]
 
             # Alte Uhrzeit beibehalten
             set uhrzeit [dict get $::markierter_eintrag uhrzeit]
@@ -316,6 +335,7 @@ proc oeffne_bearbeiten_dialog {} {
                 "anzahl" "1" \
                 "munition" $munition \
                 "munitionspreis" $munitionspreis \
+                "bemerkungen" $bemerkungen \
             ]
             lappend neue_eintraege $neuer_eintrag
 

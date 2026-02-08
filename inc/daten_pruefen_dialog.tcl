@@ -243,18 +243,27 @@ proc ::daten_pruefen::lade_eintraege_aus_datei {datei_pfad} {
         if {[string match "*\"munitionspreis\":*" $line]} {
             if {[regexp {"munitionspreis":\s*"([^"]*)"} $line -> munitionspreis]} {
                 dict set eintrag_data munitionspreis $munitionspreis
-
-                # Vollständiger Eintrag gefunden
-                set size [dict size $eintrag_data]
-                if {$size >= 11} {
-                    # Für alte Einträge ohne Anzahl: Standardwert 1 setzen
-                    if {![dict exists $eintrag_data anzahl]} {
-                        dict set eintrag_data anzahl "1"
-                    }
-                    lappend eintraege $eintrag_data
-                    set eintrag_data [dict create]
-                }
             }
+        }
+        # Bemerkungen-Feld lesen
+        if {[string match "*\"bemerkungen\":*" $line]} {
+            if {[regexp {"bemerkungen":\s*"([^"]*)"} $line -> bemerkungen]} {
+                dict set eintrag_data bemerkungen $bemerkungen
+            }
+        }
+
+        # Prüfen ob ein vollständiger Eintrag vorliegt (schließende Klammer)
+        if {[string match "*\}*" $line] && [dict size $eintrag_data] >= 11} {
+            # Für alte Einträge ohne Anzahl: Standardwert 1 setzen
+            if {![dict exists $eintrag_data anzahl]} {
+                dict set eintrag_data anzahl "1"
+            }
+            # Für alte Einträge ohne Bemerkungen: Leeren String setzen
+            if {![dict exists $eintrag_data bemerkungen]} {
+                dict set eintrag_data bemerkungen ""
+            }
+            lappend eintraege $eintrag_data
+            set eintrag_data [dict create]
         }
     }
 
@@ -290,7 +299,13 @@ proc ::daten_pruefen::speichere_eintraege_in_datei {datei_pfad eintraege} {
         lappend lines "      \"startgeld\": \"[dict get $entry startgeld]\","
         lappend lines "      \"anzahl\": \"[dict get $entry anzahl]\","
         lappend lines "      \"munition\": \"[dict get $entry munition]\","
-        lappend lines "      \"munitionspreis\": \"[dict get $entry munitionspreis]\""
+        lappend lines "      \"munitionspreis\": \"[dict get $entry munitionspreis]\","
+        # Bemerkungen-Feld hinzufügen (leer wenn nicht vorhanden)
+        set bemerkungen_wert ""
+        if {[dict exists $entry bemerkungen]} {
+            set bemerkungen_wert [dict get $entry bemerkungen]
+        }
+        lappend lines "      \"bemerkungen\": \"$bemerkungen_wert\""
 
         incr counter
         if {$counter < $anzahl} {
@@ -385,6 +400,11 @@ proc ::daten_pruefen::pruefe_datei {datei_pfad} {
                 }
                 set eintrag_geaendert 1
             }
+        }
+
+        # Optionales Feld "bemerkungen" hinzufügen wenn nicht vorhanden (für Abwärtskompatibilität)
+        if {![dict exists $eintrag bemerkungen]} {
+            dict set eintrag bemerkungen ""
         }
 
         # 2. PRÜFUNG: Datum validieren

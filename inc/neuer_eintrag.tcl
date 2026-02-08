@@ -17,6 +17,7 @@ namespace eval ::neuer_eintrag {
     variable anzahl "1"
     variable munition "Keine"
     variable munitionspreis "0,00"
+    variable bemerkungen ""
 
     # Mitgliederliste für Autovervollständigung
     variable mitglieder_dict [dict create]
@@ -971,6 +972,7 @@ proc ::neuer_eintrag::speichern_und_anzeigen {} {
         "anzahl" $anzahl \
         "munition" $munition \
         "munitionspreis" $munitionspreis \
+        "bemerkungen" $bemerkungen \
     ]
 
     # Eintrag zur JSON-Datei hinzufügen
@@ -1096,18 +1098,25 @@ proc ::neuer_eintrag::speichere_eintrag_json {dateiPfad eintrag} {
             }
             if {[regexp {"munitionspreis":\s*"([^"]*)"} $line -> munitionspreis]} {
                 dict set eintrag_data munitionspreis $munitionspreis
+            }
+            # Bemerkungen-Feld lesen
+            if {[regexp {"bemerkungen":\s*"([^"]*)"} $line -> bemerkungen]} {
+                dict set eintrag_data bemerkungen $bemerkungen
+            }
 
-                # Vollständiger Eintrag gefunden - zur Liste hinzufügen
-                # Unterstützt sowohl alte Einträge (11 Felder) als auch neue (12 Felder mit Anzahl)
-                set size [dict size $eintrag_data]
-                if {$size == 11 || $size == 12} {
-                    # Für alte Einträge ohne Anzahl: Standardwert 1 setzen
-                    if {$size == 11 && ![dict exists $eintrag_data anzahl]} {
-                        dict set eintrag_data anzahl "1"
-                    }
-                    lappend eintraege $eintrag_data
-                    set eintrag_data [dict create]
+            # Prüfen ob ein vollständiger Eintrag vorliegt
+            # Bei schließender Klammer den Eintrag abschließen
+            if {[string match "*\}*" $line] && [dict size $eintrag_data] >= 11} {
+                # Für alte Einträge ohne Anzahl: Standardwert 1 setzen
+                if {![dict exists $eintrag_data anzahl]} {
+                    dict set eintrag_data anzahl "1"
                 }
+                # Für alte Einträge ohne Bemerkungen: Leeren String setzen
+                if {![dict exists $eintrag_data bemerkungen]} {
+                    dict set eintrag_data bemerkungen ""
+                }
+                lappend eintraege $eintrag_data
+                set eintrag_data [dict create]
             }
         }
     }
@@ -1140,7 +1149,13 @@ proc ::neuer_eintrag::speichere_eintrag_json {dateiPfad eintrag} {
         lappend lines "      \"startgeld\": \"[dict get $entry startgeld]\","
         lappend lines "      \"anzahl\": \"[dict get $entry anzahl]\","
         lappend lines "      \"munition\": \"[dict get $entry munition]\","
-        lappend lines "      \"munitionspreis\": \"[dict get $entry munitionspreis]\""
+        lappend lines "      \"munitionspreis\": \"[dict get $entry munitionspreis]\","
+        # Bemerkungen-Feld hinzufügen (leer wenn nicht vorhanden)
+        set bemerkungen_wert ""
+        if {[dict exists $entry bemerkungen]} {
+            set bemerkungen_wert [dict get $entry bemerkungen]
+        }
+        lappend lines "      \"bemerkungen\": \"$bemerkungen_wert\""
 
         incr counter
         if {$counter < $anzahl} {
@@ -1260,20 +1275,28 @@ proc ::neuer_eintrag::lade_eintraege_aus_datei {datei_pfad} {
         if {[string match "*\"munitionspreis\":*" $line]} {
             if {[regexp {"munitionspreis":\s*"([^"]*)"} $line -> munitionspreis]} {
                 dict set eintrag_data munitionspreis $munitionspreis
-
-                # Alle Felder gesammelt - Eintrag zur Liste hinzufügen
-                # Unterstützt sowohl alte Einträge (11 Felder) als auch neue (12 Felder mit Anzahl)
-                set size [dict size $eintrag_data]
-                if {$size == 11 || $size == 12} {
-                    # Für alte Einträge ohne Anzahl: Standardwert 1 setzen
-                    if {$size == 11 && ![dict exists $eintrag_data anzahl]} {
-                        dict set eintrag_data anzahl "1"
-                    }
-                    lappend eintraege $eintrag_data
-                    # Dictionary für nächsten Eintrag zurücksetzen
-                    set eintrag_data [dict create]
-                }
             }
+        }
+        # Bemerkungen-Feld lesen
+        if {[string match "*\"bemerkungen\":*" $line]} {
+            if {[regexp {"bemerkungen":\s*"([^"]*)"} $line -> bemerkungen]} {
+                dict set eintrag_data bemerkungen $bemerkungen
+            }
+        }
+
+        # Prüfen ob ein vollständiger Eintrag vorliegt (schließende Klammer)
+        if {[string match "*\}*" $line] && [dict size $eintrag_data] >= 11} {
+            # Für alte Einträge ohne Anzahl: Standardwert 1 setzen
+            if {![dict exists $eintrag_data anzahl]} {
+                dict set eintrag_data anzahl "1"
+            }
+            # Für alte Einträge ohne Bemerkungen: Leeren String setzen
+            if {![dict exists $eintrag_data bemerkungen]} {
+                dict set eintrag_data bemerkungen ""
+            }
+            lappend eintraege $eintrag_data
+            # Dictionary für nächsten Eintrag zurücksetzen
+            set eintrag_data [dict create]
         }
     }
 
@@ -1316,7 +1339,13 @@ proc lade_existierende_eintraege {} {
         # Der Preis wurde bereits beim Erstellen des Eintrags berechnet und muss nicht nochmals multipliziert werden
         set munitionspreis [dict get $eintrag munitionspreis]
 
-        # Reihenfolge der Spalten: datum, uhrzeit, nachname, vorname, kw, lw, typ, kaliber, startgeld, munition, munpreis
+        # Bemerkungen holen (leer wenn nicht vorhanden für Abwärtskompatibilität)
+        set bemerkungen ""
+        if {[dict exists $eintrag bemerkungen]} {
+            set bemerkungen [dict get $eintrag bemerkungen]
+        }
+
+        # Reihenfolge der Spalten: datum, uhrzeit, nachname, vorname, kw, lw, typ, kaliber, startgeld, munition, munpreis, bemerkungen
         # Die Uhrzeit wird in der versteckten Spalte gespeichert
         $treeview insert {} end -values [list \
             [dict get $eintrag datum] \
@@ -1329,7 +1358,8 @@ proc lade_existierende_eintraege {} {
             [dict get $eintrag kaliber] \
             [dict get $eintrag startgeld] \
             [dict get $eintrag munition] \
-            $munitionspreis]
+            $munitionspreis \
+            $bemerkungen]
     }
 }
 
@@ -1411,6 +1441,7 @@ proc open_neuer_eintrag_fenster {} {
     set ::neuer_eintrag::munitions_einzelpreis "0,00"
     set ::neuer_eintrag::munitionspreis "0,00"
     set ::neuer_eintrag::munitions_liste [list]
+    set ::neuer_eintrag::bemerkungen ""
 
     # Daten laden
     ::neuer_eintrag::lade_mitglieder_daten
@@ -1433,7 +1464,10 @@ proc open_neuer_eintrag_fenster {} {
     toplevel $w
     wm title $w "Neuer Eintrag"
     # Optimale Größe für alle Eingabefelder, Listbox und Buttons
-    wm geometry $w "720x650"
+    # Breite auf 780 erhöht, damit Großkaliber-Radiobutton auch auf kleinen Bildschirmen sichtbar ist
+    wm geometry $w "780x650"
+    # Mindestgröße festlegen, damit alle Elemente sichtbar bleiben
+    wm minsize $w 780 650
 
     # Hauptframe mit Padding
     frame $w.main -padx 20 -pady 20
@@ -1649,6 +1683,18 @@ proc open_neuer_eintrag_fenster {} {
 
     entry $w.munitionspreis_frame.entry -textvariable ::neuer_eintrag::munitionspreis -width 40 -state readonly
     pack $w.munitionspreis_frame.entry -side left -fill x -expand 1
+
+    # =========================================================================
+    # Bemerkungen-Eingabefeld
+    # =========================================================================
+    frame $w.bemerkungen_frame
+    pack $w.bemerkungen_frame -in $w.main -fill x -pady 5
+
+    label $w.bemerkungen_frame.label -text "Bemerkungen:" -width 20 -anchor w
+    pack $w.bemerkungen_frame.label -side left
+
+    entry $w.bemerkungen_frame.entry -textvariable ::neuer_eintrag::bemerkungen -width 40
+    pack $w.bemerkungen_frame.entry -side left -fill x -expand 1
 
     # =========================================================================
     # Buttons (Speichern / Abbrechen)

@@ -718,34 +718,44 @@ proc open_mitglieder_fenster {} {
     frame .mitglieder.toolbar -bg #E0E0E0 -relief raised -bd 1
     pack .mitglieder.toolbar -fill x -pady 2
 
-    # --- Linke Button-Gruppe (Suchen, Hinzufügen, Löschen) in gelblichem Ton ---
+    # --- Linke Button-Gruppe mit Icon-Buttons ---
 
     # Button "Suchen" - Suchfunktion für Mitglieder
-    button .mitglieder.toolbar.search -text "Suchen" -bg "#FDF1AF" \
+    button .mitglieder.toolbar.search -image [::toolbar_icons::get suchen] \
         -command {oeffne_such_dialog}
     pack .mitglieder.toolbar.search -side left -padx 5 -pady 3
+    # Tooltip für "Suchen"-Button registrieren
+    ::tooltip::register .mitglieder.toolbar.search "Suchen - Strg+S"
 
     # Button "Hinzufügen" - Neues Mitglied hinzufügen
-    button .mitglieder.toolbar.add -text "Hinzufügen" -bg "#FDF1AF" \
+    button .mitglieder.toolbar.add -image [::toolbar_icons::get neuer_eintrag] \
         -command {oeffne_hinzufuegen_dialog}
     pack .mitglieder.toolbar.add -side left -padx 5 -pady 3
+    # Tooltip für "Hinzufügen"-Button registrieren
+    ::tooltip::register .mitglieder.toolbar.add "Mitglied hinzufügen - Strg+N"
 
     # Button "Bearbeiten" - Ausgewähltes Mitglied bearbeiten
-    button .mitglieder.toolbar.edit -text "Bearbeiten" -bg "#FDF1AF" \
+    button .mitglieder.toolbar.edit -image [::toolbar_icons::get bearbeiten] \
         -command {oeffne_mitglied_bearbeiten_dialog}
     pack .mitglieder.toolbar.edit -side left -padx 5 -pady 3
+    # Tooltip für "Bearbeiten"-Button registrieren
+    ::tooltip::register .mitglieder.toolbar.edit "Ausgewählten Eintrag bearbeiten"
 
     # Button "Löschen" - Ausgewähltes Mitglied löschen
-    button .mitglieder.toolbar.delete -text "Löschen" -bg "#FC7A7D" \
+    button .mitglieder.toolbar.delete -image [::toolbar_icons::get loeschen] \
         -command {loesche_mitglied}
     pack .mitglieder.toolbar.delete -side left -padx 5 -pady 3
+    # Tooltip für "Löschen"-Button registrieren
+    ::tooltip::register .mitglieder.toolbar.delete "Ausgewählten Eintrag löschen"
 
-    # --- Rechter Button (Schließen) in blauem Ton ---
+    # --- Rechter Button (Schließen) ---
 
     # Button "Schließen" - Fenster schließen
-    button .mitglieder.toolbar.close -text "Schließen" -bg "#4ACEFA" \
+    button .mitglieder.toolbar.close -image [::toolbar_icons::get schliessen] \
         -command {destroy .mitglieder}
     pack .mitglieder.toolbar.close -side right -padx 5 -pady 3
+    # Tooltip für "Schließen"-Button registrieren
+    ::tooltip::register .mitglieder.toolbar.close "Fenster schließen"
 
     # =============================================================================
     # Hauptbereich des Fensters - Treeview-Widget mit Scrollbars

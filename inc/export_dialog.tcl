@@ -37,6 +37,7 @@ namespace eval ::export {
     variable feld_startgeld 0
     variable feld_munition 0
     variable feld_munpreis 0
+    variable feld_bemerkungen 0
 }
 
 # =============================================================================
@@ -57,6 +58,7 @@ proc ::export::get_feld_definitionen {} {
         [list "Startgeld" "startgeld" "::export::feld_startgeld"] \
         [list "Munition" "munition" "::export::feld_munition"] \
         [list "Mun.Preis" "munitionspreis" "::export::feld_munpreis"] \
+        [list "Bemerkungen" "bemerkungen" "::export::feld_bemerkungen"] \
     ]
 }
 
@@ -126,6 +128,7 @@ proc ::export::waehle_alle_felder {} {
     variable feld_startgeld
     variable feld_munition
     variable feld_munpreis
+    variable feld_bemerkungen
 
     # Alle Felder auf 1 setzen
     set feld_datum 1
@@ -138,6 +141,7 @@ proc ::export::waehle_alle_felder {} {
     set feld_startgeld 1
     set feld_munition 1
     set feld_munpreis 1
+    set feld_bemerkungen 1
 }
 
 # =============================================================================
@@ -155,6 +159,7 @@ proc ::export::waehle_keine_felder {} {
     variable feld_startgeld
     variable feld_munition
     variable feld_munpreis
+    variable feld_bemerkungen
 
     # Alle Felder auf 0 setzen
     set feld_datum 0
@@ -167,6 +172,7 @@ proc ::export::waehle_keine_felder {} {
     set feld_startgeld 0
     set feld_munition 0
     set feld_munpreis 0
+    set feld_bemerkungen 0
 }
 
 # =============================================================================
@@ -325,6 +331,7 @@ proc ::export::schliesse_export_dialog {} {
     trace remove variable ::export::feld_startgeld write ::export::pruefe_feldauswahl
     trace remove variable ::export::feld_munition write ::export::pruefe_feldauswahl
     trace remove variable ::export::feld_munpreis write ::export::pruefe_feldauswahl
+    trace remove variable ::export::feld_bemerkungen write ::export::pruefe_feldauswahl
 
     # Fenster schließen
     if {[winfo exists $fenster]} {
@@ -743,6 +750,7 @@ proc open_export_dialog {format} {
     set ::export::feld_startgeld 0
     set ::export::feld_munition 0
     set ::export::feld_munpreis 0
+    set ::export::feld_bemerkungen 0
 
     # Mitglieder für Suche laden
     ::export::lade_mitglieder_fuer_suche
@@ -916,6 +924,10 @@ proc open_export_dialog {format} {
         -variable ::export::feld_munpreis -font {Arial 11}
     pack $w.felder_frame.checks.right.munpreis -anchor w -pady 3
 
+    checkbutton $w.felder_frame.checks.right.bemerkungen -text "Bemerkungen" \
+        -variable ::export::feld_bemerkungen -font {Arial 11}
+    pack $w.felder_frame.checks.right.bemerkungen -anchor w -pady 3
+
     # =========================================================================
     # Buttons (Exportieren / Abbrechen)
     # =========================================================================
@@ -953,6 +965,7 @@ proc open_export_dialog {format} {
     trace add variable ::export::feld_startgeld write ::export::pruefe_feldauswahl
     trace add variable ::export::feld_munition write ::export::pruefe_feldauswahl
     trace add variable ::export::feld_munpreis write ::export::pruefe_feldauswahl
+    trace add variable ::export::feld_bemerkungen write ::export::pruefe_feldauswahl
 
     # =========================================================================
     # Initiale Prüfung des Export-Buttons

@@ -915,6 +915,7 @@ proc ::neuer_eintrag::speichern_und_anzeigen {} {
     variable munition
     variable munitionspreis
     variable munitions_liste
+    variable bemerkungen
     variable fenster
     global script_dir
 

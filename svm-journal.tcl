@@ -1,6 +1,6 @@
 #!/usr/bin/env wish
 
-# Hauptprogramm für svm-journal
+# Hauptprogramm für svm-journal 1.3.2
 # Erstellt ein Fenster mit minimaler Größe von 1600x900 Pixeln
 
 # System-Encoding auf UTF-8 setzen (wichtig für Windows-Kompatibilität)
@@ -278,7 +278,8 @@ button .toolbar.delete -image [::toolbar_icons::get loeschen] \
     -command {loesche_ausgewaehlten_eintrag}
 pack .toolbar.delete -side left -padx 5 -pady 3
 # Tooltip für "Löschen"-Button registrieren
-::tooltip::register .toolbar.delete "Ausgewählten Eintrag löschen"
+# Unicode-Escapes für Windows-Kompatibilität: ä=\u00e4, ö=\u00f6
+::tooltip::register .toolbar.delete "Ausgew\u00e4hlten Eintrag l\u00f6schen"
 
 # Rechter Button (Beenden)
 # Button "Beenden" - zeigt Bestätigungsdialog vor dem Schließen
@@ -440,5 +441,13 @@ zeige_eintraege_header
 
 # Existierende Einträge aus der Jahres-JSON-Datei laden und anzeigen
 lade_existierende_eintraege
+
+# Zum letzten Eintrag scrollen, damit der aktuellste Eintrag sofort sichtbar ist
+# Dies ist besonders nützlich wenn viele Einträge vorhanden sind
+set startup_items [.main.tree children {}]
+if {[llength $startup_items] > 0} {
+    # Letztes Element des Treeview auswählen und sichtbar machen
+    .main.tree see [lindex $startup_items end]
+}
 
 # Ereignisschleife starten (wird automatisch durch wish gestartet)

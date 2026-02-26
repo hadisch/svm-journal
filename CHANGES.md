@@ -1,5 +1,23 @@
 # Änderungshistorie - SVM-Journal
 
+## Version 1.3.2 (2026-02-26)
+
+### Bugfixes
+- **Umlaut-Fehler im Tooltip des Löschen-Buttons unter Windows**
+  - Problem: Der Tooltip "Ausgewählten Eintrag löschen" verwendete direkte UTF-8-Zeichen
+  - Lösung: Umlaute durch Unicode-Escapes ersetzt (`\u00e4` für ä, `\u00f6` für ö)
+  - Datei: `svm-journal.tcl`
+    - Zeile 281: `"Ausgew\u00e4hlten Eintrag l\u00f6schen"`
+
+### Verbesserungen
+- **Automatischer Scroll zum letzten Eintrag beim Programmstart**
+  - Das Hauptfenster scrollt nach dem Laden der Einträge automatisch zum jüngsten Eintrag
+  - Besonders hilfreich bei vielen Einträgen, da der aktuellste Eintrag sofort sichtbar ist
+  - Datei: `svm-journal.tcl`
+    - Nach `lade_existierende_eintraege`: Scroll-Code mit `.main.tree see [lindex $items end]`
+
+---
+
 ## Version 1.3.1 (2026-02-08)
 
 ### Neue Features

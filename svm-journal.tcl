@@ -1,6 +1,6 @@
 #!/usr/bin/env wish
 
-# Hauptprogramm für svm-journal 1.3.2
+# Hauptprogramm für svm-journal 1.3.3
 # Erstellt ein Fenster mit minimaler Größe von 1600x900 Pixeln
 
 # System-Encoding auf UTF-8 setzen (wichtig für Windows-Kompatibilität)

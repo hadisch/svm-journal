@@ -1,5 +1,20 @@
 # Änderungshistorie - SVM-Journal
 
+## Version 1.3.3 (2026-02-26)
+
+### Bugfixes
+- **Mitglieder-Fenster: Absturz beim ersten Start ohne mitglieder.json**
+  - Problem: Beim Öffnen des Mitglieder-Fensters ohne vorhandene `mitglieder.json` wurde
+    auf das nicht existierende Widget `.mitglieder.main.text` zugegriffen, was zu einem
+    Laufzeitfehler führte (`invalid command name ".mitglieder.main.text"`)
+  - Lösung: Statt einer Fehlermeldung wird beim ersten Start eine leere, korrekt
+    strukturierte `mitglieder.json` automatisch angelegt (inkl. Verzeichnis-Erstellung)
+  - Der Anwender sieht ein leeres Treeview und kann sofort Mitglieder hinzufügen
+  - Datei: `inc/mitglieder_fenster.tcl`
+    - `else`-Zweig in `open_mitglieder_fenster`: Verzeichnis anlegen + `schreibe_mitglieder_json` aufrufen
+
+---
+
 ## Version 1.3.2 (2026-02-26)
 
 ### Bugfixes

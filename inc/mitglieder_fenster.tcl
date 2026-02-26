@@ -896,10 +896,17 @@ proc open_mitglieder_fenster {} {
         zeige_alle_mitglieder
 
     } else {
-        # Fehlermeldung, falls Datei nicht existiert
-        .mitglieder.main.text insert 1.0 "FEHLER: Die Datei $mitglieder_json wurde nicht gefunden.\n\nBitte stellen Sie sicher, dass die Datei existiert."
-        # Textwidget auf schreibgeschützt setzen
-        .mitglieder.main.text configure -state disabled
+        # Datei existiert nicht (z.B. beim ersten Programmstart)
+        # Verzeichnis anlegen falls nötig
+        set json_dir [file dirname $mitglieder_json]
+        if {![file exists $json_dir]} {
+            file mkdir $json_dir
+        }
+
+        # Leere JSON-Datei mit korrekter Struktur erstellen,
+        # damit der Anwender sofort Mitglieder hinzufügen kann.
+        # ::mitglieder_liste ist zu diesem Zeitpunkt bereits leer ({}).
+        schreibe_mitglieder_json
     }
 
     # =============================================================================

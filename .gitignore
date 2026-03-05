@@ -1,8 +1,9 @@
+backups/
+daten/
+daten/
+preferences/
 CLAUDE.md
 TODO.md
-backups/
-daten/*.json
-daten/archiv/*.json
 *.bak
 *.backup
 .directory

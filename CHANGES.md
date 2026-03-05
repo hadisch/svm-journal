@@ -1,5 +1,19 @@
 # Änderungshistorie - SVM-Journal
 
+## Version 1.3.4 (2026-03-05)
+
+### Verbesserungen
+- **Mitglieder-Verwaltung: Alphabetische Sortierung nach dem Hinzufügen/Bearbeiten**
+  - Problem: Neu hinzugefügte Mitglieder wurden ans Ende der Liste angehängt statt alphabetisch einsortiert
+  - Lösung: Neue Prozedur `sortiere_mitglieder_liste` sortiert die Liste nach Nachname (primär) und Vorname (sekundär), case-insensitiv
+  - Die Sortierung wird nach dem Hinzufügen und nach dem Bearbeiten eines Mitglieds automatisch aufgerufen
+  - Datei: `inc/mitglieder_fenster.tcl`
+    - Neue Prozedur `sortiere_mitglieder_liste` mit `lsort -command` und anonymer Vergleichsfunktion
+    - Aufruf nach `lappend` im Hinzufügen-Dialog
+    - Aufruf nach `lreplace` im Bearbeiten-Dialog
+
+---
+
 ## Version 1.3.3 (2026-02-26)
 
 ### Bugfixes

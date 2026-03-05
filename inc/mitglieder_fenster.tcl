@@ -15,6 +15,21 @@ set ::markiertes_mitglied -1
 # Speichert für jede angezeigte Zeile den ursprünglichen Index in mitglieder_liste
 set ::angezeigte_indices {}
 
+# Prozedur zum alphabetischen Sortieren der globalen Mitgliederliste
+# Sortiert nach Nachname (primär) und Vorname (sekundär), case-insensitiv
+proc sortiere_mitglieder_liste {} {
+    set ::mitglieder_liste [lsort -command {apply {{a b} {
+        # Nachnamen in Kleinbuchstaben für case-insensitiven Vergleich
+        set na [string tolower [lindex $a 0]]
+        set nb [string tolower [lindex $b 0]]
+        # Bei unterschiedlichem Nachnamen: nach Nachname sortieren
+        if {$na ne $nb} { return [string compare $na $nb] }
+        # Bei gleichem Nachnamen: nach Vorname sortieren
+        return [string compare [string tolower [lindex $a 1]] \
+                               [string tolower [lindex $b 1]]]
+    }}} $::mitglieder_liste]
+}
+
 # Prozedur zum Anzeigen aller Mitglieder im Treeview
 # Liest die globale Mitgliederliste und zeigt sie tabellarisch an
 proc zeige_alle_mitglieder {} {
@@ -252,6 +267,9 @@ proc oeffne_hinzufuegen_dialog {} {
             # Neues Mitglied zur Liste hinzufügen
             lappend ::mitglieder_liste [list $nachname $vorname $strasse $plz $ort $festnetz $mobilfunk $email $geburtsdatum $eintrittsdatum $funktion]
 
+            # Liste alphabetisch sortieren, damit das neue Mitglied korrekt einsortiert wird
+            sortiere_mitglieder_liste
+
             # JSON-Datei neu schreiben
             schreibe_mitglieder_json
 
@@ -468,6 +486,9 @@ proc oeffne_mitglied_bearbeiten_dialog {} {
 
             # Markierung zurücksetzen
             set ::markiertes_mitglied -1
+
+            # Liste alphabetisch neu sortieren, falls der Name geändert wurde
+            sortiere_mitglieder_liste
 
             # JSON-Datei neu schreiben
             schreibe_mitglieder_json

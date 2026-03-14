@@ -394,6 +394,10 @@ grid columnconfigure .main 0 -weight 1
 # Rechtsklick-Binding für Kontextmenü (Eintrag löschen)
 bind .main.tree <Button-3> {zeige_kontext_menu %x %y}
 
+# Doppelklick und Enter öffnen den Bearbeiten-Dialog für den markierten Eintrag
+bind .main.tree <Double-Button-1> {oeffne_bearbeiten_dialog}
+bind .main.tree <Return>          {oeffne_bearbeiten_dialog}
+
 # TreeviewSelect-Event zum Speichern des markierten Eintrags
 # Wird aufgerufen, wenn eine Zeile im Treeview ausgewählt wird
 bind .main.tree <<TreeviewSelect>> {

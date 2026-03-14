@@ -906,8 +906,10 @@ proc open_mitglieder_fenster {} {
         close $fp
 
         # JSON manuell parsen - jeden Mitgliederdatensatz finden
-        # Regex: Sucht nach JSON-Objekten zwischen geschweiften Klammern (inkl. geburtsort-Feld)
-        set pattern {\{\s*"nachname":\s*"([^"]*)",\s*"vorname":\s*"([^"]*)",\s*"geburtsdatum":\s*"([^"]*)",\s*"geburtsort":\s*"([^"]*)",\s*"strasse":\s*"([^"]*)",\s*"plz":\s*"([^"]*)",\s*"ort":\s*"([^"]*)",\s*"festnetz":\s*"([^"]*)",\s*"mobilfunk":\s*"([^"]*)",\s*"email":\s*"([^"]*)",\s*"eintrittsdatum":\s*"([^"]*)",\s*"funktion":\s*"[^"]*"\s*\}}
+        # Regex: Sucht nach JSON-Objekten zwischen geschweiften Klammern
+        # "geburtsort" ist im Pattern optional ((?:...)?), damit auch ältere mitglieder.json-
+        # Dateien ohne dieses Feld geladen werden können (Rückwärtskompatibilität ab V1.4.0)
+        set pattern {\{\s*"nachname":\s*"([^"]*)",\s*"vorname":\s*"([^"]*)",\s*"geburtsdatum":\s*"([^"]*)",(?:\s*"geburtsort":\s*"[^"]*",)?\s*"strasse":\s*"([^"]*)",\s*"plz":\s*"([^"]*)",\s*"ort":\s*"([^"]*)",\s*"festnetz":\s*"([^"]*)",\s*"mobilfunk":\s*"([^"]*)",\s*"email":\s*"([^"]*)",\s*"eintrittsdatum":\s*"([^"]*)",\s*"funktion":\s*"[^"]*"\s*\}}
 
         # Alle Übereinstimmungen finden und durchlaufen
         set start 0
@@ -929,7 +931,9 @@ proc open_mitglieder_fenster {} {
             regexp {"mobilfunk":\s*"([^"]*)"} $match_text -> mobilfunk
             regexp {"email":\s*"([^"]*)"} $match_text -> email
             regexp {"geburtsdatum":\s*"([^"]*)"} $match_text -> geburtsdatum
-            # Geburtsort extrahieren (neu ab Version 1.3.5)
+            # Geburtsort auf leer initialisieren (Fallback für ältere Datensätze ohne dieses Feld)
+            set geburtsort ""
+            # Geburtsort extrahieren, falls im Datensatz vorhanden (neu ab Version 1.4.0)
             regexp {"geburtsort":\s*"([^"]*)"} $match_text -> geburtsort
             regexp {"eintrittsdatum":\s*"([^"]*)"} $match_text -> eintrittsdatum
             regexp {"funktion":\s*"([^"]*)"} $match_text -> funktion

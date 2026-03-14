@@ -1,5 +1,52 @@
 # Änderungshistorie - SVM-Journal
 
+## Version 1.4.0 (2026-03-14)
+
+### Neue Features
+- **Blacklist-Verwaltung: Sperrung von Personen vom Schießbetrieb**
+  - Neue Datei: `inc/blacklist_dialog.tcl`
+  - Gesperrte Personen werden in `daten/blacklist.json` gespeichert (wird beim ersten Aufruf automatisch angelegt)
+  - Verwaltungsfenster mit Treeview (Nachname/Vorname), Toolbar (Hinzufügen, Löschen, Schließen) und Statuszeile
+  - Hinzufügen-Sub-Dialog mit Duplikatprüfung und Pflichtfeld-Validierung
+  - Liste wird alphabetisch nach Nachname/Vorname sortiert
+  - Doppelklick auf Eintrag öffnet Löschen-Dialog
+  - ESC-Taste schließt beide Fenster
+  - Neues Icon: `resources/Blacklist.png`
+  - Datei: `inc/toolbar_icons.tcl`
+    - Variable `icon_blacklist` und `"Blacklist.png"` zur Icon-Liste hinzugefügt
+    - Switch-Case für "blacklist" in `get`-Prozedur ergänzt
+
+- **Blacklist-Prüfung beim Erfassen neuer Einträge**
+  - Datei: `inc/neuer_eintrag.tcl`
+  - Neue Variable `blacklist_gesperrt` im Namespace `::neuer_eintrag`
+  - Neue Prozedur `::neuer_eintrag::pruefe_blacklist`: Prüft bei Namenseingabe ob die Person gesperrt ist
+  - Roter Warnhinweis und Deaktivierung des Speichern-Buttons bei gesperrter Person
+  - Prüfung erfolgt case-insensitiv beim Eingeben von Nach- und Vorname
+
+- **Mitglied-Detailfenster in der Mitgliederverwaltung**
+  - Enter-Taste und Doppelklick öffnen das Detailfenster des ausgewählten Mitglieds
+  - Rechtsklick-Kontextmenü mit Optionen: Öffnen, Bearbeiten, Löschen
+  - Datei: `inc/mitglieder_fenster.tcl`
+
+- **Schnellzugriff im Hauptfenster**
+  - Doppelklick und Enter auf einem Journaleintrag öffnen direkt den "Eintrag bearbeiten"-Dialog
+  - Datei: `svm-journal.tcl`
+
+### Verbesserungen
+- **Neues Feld "Geburtsort" in der Mitgliederverwaltung**
+  - Geburtsort wird in `mitglieder.json` gespeichert und in allen Dialogen (Hinzufügen/Bearbeiten) angezeigt
+  - Rückwärtskompatibilität: Ältere `mitglieder.json`-Dateien ohne Geburtsort-Feld werden korrekt geladen
+  - Bestehende Mitglieder-Einträge um das `geburtsort`-Feld ergänzt
+  - Geburtsort wird im Waffenverleih-Dialog automatisch mit befüllt (Autofill)
+  - Dateien: `inc/mitglieder_fenster.tcl`, `inc/waffenverleih_dialog.tcl`, `inc/json_writer.tcl`
+
+- **Hover-Effekt auf Spaltenköpfen deaktiviert**
+  - Spaltenbezeichnungen im Treeview reagieren nicht mehr auf Maus-Hover (via `ttk::style map`)
+  - Verhindert unerwünschte visuelle Hervorhebung beim Überfahren der Spaltenköpfe
+  - Datei: `svm-journal.tcl`
+
+---
+
 ## Version 1.3.4 (2026-03-05)
 
 ### Verbesserungen

@@ -44,6 +44,9 @@ namespace eval ::neuer_eintrag {
     # Autovervollständigungs-Listbox für Vornamen
     variable vorname_autocomplete_listbox ""
     variable vorname_autocomplete_visible 0
+
+    # Blacklist-Status: 1 wenn die eingegebene Person gesperrt ist
+    variable blacklist_gesperrt 0
 }
 
 # =============================================================================
@@ -790,6 +793,7 @@ proc ::neuer_eintrag::pruefe_speichern_button {args} {
     variable waffentyp
     variable kaliber
     variable fenster
+    variable blacklist_gesperrt
 
     # Prüfen ob alle Pflichtfelder ausgefüllt sind
     set alle_felder_ok 1
@@ -824,12 +828,82 @@ proc ::neuer_eintrag::pruefe_speichern_button {args} {
         set alle_felder_ok 0
     }
 
+    # Gesperrte Person darf nicht eingetragen werden
+    if {$blacklist_gesperrt} {
+        set alle_felder_ok 0
+    }
+
     # Button aktivieren oder deaktivieren
     if {$alle_felder_ok} {
         $fenster.button_frame.save configure -state normal
     } else {
         $fenster.button_frame.save configure -state disabled
     }
+}
+
+# =============================================================================
+# Prozedur: pruefe_blacklist
+# Prüft ob die eingegebene Person in der Blacklist steht.
+# Zeigt einen roten Warnhinweis und blockiert das Speichern bei Treffer.
+# Wird durch variable traces auf nachname und vorname ausgelöst.
+# =============================================================================
+proc ::neuer_eintrag::pruefe_blacklist {args} {
+    variable nachname
+    variable vorname
+    variable fenster
+    variable blacklist_gesperrt
+
+    # Status zurücksetzen
+    set blacklist_gesperrt 0
+
+    # Nur prüfen wenn beide Felder mindestens ein Zeichen enthalten
+    if {[string trim $nachname] ne "" && [string trim $vorname] ne ""} {
+        set blacklist_pfad $::blacklist_json
+
+        # Blacklist-Datei lesen falls vorhanden
+        if {[file exists $blacklist_pfad]} {
+            if {![catch {
+                set fp [open $blacklist_pfad r]
+                fconfigure $fp -encoding utf-8
+                set zeilen [split [read $fp] "\n"]
+                close $fp
+            } err]} {
+                # Zeilenweise nach Nachname/Vorname-Paaren suchen
+                set aktueller_nachname ""
+                foreach zeile $zeilen {
+                    if {[regexp {"nachname":\s*"([^"]*)"} $zeile -> bl_nn]} {
+                        set aktueller_nachname [string trim $bl_nn]
+                    }
+                    if {[regexp {"vorname":\s*"([^"]*)"} $zeile -> bl_vn]} {
+                        set bl_vn [string trim $bl_vn]
+                        # Case-insensitiver Vergleich beider Felder
+                        if {[string equal -nocase $nachname $aktueller_nachname] &&
+                            [string equal -nocase $vorname $bl_vn]} {
+                            set blacklist_gesperrt 1
+                            break
+                        }
+                        set aktueller_nachname ""
+                    }
+                }
+            }
+        }
+    }
+
+    # Warnlabel anzeigen oder verbergen (nur wenn Fenster noch existiert)
+    if {[winfo exists $fenster.blacklist_frame.warning]} {
+        if {$blacklist_gesperrt} {
+            # Roten Warnhinweis einblenden mit dem vollständigen Namen
+            $fenster.blacklist_frame.warning configure \
+                -text "$vorname $nachname ist vom Schie\u00dfbetrieb ausgeschlossen"
+            pack $fenster.blacklist_frame.warning -side left -padx 5
+        } else {
+            # Warnhinweis ausblenden
+            pack forget $fenster.blacklist_frame.warning
+        }
+    }
+
+    # Speichern-Button-Zustand neu bewerten
+    pruefe_speichern_button
 }
 
 # =============================================================================
@@ -1400,6 +1474,8 @@ proc ::neuer_eintrag::entferne_traces {} {
     catch {trace remove variable ::neuer_eintrag::nachname write ::neuer_eintrag::pruefe_speichern_button}
     catch {trace remove variable ::neuer_eintrag::vorname write ::neuer_eintrag::pruefe_speichern_button}
     catch {trace remove variable ::neuer_eintrag::kaliber write ::neuer_eintrag::pruefe_speichern_button}
+    catch {trace remove variable ::neuer_eintrag::nachname write ::neuer_eintrag::pruefe_blacklist}
+    catch {trace remove variable ::neuer_eintrag::vorname  write ::neuer_eintrag::pruefe_blacklist}
     catch {trace remove variable ::neuer_eintrag::anzahl write ::neuer_eintrag::berechne_munitionspreis}
 }
 
@@ -1443,6 +1519,7 @@ proc open_neuer_eintrag_fenster {} {
     set ::neuer_eintrag::munitionspreis "0,00"
     set ::neuer_eintrag::munitions_liste [list]
     set ::neuer_eintrag::bemerkungen ""
+    set ::neuer_eintrag::blacklist_gesperrt 0
 
     # Daten laden
     ::neuer_eintrag::lade_mitglieder_daten
@@ -1538,6 +1615,24 @@ proc open_neuer_eintrag_fenster {} {
 
     # Trace für Validierung des Speichern-Buttons
     trace add variable ::neuer_eintrag::vorname write ::neuer_eintrag::pruefe_speichern_button
+
+    # Traces für Blacklist-Prüfung (feuern bei jeder Änderung von Vor-/Nachname)
+    trace add variable ::neuer_eintrag::nachname write ::neuer_eintrag::pruefe_blacklist
+    trace add variable ::neuer_eintrag::vorname  write ::neuer_eintrag::pruefe_blacklist
+
+    # =========================================================================
+    # Blacklist-Warnhinweis (initial versteckt)
+    # Erscheint wenn die eingegebene Person vom Schießbetrieb gesperrt ist
+    # =========================================================================
+    frame $w.blacklist_frame
+    pack $w.blacklist_frame -in $w.main -fill x -pady 2
+
+    # Warnlabel in leuchtendem Rot - initial nicht gepackt (unsichtbar)
+    label $w.blacklist_frame.warning \
+        -text "" \
+        -fg "#CC0000" \
+        -font {TkDefaultFont 11 bold}
+    # Nicht packen: wird erst bei Blacklist-Treffer durch pruefe_blacklist sichtbar gemacht
 
     # =========================================================================
     # Waffen-Checkboxen (KW/LW)

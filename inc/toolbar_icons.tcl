@@ -19,6 +19,7 @@ namespace eval ::toolbar_icons {
     variable icon_loeschen ""
     variable icon_schliessen ""
     variable icon_statistik ""
+    variable icon_blacklist ""
 }
 
 # =============================================================================
@@ -37,6 +38,7 @@ proc ::toolbar_icons::load_all {} {
     variable icon_loeschen
     variable icon_schliessen
     variable icon_statistik
+    variable icon_blacklist
 
     # Falls Icons bereits geladen, nichts tun
     if {$icons_loaded} {
@@ -53,6 +55,7 @@ proc ::toolbar_icons::load_all {} {
         icon_loeschen "Loeschen.png"
         icon_schliessen "Schliessen.png"
         icon_statistik "Statistik.png"
+        icon_blacklist "Blacklist.png"
     }
 
     # Jedes Icon laden und skalieren
@@ -99,7 +102,7 @@ proc ::toolbar_icons::load_all {} {
 # Parameter:
 #   icon_name - Name des Icons (ohne "icon_" Präfix)
 #               Gültige Werte: neuer_eintrag, bearbeiten, suchen, mitglieder,
-#                              beenden, loeschen, schliessen
+#                              beenden, loeschen, schliessen, statistik, blacklist
 # Rückgabe:
 #   Der Tk-Image-Name, der mit dem -image Parameter von Buttons verwendet
 #   werden kann, oder leerer String falls Icon nicht gefunden.
@@ -114,6 +117,7 @@ proc ::toolbar_icons::get {icon_name} {
     variable icon_loeschen
     variable icon_schliessen
     variable icon_statistik
+    variable icon_blacklist
 
     # Falls Icons noch nicht geladen, jetzt laden
     if {!$icons_loaded} {
@@ -130,6 +134,7 @@ proc ::toolbar_icons::get {icon_name} {
         "loeschen"      { return $icon_loeschen }
         "schliessen"    { return $icon_schliessen }
         "statistik"     { return $icon_statistik }
+        "blacklist"     { return $icon_blacklist }
         default {
             # Unbekannter Icon-Name: Warnung ausgeben
             puts stderr "Warnung: Unbekanntes Icon angefordert: $icon_name"

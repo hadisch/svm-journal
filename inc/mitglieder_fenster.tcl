@@ -45,8 +45,8 @@ proc zeige_alle_mitglieder {} {
     # Alle Mitglieder durchlaufen und ins Treeview einfügen
     set original_index 0
     foreach mitglied $::mitglieder_liste {
-        # Einzelne Felder aus der Liste extrahieren
-        lassign $mitglied nachname vorname strasse plz ort festnetz mobilfunk email geburtsdatum eintrittsdatum funktion
+        # Einzelne Felder aus der Liste extrahieren (12 Felder inkl. geburtsort)
+        lassign $mitglied nachname vorname strasse plz ort festnetz mobilfunk email geburtsdatum geburtsort eintrittsdatum funktion
 
         # Zeile ins Treeview einfügen
         .mitglieder.main.tree insert {} end -values [list $nachname $vorname $strasse $plz $ort $festnetz $mobilfunk $email $geburtsdatum $eintrittsdatum]
@@ -80,11 +80,11 @@ proc filtere_mitglieder {suchbegriff} {
     # Alle Mitglieder durchlaufen und filtern
     set original_index 0
     foreach mitglied $::mitglieder_liste {
-        # Einzelne Felder aus der Liste extrahieren
-        lassign $mitglied nachname vorname strasse plz ort festnetz mobilfunk email geburtsdatum eintrittsdatum funktion
+        # Einzelne Felder aus der Liste extrahieren (12 Felder inkl. geburtsort)
+        lassign $mitglied nachname vorname strasse plz ort festnetz mobilfunk email geburtsdatum geburtsort eintrittsdatum funktion
 
-        # Alle Felder zu einem String zusammenfügen für die Suche
-        set volltext "$nachname $vorname $strasse $plz $ort $festnetz $mobilfunk $email $geburtsdatum $eintrittsdatum"
+        # Alle Felder zu einem String zusammenfügen für die Suche (inkl. geburtsort)
+        set volltext "$nachname $vorname $strasse $plz $ort $festnetz $mobilfunk $email $geburtsdatum $geburtsort $eintrittsdatum"
         set volltext_lower [string tolower $volltext]
 
         # Prüfen, ob Suchbegriff im Volltext enthalten ist
@@ -139,8 +139,8 @@ proc oeffne_hinzufuegen_dialog {} {
     # Fenstertitel setzen
     wm title .mitglieder.hinzufuegen "Neues Mitglied hinzufügen"
 
-    # Fenstergröße festlegen
-    wm geometry .mitglieder.hinzufuegen 600x515
+    # Fenstergröße festlegen (größer wegen zusätzlichem Geburtsort-Feld)
+    wm geometry .mitglieder.hinzufuegen 600x545
 
     # Fenster modal machen (im Vordergrund bleiben)
     wm transient .mitglieder.hinzufuegen .mitglieder
@@ -175,6 +175,13 @@ proc oeffne_hinzufuegen_dialog {} {
     entry .mitglieder.hinzufuegen.content.geburtsdatum_entry -font {TkDefaultFont 11}
     grid .mitglieder.hinzufuegen.content.geburtsdatum_label -row $row -column 0 -sticky w -pady 5
     grid .mitglieder.hinzufuegen.content.geburtsdatum_entry -row $row -column 1 -sticky ew -pady 5
+    incr row
+
+    # Geburtsort (für Waffenverleih-Formulare benötigt)
+    label .mitglieder.hinzufuegen.content.geburtsort_label -text "Geburtsort:" -anchor w
+    entry .mitglieder.hinzufuegen.content.geburtsort_entry -font {TkDefaultFont 11}
+    grid .mitglieder.hinzufuegen.content.geburtsort_label -row $row -column 0 -sticky w -pady 5
+    grid .mitglieder.hinzufuegen.content.geburtsort_entry -row $row -column 1 -sticky ew -pady 5
     incr row
 
     # Straße
@@ -255,6 +262,7 @@ proc oeffne_hinzufuegen_dialog {} {
             set nachname [string trim [.mitglieder.hinzufuegen.content.nachname_entry get]]
             set vorname [string trim [.mitglieder.hinzufuegen.content.vorname_entry get]]
             set geburtsdatum [string trim [.mitglieder.hinzufuegen.content.geburtsdatum_entry get]]
+            set geburtsort [string trim [.mitglieder.hinzufuegen.content.geburtsort_entry get]]
             set strasse [string trim [.mitglieder.hinzufuegen.content.strasse_entry get]]
             set plz [string trim [.mitglieder.hinzufuegen.content.plz_entry get]]
             set ort [string trim [.mitglieder.hinzufuegen.content.ort_entry get]]
@@ -264,8 +272,8 @@ proc oeffne_hinzufuegen_dialog {} {
             set eintrittsdatum [string trim [.mitglieder.hinzufuegen.content.eintrittsdatum_entry get]]
             set funktion [string trim [.mitglieder.hinzufuegen.content.funktion_entry get]]
 
-            # Neues Mitglied zur Liste hinzufügen
-            lappend ::mitglieder_liste [list $nachname $vorname $strasse $plz $ort $festnetz $mobilfunk $email $geburtsdatum $eintrittsdatum $funktion]
+            # Neues Mitglied zur Liste hinzufügen (12 Felder inkl. geburtsort)
+            lappend ::mitglieder_liste [list $nachname $vorname $strasse $plz $ort $festnetz $mobilfunk $email $geburtsdatum $geburtsort $eintrittsdatum $funktion]
 
             # Liste alphabetisch sortieren, damit das neue Mitglied korrekt einsortiert wird
             sortiere_mitglieder_liste
@@ -326,7 +334,7 @@ proc oeffne_mitglied_bearbeiten_dialog {} {
 
     # Markiertes Mitglied aus Liste holen
     set mitglied [lindex $::mitglieder_liste $::markiertes_mitglied]
-    lassign $mitglied alt_nachname alt_vorname alt_strasse alt_plz alt_ort alt_festnetz alt_mobilfunk alt_email alt_geburtsdatum alt_eintrittsdatum alt_funktion
+    lassign $mitglied alt_nachname alt_vorname alt_strasse alt_plz alt_ort alt_festnetz alt_mobilfunk alt_email alt_geburtsdatum alt_geburtsort alt_eintrittsdatum alt_funktion
 
     # Neues Toplevel-Fenster für Bearbeiten-Dialog erstellen
     toplevel .mitglieder.bearbeiten
@@ -334,8 +342,8 @@ proc oeffne_mitglied_bearbeiten_dialog {} {
     # Fenstertitel setzen
     wm title .mitglieder.bearbeiten "Mitglied bearbeiten"
 
-    # Fenstergröße festlegen
-    wm geometry .mitglieder.bearbeiten 600x515
+    # Fenstergröße festlegen (größer wegen zusätzlichem Geburtsort-Feld)
+    wm geometry .mitglieder.bearbeiten 600x545
 
     # Fenster modal machen
     wm transient .mitglieder.bearbeiten .mitglieder
@@ -373,6 +381,14 @@ proc oeffne_mitglied_bearbeiten_dialog {} {
     .mitglieder.bearbeiten.content.geburtsdatum_entry insert 0 $alt_geburtsdatum
     grid .mitglieder.bearbeiten.content.geburtsdatum_label -row $row -column 0 -sticky w -pady 5
     grid .mitglieder.bearbeiten.content.geburtsdatum_entry -row $row -column 1 -sticky ew -pady 5
+    incr row
+
+    # Geburtsort (für Waffenverleih-Formulare benötigt)
+    label .mitglieder.bearbeiten.content.geburtsort_label -text "Geburtsort:" -anchor w
+    entry .mitglieder.bearbeiten.content.geburtsort_entry -font {TkDefaultFont 11}
+    .mitglieder.bearbeiten.content.geburtsort_entry insert 0 $alt_geburtsort
+    grid .mitglieder.bearbeiten.content.geburtsort_label -row $row -column 0 -sticky w -pady 5
+    grid .mitglieder.bearbeiten.content.geburtsort_entry -row $row -column 1 -sticky ew -pady 5
     incr row
 
     # Straße
@@ -461,6 +477,7 @@ proc oeffne_mitglied_bearbeiten_dialog {} {
             set nachname [string trim [.mitglieder.bearbeiten.content.nachname_entry get]]
             set vorname [string trim [.mitglieder.bearbeiten.content.vorname_entry get]]
             set geburtsdatum [string trim [.mitglieder.bearbeiten.content.geburtsdatum_entry get]]
+            set geburtsort [string trim [.mitglieder.bearbeiten.content.geburtsort_entry get]]
             set strasse [string trim [.mitglieder.bearbeiten.content.strasse_entry get]]
             set plz [string trim [.mitglieder.bearbeiten.content.plz_entry get]]
             set ort [string trim [.mitglieder.bearbeiten.content.ort_entry get]]
@@ -480,9 +497,9 @@ proc oeffne_mitglied_bearbeiten_dialog {} {
                 return
             }
 
-            # Mitglied in der Liste aktualisieren
+            # Mitglied in der Liste aktualisieren (12 Felder inkl. geburtsort)
             set ::mitglieder_liste [lreplace $::mitglieder_liste $::markiertes_mitglied $::markiertes_mitglied \
-                [list $nachname $vorname $strasse $plz $ort $festnetz $mobilfunk $email $geburtsdatum $eintrittsdatum $funktion]]
+                [list $nachname $vorname $strasse $plz $ort $festnetz $mobilfunk $email $geburtsdatum $geburtsort $eintrittsdatum $funktion]]
 
             # Markierung zurücksetzen
             set ::markiertes_mitglied -1
@@ -535,7 +552,7 @@ proc loesche_mitglied {} {
 
     # Markiertes Mitglied aus Liste holen
     set mitglied [lindex $::mitglieder_liste $::markiertes_mitglied]
-    lassign $mitglied nachname vorname strasse plz ort festnetz mobilfunk email geburtsdatum eintrittsdatum funktion
+    lassign $mitglied nachname vorname strasse plz ort festnetz mobilfunk email geburtsdatum geburtsort eintrittsdatum funktion
 
     # Sicherheitsabfrage anzeigen
     set antwort [tk_messageBox -parent .mitglieder \
@@ -795,6 +812,15 @@ proc open_mitglieder_fenster {} {
     # Schriftgröße für Treeview-Widget konfigurieren (11 Punkte, wie im Hauptfenster)
     ttk::style configure Treeview -font {TkDefaultFont 11} -rowheight 22
 
+    # Spaltenbezeichnungen (Heading) mit grünem Hintergrund und weißer Schrift
+    ttk::style configure Treeview.Heading -background #569A40 -foreground white
+
+    # Verhindert graue Unterlegung der Spaltenbezeichnungen beim Überfahren mit der Maus
+    # Ohne diesen Map-Eintrag würde der ttk-Theme-Zustand "active" eine graue Farbe anzeigen
+    ttk::style map Treeview.Heading \
+        -background [list active #569A40 pressed #4a8735] \
+        -relief     [list active flat    pressed sunken]
+
     # Treeview-Widget mit Spalten für Mitgliederdaten
     # -selectmode browse: Erlaubt nur Einzelauswahl, keine Mehrfachauswahl mit Strg/Shift
     ttk::treeview .mitglieder.main.tree \
@@ -880,8 +906,8 @@ proc open_mitglieder_fenster {} {
         close $fp
 
         # JSON manuell parsen - jeden Mitgliederdatensatz finden
-        # Regex: Sucht nach JSON-Objekten zwischen geschweiften Klammern
-        set pattern {\{\s*"nachname":\s*"([^"]*)",\s*"vorname":\s*"([^"]*)",\s*"geburtsdatum":\s*"([^"]*)",\s*"strasse":\s*"([^"]*)",\s*"plz":\s*"([^"]*)",\s*"ort":\s*"([^"]*)",\s*"festnetz":\s*"([^"]*)",\s*"mobilfunk":\s*"([^"]*)",\s*"email":\s*"([^"]*)",\s*"eintrittsdatum":\s*"([^"]*)",\s*"funktion":\s*"[^"]*"\s*\}}
+        # Regex: Sucht nach JSON-Objekten zwischen geschweiften Klammern (inkl. geburtsort-Feld)
+        set pattern {\{\s*"nachname":\s*"([^"]*)",\s*"vorname":\s*"([^"]*)",\s*"geburtsdatum":\s*"([^"]*)",\s*"geburtsort":\s*"([^"]*)",\s*"strasse":\s*"([^"]*)",\s*"plz":\s*"([^"]*)",\s*"ort":\s*"([^"]*)",\s*"festnetz":\s*"([^"]*)",\s*"mobilfunk":\s*"([^"]*)",\s*"email":\s*"([^"]*)",\s*"eintrittsdatum":\s*"([^"]*)",\s*"funktion":\s*"[^"]*"\s*\}}
 
         # Alle Übereinstimmungen finden und durchlaufen
         set start 0
@@ -903,11 +929,13 @@ proc open_mitglieder_fenster {} {
             regexp {"mobilfunk":\s*"([^"]*)"} $match_text -> mobilfunk
             regexp {"email":\s*"([^"]*)"} $match_text -> email
             regexp {"geburtsdatum":\s*"([^"]*)"} $match_text -> geburtsdatum
+            # Geburtsort extrahieren (neu ab Version 1.3.5)
+            regexp {"geburtsort":\s*"([^"]*)"} $match_text -> geburtsort
             regexp {"eintrittsdatum":\s*"([^"]*)"} $match_text -> eintrittsdatum
             regexp {"funktion":\s*"([^"]*)"} $match_text -> funktion
 
-            # Mitglied als Liste zur globalen Liste hinzufügen (inklusive funktion)
-            lappend ::mitglieder_liste [list $nachname $vorname $strasse $plz $ort $festnetz $mobilfunk $email $geburtsdatum $eintrittsdatum $funktion]
+            # Mitglied als Liste zur globalen Liste hinzufügen (12 Felder inkl. geburtsort)
+            lappend ::mitglieder_liste [list $nachname $vorname $strasse $plz $ort $festnetz $mobilfunk $email $geburtsdatum $geburtsort $eintrittsdatum $funktion]
 
             # Nächste Suche nach diesem Match starten
             set start [expr {$match_end + 1}]
@@ -951,4 +979,123 @@ proc open_mitglieder_fenster {} {
     # Strg+N für Hinzufügen
     bind .mitglieder <Control-n> {.mitglieder.toolbar.add invoke}
     bind .mitglieder <Control-N> {.mitglieder.toolbar.add invoke}
+
+    # =============================================================================
+    # Bindings für Detailansicht und Kontextmenü
+    # =============================================================================
+
+    # Enter-Taste öffnet Detailfenster für das markierte Mitglied
+    bind .mitglieder.main.tree <Return>          {zeige_mitglied_detail}
+
+    # Doppelklick öffnet Detailfenster für das angeklickte Mitglied
+    bind .mitglieder.main.tree <Double-Button-1> {zeige_mitglied_detail}
+
+    # Rechtsklick öffnet Kontextmenü
+    bind .mitglieder.main.tree <Button-3>        {zeige_mitglied_kontext_menu %x %y %X %Y}
+}
+
+# =============================================================================
+# Prozedur zum Anzeigen des Mitglied-Detailfensters
+# Zeigt alle Felder des markierten Mitglieds in einem übersichtlichen Fenster
+# =============================================================================
+proc zeige_mitglied_detail {} {
+    # Prüfen ob ein Mitglied markiert ist
+    if {$::markiertes_mitglied < 0} {
+        return
+    }
+
+    # Vorhandenes Detailfenster zerstören, damit keine Duplikate entstehen
+    if {[winfo exists .mitglieder.detail]} {
+        destroy .mitglieder.detail
+    }
+
+    # Mitglied aus globaler Liste holen und Felder auflösen
+    set mitglied [lindex $::mitglieder_liste $::markiertes_mitglied]
+    lassign $mitglied nachname vorname strasse plz ort festnetz mobilfunk email geburtsdatum geburtsort eintrittsdatum funktion
+
+    # Detailfenster als Kind des Mitgliederfensters erstellen
+    toplevel .mitglieder.detail
+    wm title .mitglieder.detail "Mitglied: $vorname $nachname"
+    wm geometry .mitglieder.detail 450x420
+    # Fenster bleibt über dem Mitgliederfenster (transient)
+    wm transient .mitglieder.detail .mitglieder
+
+    # Inhalts-Frame mit Innenabstand
+    frame .mitglieder.detail.content -padx 20 -pady 15
+    pack .mitglieder.detail.content -fill both -expand 1
+
+    # Alle Felder als Label-Paare in Grid-Anordnung anzeigen
+    # Label (fett) in Spalte 0, Wert (normal) in Spalte 1
+    set row 0
+    foreach {bezeichnung wert} [list \
+        "Nachname:"      $nachname      \
+        "Vorname:"       $vorname       \
+        "Geburtsdatum:"  $geburtsdatum  \
+        "Geburtsort:"    $geburtsort    \
+        "Straße:"        $strasse       \
+        "PLZ:"           $plz           \
+        "Ort:"           $ort           \
+        "Festnetz:"      $festnetz      \
+        "Mobilfunk:"     $mobilfunk     \
+        "E-Mail:"        $email         \
+        "Eintrittsdatum:" $eintrittsdatum \
+        "Funktion:"      $funktion      \
+    ] {
+        # Bezeichnungs-Label (fett) links ausgerichtet
+        label .mitglieder.detail.content.lbl_${row} \
+            -text $bezeichnung -anchor w -font {TkDefaultFont 10 bold}
+        # Wert-Label (normal) links ausgerichtet
+        label .mitglieder.detail.content.val_${row} \
+            -text $wert -anchor w -font {TkDefaultFont 10}
+        grid .mitglieder.detail.content.lbl_${row} -row $row -column 0 -sticky w -pady 2 -padx 5
+        grid .mitglieder.detail.content.val_${row} -row $row -column 1 -sticky w -pady 2 -padx 5
+        incr row
+    }
+
+    # Spalte 1 (Werte) soll sich bei Fensterbreite ausdehnen
+    grid columnconfigure .mitglieder.detail.content 1 -weight 1
+
+    # Schließen-Button am unteren Rand (grau, neutral)
+    button .mitglieder.detail.close -text "Schlie\u00dfen" -bg "#D0D0D0" \
+        -command {destroy .mitglieder.detail}
+    pack .mitglieder.detail.close -pady 10
+
+    # ESC-Taste schließt Fenster
+    bind .mitglieder.detail <Escape> {destroy .mitglieder.detail}
+}
+
+# =============================================================================
+# Prozedur zum Anzeigen des Kontextmenüs für Mitglieder (Rechtsklick)
+# Parameter:
+#   x y  - Position relativ zum Treeview-Widget (für Zeilenidentifikation)
+#   X Y  - Absolute Bildschirmposition (für Menü-Platzierung)
+# =============================================================================
+proc zeige_mitglied_kontext_menu {x y X Y} {
+    # Zeile unter dem Cursor auswählen, damit das Menü zur richtigen Zeile gehört
+    set item [.mitglieder.main.tree identify row $x $y]
+    if {$item ne ""} {
+        .mitglieder.main.tree selection set $item
+    }
+
+    # Altes Kontextmenü entfernen falls noch vorhanden
+    if {[winfo exists .mitglieder_kontext_menu]} {
+        destroy .mitglieder_kontext_menu
+    }
+
+    # Kontextmenü mit Aktionen für das ausgewählte Mitglied erstellen
+    menu .mitglieder_kontext_menu -tearoff 0
+    # "Öffnen" zeigt das Detailfenster
+    .mitglieder_kontext_menu add command -label "\u00d6ffnen" \
+        -command {zeige_mitglied_detail}
+    # "Bearbeiten" öffnet den Bearbeitungsdialog
+    .mitglieder_kontext_menu add command -label "Bearbeiten" \
+        -command {oeffne_mitglied_bearbeiten_dialog}
+    # Trennlinie vor destruktiver Aktion
+    .mitglieder_kontext_menu add separator
+    # "Löschen" entfernt das Mitglied nach Bestätigung
+    .mitglieder_kontext_menu add command -label "L\u00f6schen" \
+        -command {loesche_mitglied}
+
+    # Kontextmenü an der Mausposition anzeigen
+    tk_popup .mitglieder_kontext_menu $X $Y
 }

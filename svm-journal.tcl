@@ -1,6 +1,6 @@
 #!/usr/bin/env wish
 
-# Hauptprogramm für svm-journal 1.3.3
+# Hauptprogramm für svm-journal
 # Erstellt ein Fenster mit minimaler Größe von 1600x900 Pixeln
 
 # System-Encoding auf UTF-8 setzen (wichtig für Windows-Kompatibilität)
@@ -48,6 +48,9 @@ set behoerde_json [::pfad::get_json_path "preferences" "behoerde.json"]
 
 # Waffenregister: Liste aller Vereinswaffen
 set waffenregister_json [::pfad::get_json_path "daten" "waffenregister.json"]
+
+# Blacklist: Personen, die vom Schießbetrieb ausgeschlossen sind
+set blacklist_json [::pfad::get_json_path "daten" "blacklist.json"]
 
 # =============================================================================
 
@@ -104,6 +107,9 @@ source [file join [file dirname [info script]] inc waffenverleih_html_export.tcl
 
 # Daten-Prüfungs-Dialog - Werkzeug zur Überprüfung und Reparatur der JSON-Datenbank
 source [file join [file dirname [info script]] inc daten_pruefen_dialog.tcl]
+
+# Blacklist-Dialog - Verwaltung der vom Schießbetrieb gesperrten Personen
+source [file join [file dirname [info script]] inc blacklist_dialog.tcl]
 
 # Journal-Suche - Suchfunktion für das Hauptfenster (Nachname/Vorname)
 source [file join [file dirname [info script]] inc journal_suche.tcl]
@@ -217,6 +223,9 @@ menu .menubar.tools -tearoff 0
 .menubar.tools add command -label "Daten \u00fcberpr\u00fcfen..." -command {open_daten_pruefen_dialog}
 .menubar.tools add separator
 .menubar.tools add command -label "Statistik" -command {::statistik::open_zeitraum_dialog}
+.menubar.tools add separator
+# "Person sperren" öffnet die Blacklist-Verwaltung (kein Umlaut nötig)
+.menubar.tools add command -label "Person sperren" -command {open_blacklist_dialog}
 .menubar add cascade -label "Werkzeuge" -menu .menubar.tools
 
 # Menü "Info" erstellen
@@ -273,6 +282,13 @@ pack .toolbar.stats -side left -padx 5 -pady 3
 # Tooltip für "Statistik"-Button registrieren
 ::tooltip::register .toolbar.stats "Statistiken \u00fcber den Schie\u00dfbetrieb"
 
+# Button "Blacklist" - öffnet Blacklist-Verwaltung für vom Schießbetrieb gesperrte Personen
+button .toolbar.blacklist -image [::toolbar_icons::get blacklist] \
+    -command {open_blacklist_dialog}
+pack .toolbar.blacklist -side left -padx 5 -pady 3
+# Tooltip für "Blacklist"-Button registrieren
+::tooltip::register .toolbar.blacklist "Blacklist - Gesperrte Personen"
+
 # Button "Löschen" - löscht den ausgewählten Eintrag
 button .toolbar.delete -image [::toolbar_icons::get loeschen] \
     -command {loesche_ausgewaehlten_eintrag}
@@ -315,6 +331,15 @@ scrollbar .main.xscroll -command {.main.tree xview} -orient horizontal
 
 # Schriftgröße für Treeview-Widget konfigurieren (11 Punkte)
 ttk::style configure Treeview -font {TkDefaultFont 11} -rowheight 22
+
+# Spaltenbezeichnungen (Heading) mit grünem Hintergrund und weißer Schrift
+ttk::style configure Treeview.Heading -background #569A40 -foreground white
+
+# Verhindert graue Unterlegung der Spaltenbezeichnungen beim Überfahren mit der Maus
+# Ohne diesen Map-Eintrag würde der ttk-Theme-Zustand "active" eine graue Farbe anzeigen
+ttk::style map Treeview.Heading \
+    -background [list active #569A40 pressed #4a8735] \
+    -relief     [list active flat    pressed sunken]
 
 # Treeview-Widget mit Spalten für Einträge
 # -selectmode browse: Erlaubt nur Einzelauswahl, keine Mehrfachauswahl mit Strg/Shift

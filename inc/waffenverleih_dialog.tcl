@@ -238,6 +238,10 @@ proc ::waffenverleih::suche_mitglied_nach_nachname {nachname} {
         if {[regexp {"geburtsdatum":\s*"([^"]*)"} $line -> wert]} {
             dict set current_member geburtsdatum [string trim $wert]
         }
+        # Geburtsort extrahieren (neu ab Version 1.3.5, für Waffenverleih-Formulare)
+        if {[regexp {"geburtsort":\s*"([^"]*)"} $line -> wert]} {
+            dict set current_member geburtsort [string trim $wert]
+        }
         if {[regexp {"strasse":\s*"([^"]*)"} $line -> wert]} {
             dict set current_member strasse [string trim $wert]
         }
@@ -299,6 +303,7 @@ proc ::waffenverleih::trenne_strasse_hausnummer {strasse_komplett} {
 proc ::waffenverleih::fulle_felder_aus_mitglied {mitglied} {
     variable besitzer_vorname
     variable besitzer_geburtsdatum
+    variable besitzer_geburtsort
     variable besitzer_strasse
     variable besitzer_hausnummer
     variable besitzer_plz
@@ -312,6 +317,11 @@ proc ::waffenverleih::fulle_felder_aus_mitglied {mitglied} {
     # Geburtsdatum
     if {[dict exists $mitglied geburtsdatum]} {
         set besitzer_geburtsdatum [dict get $mitglied geburtsdatum]
+    }
+
+    # Geburtsort (neu ab Version 1.3.5)
+    if {[dict exists $mitglied geburtsort]} {
+        set besitzer_geburtsort [dict get $mitglied geburtsort]
     }
 
     # Straße und Hausnummer trennen
@@ -733,6 +743,42 @@ proc open_waffenverleih_dialog {} {
         .waffenverleih.canvas configure -scrollregion [.waffenverleih.canvas bbox all]
     }
 
+    # Mausrad-Scrolling für das Canvas aktivieren.
+    # Die Bindings werden nach dem vollständigen Aufbau aller Widgets gesetzt,
+    # damit winfo descendants alle Kind-Widgets zurückgibt.
+    # Wird am Ende von open_waffenverleih_dialog aufgerufen (nach allen pack/grid-Befehlen).
+    proc ::waffenverleih::registriere_mausrad {} {
+        set c .waffenverleih.canvas
+
+        # Skript für Mausrad-Scrolling (plattformübergreifend)
+        # Linux: Button-4 = hoch, Button-5 = runter
+        set scroll_hoch  {.waffenverleih.canvas yview scroll -3 units}
+        set scroll_runter {.waffenverleih.canvas yview scroll  3 units}
+        # Windows/macOS: MouseWheel-Event mit Delta-Wert %D (positiv = hoch)
+        set scroll_rad   {.waffenverleih.canvas yview scroll [expr {-%D / 120}] units}
+
+        # Canvas selbst binden
+        bind $c <Button-4>   $scroll_hoch
+        bind $c <Button-5>   $scroll_runter
+        bind $c <MouseWheel> $scroll_rad
+
+        # Alle Kind-Widgets rekursiv binden, damit Scrollen auch über Eingabefeldern
+        # und Checkboxen funktioniert (sonst "schlucken" sie das Mausrad-Event).
+        # winfo descendants ist erst ab Tk 8.6 verfügbar - daher eigene Rekursion.
+        proc ::waffenverleih::alle_kinder {widget} {
+            set kinder [winfo children $widget]
+            foreach kind $kinder {
+                lappend kinder {*}[alle_kinder $kind]
+            }
+            return $kinder
+        }
+        foreach widget [::waffenverleih::alle_kinder $c] {
+            bind $widget <Button-4>   $scroll_hoch
+            bind $widget <Button-5>   $scroll_runter
+            bind $widget <MouseWheel> $scroll_rad
+        }
+    }
+
     # === SEKTION 1: Waffenauswahl ===
     labelframe $w.canvas.main.waffen_frame -text "Waffen auswählen" -padx 10 -pady 10 -font {Arial 11 bold}
     pack $w.canvas.main.waffen_frame -fill x -pady 10
@@ -965,6 +1011,11 @@ proc open_waffenverleih_dialog {} {
     button $w.button_frame.abbrechen -text "Abbrechen" -bg "#FFB6C1" -width 15 \
         -command "destroy $w"
     pack $w.button_frame.abbrechen -side right -padx 5
+
+    # Mausrad-Bindings nach vollständigem Widget-Aufbau registrieren
+    # (update idletasks stellt sicher, dass alle Widgets von winfo descendants erfasst werden)
+    update idletasks
+    ::waffenverleih::registriere_mausrad
 
     # Fokus auf das Fenster setzen
     focus $w

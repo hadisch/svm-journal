@@ -10,12 +10,13 @@ proc schreibe_mitglieder_json {} {
     lappend lines "  \"mitglieder\": \["
 
     foreach mitglied $::mitglieder_liste {
-        lassign $mitglied nachname vorname strasse plz ort festnetz mobilfunk email geburtsdatum eintrittsdatum funktion
+        lassign $mitglied nachname vorname strasse plz ort festnetz mobilfunk email geburtsdatum geburtsort eintrittsdatum funktion
 
         lappend lines "    \{"
         lappend lines "      \"nachname\": \"$nachname\","
         lappend lines "      \"vorname\": \"$vorname\","
         lappend lines "      \"geburtsdatum\": \"$geburtsdatum\","
+        lappend lines "      \"geburtsort\": \"$geburtsort\","
         lappend lines "      \"strasse\": \"$strasse\","
         lappend lines "      \"plz\": \"$plz\","
         lappend lines "      \"ort\": \"$ort\","

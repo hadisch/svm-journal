@@ -332,6 +332,15 @@ scrollbar .main.xscroll -command {.main.tree xview} -orient horizontal
 # Schriftgröße für Treeview-Widget konfigurieren (11 Punkte)
 ttk::style configure Treeview -font {TkDefaultFont 11} -rowheight 22
 
+# Unter Windows ignoriert das native Theme (vista/winnative) den -background
+# Parameter bei Treeview.Heading und nutzt stattdessen die Windows-Systemfarbe
+# (Hellgrau). Dadurch entsteht weiße Schrift auf grauem Hintergrund — unleserlich.
+# "clam" ist ein plattformunabhängiges ttk-Theme, das benutzerdefinierte Farben
+# korrekt darstellt. Daher wird es unter Windows erzwungen.
+if {$tcl_platform(platform) eq "windows"} {
+    ttk::style theme use clam
+}
+
 # Spaltenbezeichnungen (Heading) mit grünem Hintergrund und weißer Schrift
 ttk::style configure Treeview.Heading -background #569A40 -foreground white
 

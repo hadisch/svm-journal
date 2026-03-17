@@ -88,6 +88,14 @@ proc oeffne_journal_such_dialog {} {
     # Aktuelle Einträge in den Cache laden (bevor der Dialog geöffnet wird)
     cache_journal_eintraege
 
+    # ESC auf dem Hauptfenster als universellen Fallback setzen:
+    # Egal wie der Such-Dialog verlassen wird (ESC, X, Suchen-Button) –
+    # mit ESC kann der Nutzer immer zur vollständigen Ansicht zurückkehren.
+    bind . <Escape> {
+        aktualisiere_treeview
+        bind . <Escape> {}
+    }
+
     # Neues Toplevel-Fenster für Such-Dialog erstellen
     toplevel .journal_suchdialog
 
@@ -142,16 +150,9 @@ proc oeffne_journal_such_dialog {} {
                 focus .journal_suchdialog.eingabe
             } else {
                 # Ergebnisse gefunden - Dialog schließen
+                # Das ESC-Binding auf dem Hauptfenster wurde bereits beim Öffnen
+                # des Dialogs gesetzt und bleibt bis zur Verwendung aktiv.
                 destroy .journal_suchdialog
-
-                # ESC-Binding auf dem Hauptfenster setzen, damit der Benutzer
-                # mit ESC zur vollständigen Ansicht zurückkehren kann
-                bind . <Escape> {
-                    # Alle Einträge wiederherstellen (von Disk laden)
-                    aktualisiere_treeview
-                    # Einmaliges Binding - nach Verwendung wieder entfernen
-                    bind . <Escape> {}
-                }
             }
         }
     }
@@ -183,6 +184,14 @@ proc oeffne_journal_such_dialog {} {
     # ESC-Taste schließt den Dialog und zeigt alle Einträge wieder
     bind .journal_suchdialog <Escape> {
         # Alle Einträge wiederherstellen (von Disk laden)
+        aktualisiere_treeview
+        destroy .journal_suchdialog
+    }
+
+    # Beim Schließen über das X des Fensters ebenfalls alle Einträge wiederherstellen.
+    # Ohne diesen Handler bliebe der Treeview leer, wenn der Dialog per X geschlossen wird,
+    # ohne dass Suchergebnisse vorhanden waren.
+    wm protocol .journal_suchdialog WM_DELETE_WINDOW {
         aktualisiere_treeview
         destroy .journal_suchdialog
     }

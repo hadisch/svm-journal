@@ -198,7 +198,14 @@ proc schreibe_eintraege_json {dateiPfad eintraege} {
         if {[dict exists $entry bemerkungen]} {
             set bemerkungen_wert [dict get $entry bemerkungen]
         }
-        lappend lines "      \"bemerkungen\": \"$bemerkungen_wert\""
+        lappend lines "      \"bemerkungen\": \"$bemerkungen_wert\","
+        # Gratis-Feld hinzufügen: "Ja" wenn Gratis-Berechtigung aktiv, sonst "Nein"
+        # Standardwert "Nein" für Abwärtskompatibilität mit älteren Einträgen
+        set gratis_wert "Nein"
+        if {[dict exists $entry gratis]} {
+            set gratis_wert [dict get $entry gratis]
+        }
+        lappend lines "      \"gratis\": \"$gratis_wert\""
 
         incr counter
         if {$counter < $anzahl} {

@@ -47,6 +47,10 @@ namespace eval ::neuer_eintrag {
 
     # Blacklist-Status: 1 wenn die eingegebene Person gesperrt ist
     variable blacklist_gesperrt 0
+
+    # Gratis-Berechtigung: 1 wenn der Schütze das Startgeld nicht zahlen muss
+    # (z.B. Ehrenmitglied, Vorstand, Ausnahmeregelung)
+    variable gratis 0
 }
 
 # =============================================================================
@@ -270,6 +274,29 @@ proc ::neuer_eintrag::startgeld_fokus_verloren {} {
 }
 
 # =============================================================================
+# Prozedur: gratis_geaendert
+# Wird aufgerufen, wenn die Gratis-Berechtigung-Checkbox umgeschaltet wird.
+# Bei Aktivierung: Startgeld auf 0,00 setzen und Eingabefeld sperren.
+# Bei Deaktivierung: Startgeld-Feld freigeben und Preis neu berechnen.
+# =============================================================================
+proc ::neuer_eintrag::gratis_geaendert {} {
+    variable gratis
+    variable fenster
+
+    if {$gratis} {
+        # Gratis-Berechtigung aktiv: Startgeld auf 0,00 setzen
+        # und das Eingabefeld sperren, damit kein anderer Wert eingegeben werden kann
+        berechne_startgeld
+        $fenster.startgeld_frame.entry configure -state disabled
+    } else {
+        # Gratis-Berechtigung deaktiviert: Startgeld-Feld wieder freigeben
+        # und den regulären Preis anhand von Name und Waffentyp berechnen
+        $fenster.startgeld_frame.entry configure -state normal
+        berechne_startgeld
+    }
+}
+
+# =============================================================================
 # Prozedur: validiere_anzahl_eingabe
 # Validiert Eingaben für das Anzahl-Feld
 # Erlaubt nur numerische Werte (für Stückzahlen)
@@ -363,6 +390,14 @@ proc ::neuer_eintrag::berechne_startgeld {} {
     variable mitglieder_dict
     variable stand_preise
     variable startgeld
+    variable gratis
+
+    # Wenn Gratis-Berechtigung aktiv ist, Startgeld auf 0,00 festsetzen und nicht berechnen
+    # Dadurch bleibt der Gratis-Schütze auch bei Namens-/Typenänderung auf 0,00
+    if {$gratis} {
+        set startgeld "0,00"
+        return
+    }
 
     # Prüfen, ob der Schütze ein Mitglied ist (case-insensitive)
     # Wichtig: Sowohl Nachname ALS AUCH Vorname müssen übereinstimmen
@@ -990,6 +1025,7 @@ proc ::neuer_eintrag::speichern_und_anzeigen {} {
     variable munitionspreis
     variable munitions_liste
     variable bemerkungen
+    variable gratis
     variable fenster
     global script_dir
 
@@ -1048,6 +1084,7 @@ proc ::neuer_eintrag::speichern_und_anzeigen {} {
         "munition" $munition \
         "munitionspreis" $munitionspreis \
         "bemerkungen" $bemerkungen \
+        "gratis" [expr {$gratis ? "Ja" : "Nein"}] \
     ]
 
     # Eintrag zur JSON-Datei hinzufügen
@@ -1178,6 +1215,10 @@ proc ::neuer_eintrag::speichere_eintrag_json {dateiPfad eintrag} {
             if {[regexp {"bemerkungen":\s*"([^"]*)"} $line -> bemerkungen]} {
                 dict set eintrag_data bemerkungen $bemerkungen
             }
+            # Gratis-Feld lesen (neueres Feld - für ältere Einträge nicht vorhanden)
+            if {[regexp {"gratis":\s*"([^"]*)"} $line -> gratis_val]} {
+                dict set eintrag_data gratis $gratis_val
+            }
 
             # Prüfen ob ein vollständiger Eintrag vorliegt
             # Bei schließender Klammer den Eintrag abschließen
@@ -1189,6 +1230,11 @@ proc ::neuer_eintrag::speichere_eintrag_json {dateiPfad eintrag} {
                 # Für alte Einträge ohne Bemerkungen: Leeren String setzen
                 if {![dict exists $eintrag_data bemerkungen]} {
                     dict set eintrag_data bemerkungen ""
+                }
+                # Für alte Einträge ohne Gratis-Feld: Standardwert "Nein" setzen
+                # (Abwärtskompatibilität: ältere Einträge sind regulär zahlungspflichtig)
+                if {![dict exists $eintrag_data gratis]} {
+                    dict set eintrag_data gratis "Nein"
                 }
                 lappend eintraege $eintrag_data
                 set eintrag_data [dict create]
@@ -1230,7 +1276,14 @@ proc ::neuer_eintrag::speichere_eintrag_json {dateiPfad eintrag} {
         if {[dict exists $entry bemerkungen]} {
             set bemerkungen_wert [dict get $entry bemerkungen]
         }
-        lappend lines "      \"bemerkungen\": \"$bemerkungen_wert\""
+        lappend lines "      \"bemerkungen\": \"$bemerkungen_wert\","
+        # Gratis-Feld hinzufügen: "Ja" wenn Gratis-Berechtigung aktiv, sonst "Nein"
+        # Für alte Einträge ohne gratis-Feld Standardwert "Nein" verwenden
+        set gratis_wert "Nein"
+        if {[dict exists $entry gratis]} {
+            set gratis_wert [dict get $entry gratis]
+        }
+        lappend lines "      \"gratis\": \"$gratis_wert\""
 
         incr counter
         if {$counter < $anzahl} {
@@ -1358,6 +1411,12 @@ proc ::neuer_eintrag::lade_eintraege_aus_datei {datei_pfad} {
                 dict set eintrag_data bemerkungen $bemerkungen
             }
         }
+        # Gratis-Feld lesen (neueres Feld - für ältere Einträge nicht vorhanden)
+        if {[string match "*\"gratis\":*" $line]} {
+            if {[regexp {"gratis":\s*"([^"]*)"} $line -> gratis_val]} {
+                dict set eintrag_data gratis $gratis_val
+            }
+        }
 
         # Prüfen ob ein vollständiger Eintrag vorliegt (schließende Klammer)
         if {[string match "*\}*" $line] && [dict size $eintrag_data] >= 11} {
@@ -1368,6 +1427,10 @@ proc ::neuer_eintrag::lade_eintraege_aus_datei {datei_pfad} {
             # Für alte Einträge ohne Bemerkungen: Leeren String setzen
             if {![dict exists $eintrag_data bemerkungen]} {
                 dict set eintrag_data bemerkungen ""
+            }
+            # Für alte Einträge ohne Gratis-Feld: Standardwert "Nein" setzen
+            if {![dict exists $eintrag_data gratis]} {
+                dict set eintrag_data gratis "Nein"
             }
             lappend eintraege $eintrag_data
             # Dictionary für nächsten Eintrag zurücksetzen
@@ -1420,8 +1483,14 @@ proc lade_existierende_eintraege {} {
             set bemerkungen [dict get $eintrag bemerkungen]
         }
 
-        # Reihenfolge der Spalten: datum, uhrzeit, nachname, vorname, kw, lw, typ, kaliber, startgeld, munition, munpreis, bemerkungen
-        # Die Uhrzeit wird in der versteckten Spalte gespeichert
+        # Gratis-Flag holen (Standardwert "Nein" für Abwärtskompatibilität mit älteren Einträgen)
+        set gratis_wert "Nein"
+        if {[dict exists $eintrag gratis]} {
+            set gratis_wert [dict get $eintrag gratis]
+        }
+
+        # Reihenfolge der Spalten: datum, uhrzeit, nachname, vorname, kw, lw, typ, kaliber, startgeld, munition, munpreis, bemerkungen, gratis
+        # Uhrzeit und gratis werden in versteckten Spalten gespeichert (nicht in displaycolumns)
         $treeview insert {} end -values [list \
             [dict get $eintrag datum] \
             [dict get $eintrag uhrzeit] \
@@ -1434,7 +1503,8 @@ proc lade_existierende_eintraege {} {
             [dict get $eintrag startgeld] \
             [dict get $eintrag munition] \
             $munitionspreis \
-            $bemerkungen]
+            $bemerkungen \
+            $gratis_wert]
     }
 }
 
@@ -1520,6 +1590,8 @@ proc open_neuer_eintrag_fenster {} {
     set ::neuer_eintrag::munitions_liste [list]
     set ::neuer_eintrag::bemerkungen ""
     set ::neuer_eintrag::blacklist_gesperrt 0
+    # Gratis-Berechtigung beim Öffnen zurücksetzen (Standardfall: kein Gratis-Schütze)
+    set ::neuer_eintrag::gratis 0
 
     # Daten laden
     ::neuer_eintrag::lade_mitglieder_daten
@@ -1543,9 +1615,10 @@ proc open_neuer_eintrag_fenster {} {
     wm title $w "Neuer Eintrag"
     # Optimale Größe für alle Eingabefelder, Listbox und Buttons
     # Breite auf 780 erhöht, damit Großkaliber-Radiobutton auch auf kleinen Bildschirmen sichtbar ist
-    wm geometry $w "780x650"
+    # Höhe auf 680 erhöht um Platz für die Gratis-Berechtigung-Checkbox zu schaffen
+    wm geometry $w "780x680"
     # Mindestgröße festlegen, damit alle Elemente sichtbar bleiben
-    wm minsize $w 780 650
+    wm minsize $w 780 680
 
     # Hauptframe mit Padding
     frame $w.main -padx 20 -pady 20
@@ -1704,6 +1777,28 @@ proc open_neuer_eintrag_fenster {} {
 
     # Fokus-Verlust-Event: Wert normalisieren (auf 2 Dezimalstellen formatieren)
     bind $w.startgeld_frame.entry <FocusOut> ::neuer_eintrag::startgeld_fokus_verloren
+
+    # =========================================================================
+    # Gratis-Berechtigung Checkbox
+    # Erscheint direkt unter dem Startgeld-Feld.
+    # Wenn aktiviert: Startgeld wird auf 0,00 gesetzt und das Feld gesperrt.
+    # Wenn deaktiviert: Startgeld wird wieder regulär berechnet.
+    # =========================================================================
+    frame $w.gratis_frame
+    pack $w.gratis_frame -in $w.main -fill x -pady 2
+
+    # Leeres Label für Ausrichtung mit den anderen Zeilen
+    label $w.gratis_frame.label -text "" -width 20 -anchor w
+    pack $w.gratis_frame.label -side left
+
+    # Checkbox für Gratis-Berechtigung - gelb hinterlegt zur optischen Unterscheidung
+    checkbutton $w.gratis_frame.check \
+        -text "Gratis-Berechtigung (Startgeld entf\u00e4llt)" \
+        -variable ::neuer_eintrag::gratis \
+        -bg "#FFFACD" \
+        -activebackground "#FFF176" \
+        -command ::neuer_eintrag::gratis_geaendert
+    pack $w.gratis_frame.check -side left -padx 5
 
     # =========================================================================
     # Munition und Anzahl in einer Zeile

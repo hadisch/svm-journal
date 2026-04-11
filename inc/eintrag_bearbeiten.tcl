@@ -46,9 +46,17 @@ proc oeffne_bearbeiten_dialog {} {
         set alt_bemerkungen [dict get $::markierter_eintrag bemerkungen]
     }
 
+    # Gratis-Berechtigung abrufen (Standardwert "Nein" für Abwärtskompatibilität)
+    set alt_gratis "Nein"
+    if {[dict exists $::markierter_eintrag gratis]} {
+        set alt_gratis [dict get $::markierter_eintrag gratis]
+    }
+
     # Kurzwaffe und Langwaffe in Boolesche Werte konvertieren
     set kurzwaffe_bool [expr {$alt_kurzwaffe eq "Ja" ? 1 : 0}]
     set langwaffe_bool [expr {$alt_langwaffe eq "Ja" ? 1 : 0}]
+    # Gratis-Berechtigung in Booleschen Wert konvertieren (1 = Ja, 0 = Nein)
+    set gratis_bool [expr {$alt_gratis eq "Ja" ? 1 : 0}]
 
     # Neues Toplevel-Fenster erstellen
     toplevel .eintrag_bearbeiten
@@ -56,8 +64,8 @@ proc oeffne_bearbeiten_dialog {} {
     # Fenstertitel setzen
     wm title .eintrag_bearbeiten "Eintrag bearbeiten"
 
-    # Fenstergröße festlegen (erhöht um Platz für Bemerkungen-Feld)
-    wm geometry .eintrag_bearbeiten 720x600
+    # Fenstergröße festlegen (erhöht um Platz für Bemerkungen-Feld und Gratis-Checkbox)
+    wm geometry .eintrag_bearbeiten 720x640
 
     # Hauptframe mit Padding
     frame .eintrag_bearbeiten.main -padx 20 -pady 20
@@ -174,6 +182,43 @@ proc oeffne_bearbeiten_dialog {} {
     pack .eintrag_bearbeiten.main.startgeld_frame.entry -side left -fill x -expand 1
 
     # =========================================================================
+    # Gratis-Berechtigung Checkbox
+    # Wenn aktiv: Startgeld-Feld wird gesperrt und der Wert auf 0,00 gehalten.
+    # =========================================================================
+    frame .eintrag_bearbeiten.main.gratis_frame
+    pack .eintrag_bearbeiten.main.gratis_frame -fill x -pady 2
+
+    label .eintrag_bearbeiten.main.gratis_frame.label -text "" -width 20 -anchor w
+    pack .eintrag_bearbeiten.main.gratis_frame.label -side left
+
+    # Globale Variable für die Gratis-Checkbox (analog zu kurzwaffe_bool/langwaffe_bool)
+    set ::eintrag_bearbeiten_gratis $gratis_bool
+
+    checkbutton .eintrag_bearbeiten.main.gratis_frame.check \
+        -text "Gratis-Berechtigung (Startgeld entf\u00e4llt)" \
+        -variable ::eintrag_bearbeiten_gratis \
+        -bg "#FFFACD" \
+        -activebackground "#FFF176" \
+        -command {
+            # Bei Aktivierung: Startgeld auf 0,00 setzen und Eingabefeld sperren
+            # Bei Deaktivierung: Eingabefeld wieder freigeben
+            if {$::eintrag_bearbeiten_gratis} {
+                .eintrag_bearbeiten.main.startgeld_frame.entry configure -state normal
+                .eintrag_bearbeiten.main.startgeld_frame.entry delete 0 end
+                .eintrag_bearbeiten.main.startgeld_frame.entry insert 0 "0,00"
+                .eintrag_bearbeiten.main.startgeld_frame.entry configure -state disabled
+            } else {
+                .eintrag_bearbeiten.main.startgeld_frame.entry configure -state normal
+            }
+        }
+    pack .eintrag_bearbeiten.main.gratis_frame.check -side left -padx 5
+
+    # Wenn der Eintrag bereits als gratis markiert ist, Startgeld-Feld direkt sperren
+    if {$gratis_bool} {
+        .eintrag_bearbeiten.main.startgeld_frame.entry configure -state disabled
+    }
+
+    # =========================================================================
     # Munition-Eingabefeld (Textfeld, da mehrere Kaliber möglich)
     # =========================================================================
     frame .eintrag_bearbeiten.main.munition_frame
@@ -247,6 +292,8 @@ proc oeffne_bearbeiten_dialog {} {
             set munition [string trim [.eintrag_bearbeiten.main.munition_frame.entry get]]
             set munitionspreis [string trim [.eintrag_bearbeiten.main.munitionspreis_frame.entry get]]
             set bemerkungen [string trim [.eintrag_bearbeiten.main.bemerkungen_frame.entry get]]
+            # Gratis-Status aus der Checkbox lesen
+            set gratis [expr {$::eintrag_bearbeiten_gratis ? "Ja" : "Nein"}]
 
             # Alte Uhrzeit beibehalten
             set uhrzeit [dict get $::markierter_eintrag uhrzeit]
@@ -336,6 +383,7 @@ proc oeffne_bearbeiten_dialog {} {
                 "munition" $munition \
                 "munitionspreis" $munitionspreis \
                 "bemerkungen" $bemerkungen \
+                "gratis" $gratis \
             ]
             lappend neue_eintraege $neuer_eintrag
 

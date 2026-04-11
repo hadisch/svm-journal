@@ -354,7 +354,7 @@ ttk::style map Treeview.Heading \
 # -selectmode browse: Erlaubt nur Einzelauswahl, keine Mehrfachauswahl mit Strg/Shift
 # Spalte "uhrzeit" ist versteckt (nicht in -show headings), wird aber für die Bearbeitung benötigt
 ttk::treeview .main.tree \
-    -columns {datum uhrzeit nachname vorname kw lw typ kaliber startgeld munition munpreis bemerkungen} \
+    -columns {datum uhrzeit nachname vorname kw lw typ kaliber startgeld munition munpreis bemerkungen gratis} \
     -show headings \
     -selectmode browse \
     -yscrollcommand {.main.yscroll set} \
@@ -374,6 +374,7 @@ ttk::treeview .main.tree \
 .main.tree heading munition -text "Munition"
 .main.tree heading munpreis -text "Mun.Preis"
 .main.tree heading bemerkungen -text "Bemerkungen"
+.main.tree heading gratis -text "Gratis"
 
 # Spaltenbreiten festlegen (in Pixeln)
 # Breiten wurden angepasst um Platz für Bemerkungen-Spalte zu schaffen
@@ -389,6 +390,8 @@ ttk::treeview .main.tree \
 .main.tree column munition -width 100 -anchor w
 .main.tree column munpreis -width 70 -anchor e
 .main.tree column bemerkungen -width 170 -anchor w
+# Gratis-Spalte ist versteckt (nicht in displaycolumns) - wird nur intern verwendet
+.main.tree column gratis -width 50 -anchor center
 
 # Layout: Grid-Manager für optimale Platzierung
 # Treeview nimmt den gesamten verfügbaren Platz ein
@@ -422,11 +425,12 @@ bind .main.tree <<TreeviewSelect>> {
         # Werte des ausgewählten Eintrags holen
         set values [.main.tree item $item_id -values]
 
-        # Einzelne Felder extrahieren (Reihenfolge: datum, uhrzeit, nachname, vorname, kw, lw, typ, kaliber, startgeld, munition, munpreis, bemerkungen)
-        lassign $values datum uhrzeit nachname vorname kw lw typ kaliber startgeld munition munpreis bemerkungen
+        # Einzelne Felder extrahieren (Reihenfolge: datum, uhrzeit, nachname, vorname, kw, lw, typ, kaliber, startgeld, munition, munpreis, bemerkungen, gratis)
+        # gratis ist eine versteckte Spalte - wird für den Bearbeiten-Dialog benötigt
+        lassign $values datum uhrzeit nachname vorname kw lw typ kaliber startgeld munition munpreis bemerkungen gratis
 
         # Markierten Eintrag als Dictionary speichern
-        # Die Uhrzeit wird jetzt korrekt aus der versteckten Spalte gelesen
+        # Die Uhrzeit und Gratis-Flag werden aus den versteckten Spalten gelesen
         set ::markierter_eintrag [dict create \
             "datum" $datum \
             "uhrzeit" $uhrzeit \
@@ -440,6 +444,7 @@ bind .main.tree <<TreeviewSelect>> {
             "munition" $munition \
             "munitionspreis" $munpreis \
             "bemerkungen" $bemerkungen \
+            "gratis" $gratis \
         ]
     } else {
         # Keine Auswahl - markierter Eintrag zurücksetzen

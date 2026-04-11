@@ -1,5 +1,55 @@
 # Änderungshistorie - SVM-Journal
 
+## Version 1.5.1 (2026-04-11)
+
+### Neue Features
+- **Gratis-Berechtigung für Schützen (Startgeld = 0,00 € intentional)**
+  - Löst das Problem, dass legitime 0,00€-Startgeld-Einträge (z.B. bei Ausnahmeregelungen) nicht mehr
+    fälschlich als Datenfehler behandelt werden können
+  - Neues Feld `gratis` ("Ja"/"Nein") in jedem Journal-Eintrag
+  - Vollständige Abwärtskompatibilität: Bestehende Einträge erhalten automatisch `gratis = "Nein"`
+
+- **Gratis-Checkbox im "Neuer Eintrag"-Dialog**
+  - Gelb hinterlegte Checkbox "Gratis-Berechtigung (Startgeld entfällt)" direkt unter dem Startgeld-Feld
+  - Bei Aktivierung: Startgeld wird auf 0,00 € gesetzt und das Eingabefeld gesperrt
+  - Bei Deaktivierung: Startgeld-Feld wird freigegeben und der reguläre Preis neu berechnet
+  - Automatische Preissperre: `berechne_startgeld` überschreibt bei aktivierter Gratis-Berechtigung
+    den Wert nicht (auch nicht bei Namens- oder Waffentyp-Änderungen)
+  - Datei: `inc/neuer_eintrag.tcl`
+    - Neue Namespace-Variable `gratis`
+    - Neue Prozedur `gratis_geaendert`: steuert Sperren/Freigeben des Startgeld-Felds
+    - `berechne_startgeld`: Guard bei aktivem Gratis-Flag
+    - `speichern_und_anzeigen`, `speichere_eintrag_json`, `lade_eintraege_aus_datei`,
+      `lade_existierende_eintraege`: alle um `gratis` erweitert
+    - Fensterhöhe auf 680px erhöht
+
+- **Gratis-Checkbox im "Eintrag bearbeiten"-Dialog**
+  - Identisches Verhalten wie im "Neuer Eintrag"-Dialog
+  - Bestehende Gratis-Einträge werden beim Öffnen korrekt vorbelegt (Feld gesperrt)
+  - Datei: `inc/eintrag_bearbeiten.tcl`
+    - `gratis` aus `::markierter_eintrag` lesen (Abwärtskompatibilität)
+    - Checkbox in der UI, gespeichertes Dict enthält `gratis`
+    - Fensterhöhe auf 640px erhöht
+
+- **Gratis-Flag als versteckte Treeview-Spalte**
+  - `gratis` wird als versteckte Spalte im Hauptfenster-Treeview geführt (analog zu `uhrzeit`)
+  - Dadurch steht der Wert beim Öffnen des Bearbeiten-Dialogs stets zur Verfügung
+  - Datei: `svm-journal.tcl`
+    - Spalte `gratis` zu `-columns` hinzugefügt (nicht in `-displaycolumns`)
+    - `::markierter_eintrag` enthält jetzt das `gratis`-Feld
+
+### Verbesserungen
+- **Datenprüfung: gratis-Feld bei alten Einträgen ergänzen**
+  - Beim Prüfen älterer JSON-Dateien ohne `gratis`-Feld wird `"Nein"` automatisch ergänzt und gespeichert
+  - Dateien: `inc/daten_pruefen_dialog.tcl`, `inc/eintrag_loeschen.tcl`, `inc/neuer_eintrag.tcl`
+
+### Technische Details
+- JSON-Format aller Journal-Einträge um Feld `"gratis": "Ja"|"Nein"` erweitert
+- Alle JSON-Schreib-/Leseprozeduren angepasst (neuer_eintrag, eintrag_loeschen, daten_pruefen)
+- Kommentare in `inc/journal_suche.tcl` aktualisiert (Spaltenindex-Dokumentation)
+
+---
+
 ## Version 1.4.0 (2026-03-14)
 
 ### Neue Features

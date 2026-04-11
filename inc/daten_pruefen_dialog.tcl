@@ -251,6 +251,12 @@ proc ::daten_pruefen::lade_eintraege_aus_datei {datei_pfad} {
                 dict set eintrag_data bemerkungen $bemerkungen
             }
         }
+        # Gratis-Feld lesen (neueres Feld - für ältere Einträge nicht vorhanden)
+        if {[string match "*\"gratis\":*" $line]} {
+            if {[regexp {"gratis":\s*"([^"]*)"} $line -> gratis_val]} {
+                dict set eintrag_data gratis $gratis_val
+            }
+        }
 
         # Prüfen ob ein vollständiger Eintrag vorliegt (schließende Klammer)
         if {[string match "*\}*" $line] && [dict size $eintrag_data] >= 11} {
@@ -261,6 +267,10 @@ proc ::daten_pruefen::lade_eintraege_aus_datei {datei_pfad} {
             # Für alte Einträge ohne Bemerkungen: Leeren String setzen
             if {![dict exists $eintrag_data bemerkungen]} {
                 dict set eintrag_data bemerkungen ""
+            }
+            # Für alte Einträge ohne Gratis-Feld: Standardwert "Nein" setzen
+            if {![dict exists $eintrag_data gratis]} {
+                dict set eintrag_data gratis "Nein"
             }
             lappend eintraege $eintrag_data
             set eintrag_data [dict create]
@@ -305,7 +315,13 @@ proc ::daten_pruefen::speichere_eintraege_in_datei {datei_pfad eintraege} {
         if {[dict exists $entry bemerkungen]} {
             set bemerkungen_wert [dict get $entry bemerkungen]
         }
-        lappend lines "      \"bemerkungen\": \"$bemerkungen_wert\""
+        lappend lines "      \"bemerkungen\": \"$bemerkungen_wert\","
+        # Gratis-Feld hinzufügen: "Ja" wenn Gratis-Berechtigung aktiv, sonst "Nein"
+        set gratis_wert "Nein"
+        if {[dict exists $entry gratis]} {
+            set gratis_wert [dict get $entry gratis]
+        }
+        lappend lines "      \"gratis\": \"$gratis_wert\""
 
         incr counter
         if {$counter < $anzahl} {
@@ -405,6 +421,13 @@ proc ::daten_pruefen::pruefe_datei {datei_pfad} {
         # Optionales Feld "bemerkungen" hinzufügen wenn nicht vorhanden (für Abwärtskompatibilität)
         if {![dict exists $eintrag bemerkungen]} {
             dict set eintrag bemerkungen ""
+        }
+
+        # Feld "gratis" hinzufügen wenn nicht vorhanden (Abwärtskompatibilität mit älteren Einträgen)
+        # Standardwert "Nein": ältere Einträge ohne gratis-Feld sind regulär zahlungspflichtig
+        if {![dict exists $eintrag gratis]} {
+            dict set eintrag gratis "Nein"
+            set eintrag_geaendert 1
         }
 
         # 2. PRÜFUNG: Datum validieren

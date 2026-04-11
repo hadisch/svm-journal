@@ -20,7 +20,7 @@ proc cache_journal_eintraege {} {
 
     # Alle Kinder-Items des Treeview durchlaufen
     foreach item [.main.tree children {}] {
-        # Werte des Items holen (datum, uhrzeit, nachname, vorname, kw, lw, typ, kaliber, startgeld, munition, munpreis, bemerkungen)
+        # Werte des Items holen (datum, uhrzeit, nachname, vorname, kw, lw, typ, kaliber, startgeld, munition, munpreis, bemerkungen, gratis)
         set values [.main.tree item $item -values]
 
         # Werte zur Cache-Liste hinzufügen
@@ -49,7 +49,7 @@ proc filtere_journal_eintraege {suchbegriff} {
     # Alle gecachten Einträge durchlaufen und filtern
     foreach eintrag $::journal_such_cache {
         # Nachname und Vorname aus den Werten extrahieren
-        # Reihenfolge: datum(0), uhrzeit(1), nachname(2), vorname(3), kw(4), lw(5), typ(6), kaliber(7), startgeld(8), munition(9), munpreis(10), bemerkungen(11)
+        # Reihenfolge: datum(0), uhrzeit(1), nachname(2), vorname(3), kw(4), lw(5), typ(6), kaliber(7), startgeld(8), munition(9), munpreis(10), bemerkungen(11), gratis(12)
         set nachname [lindex $eintrag 2]
         set vorname [lindex $eintrag 3]
 

@@ -1,3 +1,4 @@
+#!/usr/bin/env wish
 # SVM-Journal - Verwaltungssoftware für Schießsportvereine
 #
 # 			Autoren:	Hans-Dieter Schlabritz <hadisch@zavb.de>
@@ -5,8 +6,6 @@
 #						(C) 2026 Hans-Dieter Schlabritz
 #			Lizenz:		GNU GENERAL PUBLIC LICENSE
 #						Version 2, June 1991
-
-#!/usr/bin/env wish
 
 # Hauptprogramm für svm-journal
 # Erstellt ein Fenster mit minimaler Größe von 1600x900 Pixeln

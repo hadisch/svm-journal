@@ -51,6 +51,14 @@ namespace eval ::neuer_eintrag {
     # Gratis-Berechtigung: 1 wenn der Schütze das Startgeld nicht zahlen muss
     # (z.B. Ehrenmitglied, Vorstand, Ausnahmeregelung)
     variable gratis 0
+
+    # Gastschützen-Prüfung: verhindert doppeltes Anzeigen des Dialogs
+    # für dieselbe Namenskombination innerhalb einer Erfassungssitzung
+    variable gaeste_dialog_angezeigt 0
+
+    # Letzte geprüfte Namenskombination (Format: "Nachname|Vorname")
+    # Wird mit gaeste_dialog_angezeigt verglichen um Wiederholungen zu vermeiden
+    variable letzter_gepruefter_name ""
 }
 
 # =============================================================================
@@ -468,9 +476,13 @@ proc ::neuer_eintrag::nachname_geaendert {args} {
     variable fenster
     variable autocomplete_listbox
     variable autocomplete_visible
+    variable gaeste_dialog_angezeigt
 
     # Startgeld neu berechnen
     berechne_startgeld
+
+    # Gastschützen-Dialog-Flag zurücksetzen: Namensänderung erfordert erneute Prüfung
+    set gaeste_dialog_angezeigt 0
 
     # Wenn Nachname leer, Autovervollständigung ausblenden
     if {$nachname eq ""} {
@@ -566,6 +578,11 @@ proc ::neuer_eintrag::autocomplete_ausgewaehlt {args} {
 
     # Startgeld neu berechnen
     berechne_startgeld
+
+    # Gastschützen-Prüfung nach Auswahl aus Nachname-Autovervollständigung:
+    # Wenn der Name aus der Liste gewählt wurde (und ggf. Vorname automatisch befüllt),
+    # sofort prüfen ob Gast oder Mitglied
+    pruefe_gastschuetze
 }
 
 # =============================================================================
@@ -580,9 +597,13 @@ proc ::neuer_eintrag::vorname_geaendert {args} {
     variable fenster
     variable vorname_autocomplete_listbox
     variable vorname_autocomplete_visible
+    variable gaeste_dialog_angezeigt
 
     # Startgeld neu berechnen
     berechne_startgeld
+
+    # Gastschützen-Dialog-Flag zurücksetzen: Namensänderung erfordert erneute Prüfung
+    set gaeste_dialog_angezeigt 0
 
     # Wenn Vorname leer oder kein Nachname vorhanden, Autovervollständigung ausblenden
     if {$vorname eq "" || $nachname eq ""} {
@@ -676,6 +697,10 @@ proc ::neuer_eintrag::vorname_autocomplete_ausgewaehlt {} {
         # Autovervollständigung ausblenden
         pack forget $vorname_autocomplete_listbox
         set vorname_autocomplete_visible 0
+
+        # Gastschützen-Prüfung nach Auswahl des Vornamens aus Autovervollständigung:
+        # Jetzt sind sowohl Nachname als auch Vorname bekannt - Prüfung kann erfolgen
+        pruefe_gastschuetze
     }
 }
 
@@ -939,6 +964,94 @@ proc ::neuer_eintrag::pruefe_blacklist {args} {
 
     # Speichern-Button-Zustand neu bewerten
     pruefe_speichern_button
+}
+
+# =============================================================================
+# Prozedur: pruefe_gastschuetze
+# Prüft ob die eingegebene Person ein Gastschütze ist und ob sie bereits
+# in der gaeste.json registriert wurde.
+#
+# Ablauf:
+#   1. Nur ausführen wenn beide Namensfelder ausgefüllt sind
+#   2. Mitglieder überspringen (kein Gastschütze-Dialog für Vereinsmitglieder)
+#   3. Für Gastschützen:
+#      - Bemerkungsfeld mit "Gastschütze" vorausfüllen (wenn noch leer)
+#      - Bekannter Gast → Info-Dialog (Daten bereits vorhanden)
+#      - Unbekannter Gast → Warn-Dialog (Daten erheben!) + Eintrag in gaeste.json
+#
+# Ein Flag (gaeste_dialog_angezeigt) verhindert, dass der Dialog bei jeder
+# Fokus-Änderung erneut erscheint, solange dieselbe Namenskombination steht.
+# =============================================================================
+proc ::neuer_eintrag::pruefe_gastschuetze {args} {
+    variable nachname
+    variable vorname
+    variable mitglieder_dict
+    variable fenster
+    variable gaeste_dialog_angezeigt
+    variable letzter_gepruefter_name
+    variable bemerkungen
+
+    # Nur prüfen wenn beide Namensfelder ausgefüllt sind (getrimmt)
+    set pruef_nn [string trim $nachname]
+    set pruef_vn [string trim $vorname]
+    if {$pruef_nn eq "" || $pruef_vn eq ""} {
+        return
+    }
+
+    # Eindeutige Kennung der aktuellen Namenskombination für Wiederholungsschutz
+    set aktueller_name "${pruef_nn}|${pruef_vn}"
+
+    # Dialog für diese Kombination wurde bereits gezeigt → nicht nochmals anzeigen
+    if {$gaeste_dialog_angezeigt && $letzter_gepruefter_name eq $aktueller_name} {
+        return
+    }
+
+    # Prüfen ob die Person Vereinsmitglied ist (case-insensitiv, wie in berechne_startgeld)
+    set ist_mitglied 0
+    dict for {m_name m_vornamen} $mitglieder_dict {
+        if {[string equal -nocase $pruef_nn $m_name]} {
+            foreach m_vn $m_vornamen {
+                if {[string equal -nocase $pruef_vn $m_vn]} {
+                    set ist_mitglied 1
+                    break
+                }
+            }
+            if {$ist_mitglied} break
+        }
+    }
+
+    # Vereinsmitglieder benötigen keine Gastschützen-Prüfung
+    if {$ist_mitglied} {
+        return
+    }
+
+    # Ab hier: Gastschütze erkannt
+    # Flag setzen und Namenskombination merken, damit Dialog nicht doppelt erscheint
+    set gaeste_dialog_angezeigt 1
+    set letzter_gepruefter_name $aktueller_name
+
+    # Bemerkungsfeld mit "Gastschütze" vorausfüllen - nur wenn noch leer,
+    # damit manuell eingetragene Bemerkungen nicht überschrieben werden
+    if {[string trim $bemerkungen] eq ""} {
+        set bemerkungen "Gastsch\u00fctze"
+    }
+
+    # In gaeste.json nachschauen ob dieser Gastschütze bereits bekannt ist
+    if {[::gaeste::ist_gast $pruef_vn $pruef_nn]} {
+        # Bekannter Gast: Beruhigender Info-Dialog - keine erneute Datenerhebung nötig
+        tk_messageBox -parent $fenster -icon info -type ok \
+            -title "Bekannter Gastsch\u00fctze" \
+            -message "$pruef_vn $pruef_nn ist bereits in der G\u00e4ste Liste vorhanden.\nWeitere Daten m\u00fcssen nicht erhoben werden."
+    } else {
+        # Unbekannter Gast: Warnhinweis mit Aufforderung zur Datenerhebung
+        tk_messageBox -parent $fenster -icon warning -type ok \
+            -title "Neuer Gastsch\u00fctze" \
+            -message "$pruef_vn $pruef_nn ist nicht in der Gastsch\u00fctzen Liste vorhanden.\n\nBitte unbedingt die Personalien aufnehmen und den Personalausweis oder Reisepass kopieren."
+
+        # Nach Bestätigung des Hinweises: Person automatisch in gaeste.json eintragen
+        # Beim nächsten Besuch erscheint dann der Info-Dialog statt dieses Warnhinweises
+        ::gaeste::trage_gast_ein $pruef_vn $pruef_nn
+    }
 }
 
 # =============================================================================
@@ -1592,6 +1705,10 @@ proc open_neuer_eintrag_fenster {} {
     set ::neuer_eintrag::blacklist_gesperrt 0
     # Gratis-Berechtigung beim Öffnen zurücksetzen (Standardfall: kein Gratis-Schütze)
     set ::neuer_eintrag::gratis 0
+    # Gastschützen-Prüfungs-Flags beim Öffnen zurücksetzen
+    # (neues Formular = neue Prüfung erforderlich)
+    set ::neuer_eintrag::gaeste_dialog_angezeigt 0
+    set ::neuer_eintrag::letzter_gepruefter_name ""
 
     # Daten laden
     ::neuer_eintrag::lade_mitglieder_daten
@@ -1651,6 +1768,10 @@ proc open_neuer_eintrag_fenster {} {
     entry $w.name_frame.name_entry -textvariable ::neuer_eintrag::nachname -width 40
     pack $w.name_frame.name_entry -side left -fill x -expand 1
 
+    # FocusOut-Binding: Gastschützen-Prüfung wenn Nachname-Feld verlassen wird
+    # (Sonderfall: Vorname wurde zuerst eingegeben, dann erst der Nachname)
+    bind $w.name_frame.name_entry <FocusOut> ::neuer_eintrag::pruefe_gastschuetze
+
     # Autovervollständigungs-Listbox (initial versteckt)
     listbox $w.name_frame.autocomplete -height 5 -exportselection 0
     set ::neuer_eintrag::autocomplete_listbox $w.name_frame.autocomplete
@@ -1675,6 +1796,10 @@ proc open_neuer_eintrag_fenster {} {
 
     entry $w.vorname_frame.vorname_entry -textvariable ::neuer_eintrag::vorname -width 40
     pack $w.vorname_frame.vorname_entry -side left -fill x -expand 1
+
+    # FocusOut-Binding: Gastschützen-Prüfung wenn Vorname-Feld verlassen wird
+    # (Normalfall: Nachname wurde zuerst eingegeben, dann der Vorname)
+    bind $w.vorname_frame.vorname_entry <FocusOut> ::neuer_eintrag::pruefe_gastschuetze
 
     # Autovervollständigungs-Listbox für Vornamen
     listbox $w.vorname_frame.autocomplete -height 5 -exportselection 0

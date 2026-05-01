@@ -1,5 +1,43 @@
 # Änderungshistorie - SVM-Journal
 
+## Version 1.6.0 (2026-05-01)
+
+### Neue Features
+- **Gastschützen-Verwaltung mit automatischer Gästeliste**
+  - Neue Datei: `inc/gaeste_verwaltung.tcl` (Namespace `::gaeste`)
+  - Neue Datenbankdatei `daten/gaeste.json` wird beim ersten Gastschützen-Besuch automatisch angelegt
+  - Beim Erfassen eines Schützen wird automatisch geprüft, ob es sich um ein Vereinsmitglied
+    oder einen Gastschützen handelt
+
+- **Automatische Prüfung beim Ausfüllen von Vor- und Nachname**
+  - Ist die Person kein Mitglied, wird `gaeste.json` abgefragt:
+    - **Unbekannter Gast**: Warnhinweis "Bitte unbedingt die Personalien aufnehmen und den
+      Personalausweis oder Reisepass kopieren" → Person wird nach OK automatisch in `gaeste.json` eingetragen
+    - **Bekannter Gast**: Info-Hinweis "Bereits in der Gäste Liste vorhanden. Weitere Daten
+      müssen nicht erhoben werden."
+  - Prüfung erfolgt beim Verlassen der Namensfelder (FocusOut) sowie nach Autocomplete-Auswahl
+  - Ein Flag verhindert das doppelte Anzeigen des Dialogs für dieselbe Namenskombination
+
+- **Automatisches Vorausfüllen von "Gastschütze" im Bemerkungsfeld**
+  - Wird bei erkannten Gastschützen automatisch gesetzt (nur wenn Bemerkungsfeld noch leer)
+
+### Technische Details
+- Neue Datei: `inc/gaeste_verwaltung.tcl`
+  - Prozedur `::gaeste::lade_gaeste`: Liest alle bekannten Gäste aus `gaeste.json`
+  - Prozedur `::gaeste::ist_gast {vorname nachname}`: Case-insensitive Prüfung ob Person bekannt
+  - Prozedur `::gaeste::trage_gast_ein {vorname nachname}`: Schreibt neuen Gast in `gaeste.json`
+- Datei: `svm-journal.tcl`
+  - Neuer Pfad `gaeste_json` → `daten/gaeste.json`
+  - Source-Anweisung für `gaeste_verwaltung.tcl`
+- Datei: `inc/neuer_eintrag.tcl`
+  - Neue Namespace-Variablen: `gaeste_dialog_angezeigt`, `letzter_gepruefter_name`
+  - Neue Prozedur `::neuer_eintrag::pruefe_gastschuetze`
+  - FocusOut-Bindings auf beide Namensfelder
+  - Flag-Reset in `nachname_geaendert` und `vorname_geaendert`
+  - Aufruf nach Autocomplete-Auswahl in `autocomplete_ausgewaehlt` und `vorname_autocomplete_ausgewaehlt`
+
+---
+
 ## Version 1.5.1 (2026-04-11)
 
 ### Neue Features

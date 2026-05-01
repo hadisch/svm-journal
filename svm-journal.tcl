@@ -1,3 +1,11 @@
+# SVM-Journal - Verwaltungssoftware für Schießsportvereine
+#
+# 			Autoren:	Hans-Dieter Schlabritz <hadisch@zavb.de>
+#						Claude (Antropic)
+#						(C) 2026 Hans-Dieter Schlabritz
+#			Lizenz:		GNU GENERAL PUBLIC LICENSE
+#						Version 2, June 1991
+
 #!/usr/bin/env wish
 
 # Hauptprogramm für svm-journal
@@ -51,6 +59,10 @@ set waffenregister_json [::pfad::get_json_path "daten" "waffenregister.json"]
 
 # Blacklist: Personen, die vom Schießbetrieb ausgeschlossen sind
 set blacklist_json [::pfad::get_json_path "daten" "blacklist.json"]
+
+# Gästeliste: Bekannte Gastschützen (automatisch angelegt beim ersten Gastbesuch)
+# Ermöglicht die Prüfung, ob Personalien und Ausweiskopie bereits vorliegen
+set gaeste_json [::pfad::get_json_path "daten" "gaeste.json"]
 
 # =============================================================================
 
@@ -110,6 +122,10 @@ source [file join [file dirname [info script]] inc daten_pruefen_dialog.tcl]
 
 # Blacklist-Dialog - Verwaltung der vom Schießbetrieb gesperrten Personen
 source [file join [file dirname [info script]] inc blacklist_dialog.tcl]
+
+# Gäste-Verwaltung - Lesen und Schreiben der Gästeliste (gaeste.json)
+# Prüft ob Gastschützen bereits erfasst wurden, um doppelte Datenerhebung zu vermeiden
+source [file join [file dirname [info script]] inc gaeste_verwaltung.tcl]
 
 # Journal-Suche - Suchfunktion für das Hauptfenster (Nachname/Vorname)
 source [file join [file dirname [info script]] inc journal_suche.tcl]

@@ -126,6 +126,10 @@ source [file join [file dirname [info script]] inc blacklist_dialog.tcl]
 # Prüft ob Gastschützen bereits erfasst wurden, um doppelte Datenerhebung zu vermeiden
 source [file join [file dirname [info script]] inc gaeste_verwaltung.tcl]
 
+# Gäste-Fenster - Manuelle Verwaltung der Gästeliste (gaeste.json)
+# Erlaubt das Hinzufügen, Bearbeiten und Löschen von Gastschützen-Einträgen
+source [file join [file dirname [info script]] inc gaeste_fenster.tcl]
+
 # Journal-Suche - Suchfunktion für das Hauptfenster (Nachname/Vorname)
 source [file join [file dirname [info script]] inc journal_suche.tcl]
 
@@ -232,6 +236,10 @@ menu .menubar.settings -tearoff 0
 
 # Menü "Werkzeuge" erstellen
 menu .menubar.tools -tearoff 0
+# Personen-Verwaltung: Mitgliederliste und Gästeliste (Unicode-Escapes für Windows-Kompatibilität)
+.menubar.tools add command -label "Mitgliederliste" -command {open_mitglieder_fenster}
+.menubar.tools add command -label "G\u00e4steliste" -command {open_gaeste_fenster}
+.menubar.tools add separator
 .menubar.tools add command -label "Waffenregister" -command {open_waffenregister_dialog}
 .menubar.tools add command -label "Waffenverleih" -command {open_waffenverleih_dialog}
 .menubar.tools add separator

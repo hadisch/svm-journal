@@ -1,5 +1,39 @@
 # Änderungshistorie - SVM-Journal
 
+## Version 1.6.1 (2026-05-22)
+
+### Neue Features
+- **Menü Werkzeuge: Mitgliederliste und Gästeliste**
+  - Neuer Menüeintrag "Mitgliederliste" unter Werkzeuge → öffnet das bestehende Mitgliederverwaltungsfenster
+  - Neuer Menüeintrag "Gästeliste" unter Werkzeuge → öffnet das neue Gästeverwaltungsfenster
+  - Beide Einträge stehen am Anfang des Werkzeuge-Menüs (vor Waffenregister)
+
+- **Neue Datei: `inc/gaeste_fenster.tcl` (Namespace `::gaeste_fenster`)**
+  - Fenster zur manuellen Verwaltung der Gästeliste (`gaeste.json`)
+  - Toolbar mit Buttons: Hinzufügen, Bearbeiten, Löschen, Schließen
+  - Treeview mit zwei Spalten: Nachname und Vorname
+  - Statuszeile zeigt aktuelle Anzahl der eingetragenen Gastschützen
+  - **Hinzufügen**: Sub-Dialog mit Pflichtfeld-Validierung und Duplikatprüfung (case-insensitiv)
+  - **Bearbeiten**: Sub-Dialog mit vorausgefüllten Feldern; Duplikatprüfung gegen andere Einträge
+  - **Löschen**: Bestätigungsdialog vor dem Entfernen
+  - Doppelklick und Enter-Taste öffnen den Bearbeiten-Dialog
+  - ESC schließt das Fenster
+  - Manuell hinzugefügte Gäste werden beim nächsten Besuch im "Neuer Eintrag"-Dialog sofort als bekannte Gäste erkannt
+  - Alphabetische Sortierung nach Nachname, dann Vorname
+  - Liest Daten über `::gaeste::lade_gaeste` aus `gaeste_verwaltung.tcl`
+
+### Technische Details
+- Datei: `svm-journal.tcl`
+  - Neue `source`-Anweisung für `inc/gaeste_fenster.tcl`
+  - Menüeinträge "Mitgliederliste" und "Gästeliste" im Werkzeuge-Menü ergänzt
+- Datei: `inc/gaeste_fenster.tcl` (neu)
+  - Prozeduren: `lade_gaeste_fuer_fenster`, `speichere_gaeste_fenster`, `aktualisiere_anzeige`
+  - Prozeduren: `oeffne_hinzufuegen_dialog`, `pruefe_hinzufuegen_button`, `speichere_neuen_gast`
+  - Prozeduren: `oeffne_bearbeiten_dialog`, `pruefe_bearbeiten_button`, `speichere_geaenderten_gast`
+  - Prozeduren: `loesche_gast`, `open_gaeste_fenster` (global)
+
+---
+
 ## Version 1.6.0 (2026-05-01)
 
 ### Neue Features

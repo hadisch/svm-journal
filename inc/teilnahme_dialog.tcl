@@ -458,7 +458,7 @@ proc ::teilnahme::zeige_ergebnis_fenster {} {
     $w.main.tabelle.tree heading name -text "Name"
     $w.main.tabelle.tree heading kurz -text "Kurzwaffe"
     $w.main.tabelle.tree heading lang -text "Langwaffe"
-    $w.main.tabelle.tree heading gesamt -text "Gesamt"
+    $w.main.tabelle.tree heading gesamt -text "Summe Kurz+Lang"
 
     # Spaltenbreiten und Ausrichtung (füllen die breite Fensterfläche aus)
     $w.main.tabelle.tree column name -width 700 -anchor w
@@ -590,7 +590,7 @@ proc ::teilnahme::erstelle_html_dokument {} {
     # Tabelle
     append html "  <table>\n"
     append html "    <thead>\n"
-    append html "      <tr><th>Name</th><th>Kurzwaffe</th><th>Langwaffe</th><th>Gesamt</th></tr>\n"
+    append html "      <tr><th>Name</th><th>Kurzwaffe</th><th>Langwaffe</th><th>Summe Kurz+Lang</th></tr>\n"
     append html "    </thead>\n"
     append html "    <tbody>\n"
 

@@ -1,5 +1,19 @@
 # Änderungshistorie - SVM-Journal
 
+## Version 1.7.1 (2026-06-24)
+
+### Geändert
+- **Teilnahme am Training: Spaltenüberschrift "Gesamt" umbenannt**
+  - Die Spalte heißt jetzt "Summe Kurz+Lang" (im Ergebnisfenster und im HTML-Export)
+  - Klarstellung, dass dieser Wert die Summe der getrennt gezählten Kurz- und Langwaffen-Trainingstage ist und sich dadurch von der Eintragszählung im Statistik-Fenster unterscheidet
+
+### Technische Details
+- Datei: `inc/teilnahme_dialog.tcl`
+  - Treeview-Überschrift `gesamt` von "Gesamt" auf "Summe Kurz+Lang" geändert
+  - HTML-Export-Tabellenkopf entsprechend angepasst
+
+---
+
 ## Version 1.7.0 (2026-06-24)
 
 ### Neue Features

@@ -1,5 +1,37 @@
 # Änderungshistorie - SVM-Journal
 
+## Version 1.7.0 (2026-06-24)
+
+### Neue Features
+- **Menü Werkzeuge: Teilnahme am Training (Bedürfnisnachweis)**
+  - Neuer Menüeintrag "Teilnahme am Training" unter Werkzeuge (direkt nach "Statistik")
+  - Vorgeschalteter Zeitraum-Dialog (Standard: 01.01. des laufenden Jahres bis heute)
+  - Ergebnisfenster mit Tabelle: Name, Kurzwaffe, Langwaffe, Gesamt (jeweils "x mal")
+  - Zählweise: pro Trainingstag (mehrere Einträge am selben Tag mit derselben Waffengattung zählen als eine Teilnahme); Gesamt = Kurzwaffe + Langwaffe
+  - Ausgewertet werden ausschließlich Vereinsmitglieder (aus `mitglieder.json`); Mitglieder ohne Teilnahme erscheinen mit 0
+  - Farbliche Hervorhebung: Grün (mind. 6 Teilnahmen bei beiden Waffengattungen), Rot (noch keine Teilnahme), Schwarz (übrige)
+  - HTML-Export der Auswertung
+  - Fenstergröße wie die Mitgliederverwaltung (1600x800), zentriert über dem Hauptfenster
+
+### Entfernt
+- **Markdown-Export**
+  - Der Export nach Markdown wird nicht genutzt und wurde vollständig entfernt
+  - Das Untermenü "Datei → Exportieren" (Markdown/HTML) ist jetzt ein direkter Befehl "Datei → Exportieren…", der den HTML-Export öffnet
+
+### Technische Details
+- Datei: `inc/teilnahme_dialog.tcl` (neu, Namespace `::teilnahme`)
+  - Prozeduren u.a.: `open_zeitraum_dialog`, `berechne_teilnahme`, `zeige_ergebnis_fenster`, `bestimme_farbtag`, `erstelle_html_dokument`, `exportiere_html`
+  - Nutzt die Datums-Hilfsfunktionen aus `::statistik` wieder
+- Datei: `svm-journal.tcl`
+  - Neue `source`-Anweisung für `inc/teilnahme_dialog.tcl`
+  - Menüeintrag "Teilnahme am Training" im Werkzeuge-Menü ergänzt
+  - Export-Untermenü durch direkten Befehl "Exportieren…" ersetzt
+- Datei: `inc/export_dialog.tcl`
+  - Prozedur `erstelle_markdown_tabelle` und alle Markdown-Verzweigungen entfernt
+  - Namespace-Variable `export_format` entfernt; `open_export_dialog` ohne Format-Parameter
+
+---
+
 ## Version 1.6.1 (2026-05-22)
 
 ### Neue Features

@@ -83,7 +83,7 @@ source [file join [file dirname [info script]] inc mitglieder_fenster.tcl]
 # Neuer-Eintrag-Fenster - Fenster zur Erfassung neuer Schießstand-Einträge
 source [file join [file dirname [info script]] inc neuer_eintrag.tcl]
 
-# Export-Dialog - Dialog für Markdown und HTML Export
+# Export-Dialog - Dialog für HTML Export
 source [file join [file dirname [info script]] inc export_dialog.tcl]
 
 # Eintrag-Löschen - Funktionalität zum Löschen von Einträgen
@@ -141,6 +141,9 @@ source [file join [file dirname [info script]] inc toolbar_icons.tcl]
 
 # Statistik-Dialog - Statistiken über den Schießbetrieb
 source [file join [file dirname [info script]] inc statistik_dialog.tcl]
+
+# Teilnahme-Dialog - Auswertung der Trainingsteilnahmen je Mitglied (Bedürfnisnachweis)
+source [file join [file dirname [info script]] inc teilnahme_dialog.tcl]
 
 # =============================================================================
 # Lock-Mechanismus: Prüfen ob bereits eine Instanz läuft
@@ -208,13 +211,8 @@ menu .menubar
 # Menü "Datei" erstellen
 menu .menubar.file -tearoff 0
 
-# Untermenü "Exportieren" erstellen
-menu .menubar.file.export -tearoff 0
-.menubar.file.export add command -label "Markdown" -command {open_export_dialog markdown}
-.menubar.file.export add command -label "HTML" -command {open_export_dialog html}
-
-# Exportieren als Untermenü hinzufügen
-.menubar.file add cascade -label "Exportieren" -menu .menubar.file.export
+# Exportieren-Befehl (öffnet den HTML-Export-Dialog)
+.menubar.file add command -label "Exportieren..." -command {open_export_dialog}
 .menubar.file add command -label "Beenden" -command {confirm_exit} -accelerator "Strg+Q"
 .menubar add cascade -label "Datei" -menu .menubar.file
 
@@ -246,6 +244,7 @@ menu .menubar.tools -tearoff 0
 .menubar.tools add command -label "Daten \u00fcberpr\u00fcfen..." -command {open_daten_pruefen_dialog}
 .menubar.tools add separator
 .menubar.tools add command -label "Statistik" -command {::statistik::open_zeitraum_dialog}
+.menubar.tools add command -label "Teilnahme am Training" -command {::teilnahme::open_zeitraum_dialog}
 .menubar.tools add separator
 # "Person sperren" öffnet die Blacklist-Verwaltung (kein Umlaut nötig)
 .menubar.tools add command -label "Person sperren" -command {open_blacklist_dialog}

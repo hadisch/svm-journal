@@ -1,5 +1,5 @@
 # =============================================================================
-# Export-Dialog für Markdown und HTML Export
+# Export-Dialog für HTML Export
 # Ermöglicht den Export von Journal-Einträgen in verschiedene Formate
 # =============================================================================
 
@@ -7,7 +7,6 @@
 namespace eval ::export {
     # Dialog-Variablen
     variable fenster ""
-    variable export_format ""
 
     # Zeitraum-Auswahl
     variable zeitraum_modus "alles"  ;# "alles" oder "zeitraum"
@@ -529,55 +528,6 @@ proc ::export::filtere_eintraege {eintraege} {
 }
 
 # =============================================================================
-# Prozedur: erstelle_markdown_tabelle
-# Konvertiert Einträge in eine Markdown-Tabelle
-# Exportiert nur die ausgewählten Felder
-# Parameter:
-#   eintraege - Liste von Eintrags-Dictionaries
-# Rückgabe: Markdown-String
-# =============================================================================
-proc ::export::erstelle_markdown_tabelle {eintraege} {
-    # Ausgewählte Felder ermitteln
-    set felder [get_ausgewaehlte_felder]
-
-    # Markdown-Header erstellen
-    set markdown "# SVM Journal Export\n\n"
-    append markdown "Exportiert am: [clock format [clock seconds] -format "%d.%m.%Y %H:%M:%S"]\n\n"
-
-    # Tabellen-Header-Zeile erstellen (| Feld1 | Feld2 | ... |)
-    append markdown "|"
-    foreach feld $felder {
-        lassign $feld anzeigename dict_key var_name
-        append markdown " $anzeigename |"
-    }
-    append markdown "\n"
-
-    # Trennlinie erstellen (|-------|-------|-----|)
-    append markdown "|"
-    foreach feld $felder {
-        append markdown "-------|"
-    }
-    append markdown "\n"
-
-    # Einträge zur Tabelle hinzufügen
-    foreach eintrag $eintraege {
-        append markdown "|"
-        foreach feld $felder {
-            lassign $feld anzeigename dict_key var_name
-            set wert [dict get $eintrag $dict_key]
-            append markdown " $wert |"
-        }
-        append markdown "\n"
-    }
-
-    # Fußzeile
-    append markdown "\n---\n\n"
-    append markdown "Anzahl Einträge: [llength $eintraege]\n"
-
-    return $markdown
-}
-
-# =============================================================================
 # Prozedur: erstelle_html_tabelle
 # Konvertiert Einträge in eine HTML-Tabelle mit CSS
 # Exportiert nur die ausgewählten Felder
@@ -655,7 +605,6 @@ proc ::export::erstelle_html_tabelle {eintraege} {
 # =============================================================================
 proc ::export::exportiere_daten {} {
     variable fenster
-    variable export_format
 
     # Prüfen ob mindestens ein Feld ausgewählt ist
     set ausgewaehlte_felder [get_ausgewaehlte_felder]
@@ -678,14 +627,9 @@ proc ::export::exportiere_daten {} {
         return
     }
 
-    # Dateiformat bestimmen
-    if {$export_format eq "markdown"} {
-        set datei_extension ".md"
-        set datei_types {{"Markdown-Dateien" {.md}} {"Alle Dateien" {*}}}
-    } else {
-        set datei_extension ".html"
-        set datei_types {{"HTML-Dateien" {.html}} {"Alle Dateien" {*}}}
-    }
+    # Dateiformat (nur noch HTML)
+    set datei_extension ".html"
+    set datei_types {{"HTML-Dateien" {.html}} {"Alle Dateien" {*}}}
 
     # Standard-Dateiname mit Zeitstempel
     set standard_dateiname "svm-journal-export-[clock format [clock seconds] -format "%Y-%m-%d"]${datei_extension}"
@@ -702,12 +646,8 @@ proc ::export::exportiere_daten {} {
         return
     }
 
-    # Daten in gewähltes Format konvertieren
-    if {$export_format eq "markdown"} {
-        set export_inhalt [erstelle_markdown_tabelle $gefilterte_eintraege]
-    } else {
-        set export_inhalt [erstelle_html_tabelle $gefilterte_eintraege]
-    }
+    # Daten in HTML konvertieren
+    set export_inhalt [erstelle_html_tabelle $gefilterte_eintraege]
 
     # Datei schreiben
     set fp [open $datei w]
@@ -725,13 +665,10 @@ proc ::export::exportiere_daten {} {
 
 # =============================================================================
 # Prozedur: open_export_dialog
-# Öffnet den Export-Dialog
-# Parameter:
-#   format - "markdown" oder "html"
+# Öffnet den Export-Dialog (HTML-Export)
 # =============================================================================
-proc open_export_dialog {format} {
+proc open_export_dialog {} {
     # Namespace-Variablen zurücksetzen
-    set ::export::export_format $format
     set ::export::zeitraum_modus "alles"
     set ::export::von_datum ""
     set ::export::bis_datum ""
@@ -767,12 +704,8 @@ proc open_export_dialog {format} {
     # Neues Toplevel-Fenster
     toplevel $w
 
-    # Titel je nach Format
-    if {$format eq "markdown"} {
-        wm title $w "Export als Markdown"
-    } else {
-        wm title $w "Export als HTML"
-    }
+    # Titel setzen
+    wm title $w "Export als HTML"
 
     wm geometry $w "600x700"
 

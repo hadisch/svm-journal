@@ -255,7 +255,7 @@ proc oeffne_hinzufuegen_dialog {} {
     pack .mitglieder.hinzufuegen.buttons.abbrechen -side right -padx 5
 
     # Button "Speichern" - speichert neues Mitglied
-    button .mitglieder.hinzufuegen.buttons.speichern -text "Speichern" -state disabled -bg "#569A40" -fg white -command {
+    button .mitglieder.hinzufuegen.buttons.speichern -text "Speichern" -state disabled -bg "#569A40" -fg white -disabledforeground white -command {
         # Error-Handling für gesamten Speichervorgang
         if {[catch {
             # Werte aus Eingabefeldern holen

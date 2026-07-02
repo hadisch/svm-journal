@@ -11,7 +11,8 @@
   - Positive Aktionen (Speichern, Hinzufügen, Exportieren, Neu) jetzt in Vereinsgrün (`#569A40`) mit weißer Schrift statt Pastellgrün
   - Sekundäre Aktionen (Abbrechen, Schließen) in neutralem Grau (`#E0E0E0`) statt Rosa/Cyan
   - Verbliebene 3D-`raised`-Toolbar-Buttons (Gäste-/Blacklist-Fenster) auf flache Darstellung umgestellt
-  - Bedeutungstragende Farben (Kategorie-/Warnfarben in Statistik, HTML-Export) bleiben unverändert
+  - Auch die restlichen Sonderfarben ins Schema überführt: Hellblau (`#ADD8E6`) und Blassgelb (`#FDF1AF`) bei positiven/primären Aktionen (HTML Export, Hinzufügen, Preis ändern, Suchen) auf Vereinsgrün, Stahlblau (`#B0C4DE`) und abweichende Grautöne (`#D0D0D0`, `#C0C0C0`) auf das neutrale Grau
+  - Bedeutungstragende Farben bleiben unverändert (Kategorie-/Warnfarben in Statistik und HTML-Export, Gratis-Checkbox, Tooltip-Hintergrund, Blacklist-Statusleiste)
 
 ### Technische Details
 - Datei: `inc/erscheinungsbild.tcl` (neu, Namespaces `::erscheinungsbild` und `::palette`)

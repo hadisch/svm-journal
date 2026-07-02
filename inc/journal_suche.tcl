@@ -125,7 +125,7 @@ proc oeffne_journal_such_dialog {} {
     pack .journal_suchdialog.buttons -in .journal_suchdialog.frame -pady 5
 
     # Button "Suchen" - fixiert das Suchergebnis und schließt den Dialog
-    button .journal_suchdialog.buttons.suchen -text "Suchen" -bg "#FDF1AF" -command {
+    button .journal_suchdialog.buttons.suchen -text "Suchen" -bg "#569A40" -fg white -command {
         # Suchbegriff aus Eingabefeld holen
         set suchtext [.journal_suchdialog.eingabe get]
 

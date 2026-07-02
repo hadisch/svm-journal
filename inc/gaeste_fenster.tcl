@@ -589,7 +589,7 @@ proc open_gaeste_fenster {} {
     button .gaestefenster.toolbar.edit \
         -image [::toolbar_icons::get bearbeiten] \
         -command ::gaeste_fenster::oeffne_bearbeiten_dialog \
-        -bg #B0C4DE -activebackground #8FA8C0 -relief flat -bd 1
+        -bg #E0E0E0 -activebackground #C8C8C8 -relief flat -bd 1
     pack .gaestefenster.toolbar.edit -side left -padx 5 -pady 3
     ::tooltip::register .gaestefenster.toolbar.edit "Ausgewählten Gast bearbeiten"
 
@@ -605,7 +605,7 @@ proc open_gaeste_fenster {} {
     button .gaestefenster.toolbar.close \
         -image [::toolbar_icons::get schliessen] \
         -command {destroy .gaestefenster} \
-        -bg #E0E0E0 -activebackground #C0C0C0 -relief flat -bd 1
+        -bg #E0E0E0 -activebackground #C8C8C8 -relief flat -bd 1
     pack .gaestefenster.toolbar.close -side right -padx 5 -pady 3
     ::tooltip::register .gaestefenster.toolbar.close "Fenster schließen"
 

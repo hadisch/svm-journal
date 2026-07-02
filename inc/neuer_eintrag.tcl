@@ -1965,7 +1965,7 @@ proc open_neuer_eintrag_fenster {} {
     bind $w.munition_anzahl_frame.anzahl_entry <Return> ::neuer_eintrag::munition_hinzufuegen
 
     # Hinzufügen-Button (hellblau, farbig)
-    button $w.munition_anzahl_frame.add_button -text "Hinzufügen" -bg "#ADD8E6" -width 12 \
+    button $w.munition_anzahl_frame.add_button -text "Hinzufügen" -bg "#569A40" -fg white -width 12 \
         -command ::neuer_eintrag::munition_hinzufuegen
     pack $w.munition_anzahl_frame.add_button -side left -padx 10
 

@@ -769,7 +769,7 @@ proc ::statistik::zeige_ergebnis_dialog {} {
     pack $w.main.buttons -fill x -pady 15
 
     # Button "HTML Export" (hellblau) - mit Padding für angemessene Button-Höhe
-    button $w.main.buttons.export -text "HTML Export" -bg "#ADD8E6" -width 15 \
+    button $w.main.buttons.export -text "HTML Export" -bg "#569A40" -fg white -width 15 \
         -command {::statistik::exportiere_html}
     pack $w.main.buttons.export -side left -padx 10 -ipady 8
 

@@ -419,7 +419,7 @@ proc open_standnutzung_preise_dialog {} {
     pack $w.button_frame -side bottom -fill x -padx 20
 
     # Button "Bearbeiten" - initial deaktiviert
-    button $w.button_frame.bearbeiten -text "Preis ändern" -bg "#FDF1AF" -width 15 \
+    button $w.button_frame.bearbeiten -text "Preis ändern" -bg "#569A40" -fg white -width 15 \
         -command ::standpreise::oeffne_bearbeiten_dialog -state disabled
     pack $w.button_frame.bearbeiten -side left -padx 5
 

@@ -1060,7 +1060,7 @@ proc zeige_mitglied_detail {} {
     grid columnconfigure .mitglieder.detail.content 1 -weight 1
 
     # Schließen-Button am unteren Rand (grau, neutral)
-    button .mitglieder.detail.close -text "Schlie\u00dfen" -bg "#D0D0D0" \
+    button .mitglieder.detail.close -text "Schlie\u00dfen" -bg "#E0E0E0" \
         -command {destroy .mitglieder.detail}
     pack .mitglieder.detail.close -pady 10
 

@@ -426,7 +426,7 @@ proc open_blacklist_dialog {} {
     button .blacklist.toolbar.close \
         -image [::toolbar_icons::get schliessen] \
         -command {destroy .blacklist} \
-        -bg #E0E0E0 -activebackground #C0C0C0 -relief flat -bd 1
+        -bg #E0E0E0 -activebackground #C8C8C8 -relief flat -bd 1
     pack .blacklist.toolbar.close -side right -padx 5 -pady 3
     ::tooltip::register .blacklist.toolbar.close "Fenster schlie\u00dfen"
 

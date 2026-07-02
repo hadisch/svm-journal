@@ -1,5 +1,31 @@
 # Änderungshistorie - SVM-Journal
 
+## Version 1.7.2 (2026-07-02)
+
+### Geändert
+- **Moderneres Erscheinungsbild (keine funktionalen Änderungen)**
+  - Flache Ränder statt der grauen 3D-Bevel-Optik bei allen Buttons und Eingabefeldern
+  - Moderne Systemschrift für alle Widgets, die die benannten Tk-Schriften verwenden (z.B. Noto Sans unter Linux, Segoe UI unter Windows)
+  - Etwas mehr Innenabstand (Padding) an Buttons für ein luftigeres Erscheinungsbild
+- **Vereinheitlichte, dezente Button-Farben ("hell & neutral")**
+  - Positive Aktionen (Speichern, Hinzufügen, Exportieren, Neu) jetzt in Vereinsgrün (`#569A40`) mit weißer Schrift statt Pastellgrün
+  - Sekundäre Aktionen (Abbrechen, Schließen) in neutralem Grau (`#E0E0E0`) statt Rosa/Cyan
+  - Verbliebene 3D-`raised`-Toolbar-Buttons (Gäste-/Blacklist-Fenster) auf flache Darstellung umgestellt
+  - Bedeutungstragende Farben (Kategorie-/Warnfarben in Statistik, HTML-Export) bleiben unverändert
+
+### Technische Details
+- Datei: `inc/erscheinungsbild.tcl` (neu, Namespaces `::erscheinungsbild` und `::palette`)
+  - `::erscheinungsbild::anwenden` setzt vor der Widget-Erzeugung die Optik-Vorgaben über die Tk-Option-Datenbank und die benannten Schriften
+  - `::palette` als zentrale, dokumentierte Quelle der Wahrheit für die Button-Farben
+- Datei: `svm-journal.tcl`
+  - Neue `source`-Anweisung für `inc/erscheinungsbild.tcl` samt Aufruf von `::erscheinungsbild::anwenden` vor der Widget-Erzeugung
+- Button-Farbwerte in 16 Dialog-/Fenster-Modulen unter `inc/` an das neue Schema angepasst
+- Datei: `CLAUDE.md`
+  - Coding-Regel für Button-Farben auf das bedeutungsbasierte Schema aktualisiert
+  - Neues Modul in der Namespace-Tabelle ergänzt
+
+---
+
 ## Version 1.7.1 (2026-06-24)
 
 ### Geändert

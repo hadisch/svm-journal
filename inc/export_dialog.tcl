@@ -868,12 +868,12 @@ proc open_export_dialog {} {
     pack $w.button_frame -in $w.main -fill x -pady 20
 
     # Button "Exportieren" - initial deaktiviert
-    button $w.button_frame.export -text "Exportieren" -bg "#90EE90" -width 15 \
+    button $w.button_frame.export -text "Exportieren" -bg "#569A40" -fg white -width 15 \
         -command ::export::exportiere_daten -state disabled
     pack $w.button_frame.export -side left -padx 5
 
     # Button "Abbrechen"
-    button $w.button_frame.cancel -text "Abbrechen" -bg "#FFB6C1" -width 15 \
+    button $w.button_frame.cancel -text "Abbrechen" -bg "#E0E0E0" -width 15 \
         -command ::export::schliesse_export_dialog
     pack $w.button_frame.cancel -side right -padx 5
 

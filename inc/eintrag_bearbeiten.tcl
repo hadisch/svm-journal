@@ -271,12 +271,12 @@ proc oeffne_bearbeiten_dialog {} {
     pack .eintrag_bearbeiten.main.button_frame -fill x -pady 20
 
     # Button "Abbrechen"
-    button .eintrag_bearbeiten.main.button_frame.abbrechen -text "Abbrechen" -bg "#FFB6C1" -width 15 \
+    button .eintrag_bearbeiten.main.button_frame.abbrechen -text "Abbrechen" -bg "#E0E0E0" -width 15 \
         -command {destroy .eintrag_bearbeiten}
     pack .eintrag_bearbeiten.main.button_frame.abbrechen -side right -padx 5
 
     # Button "Speichern"
-    button .eintrag_bearbeiten.main.button_frame.speichern -text "Speichern" -bg "#90EE90" -width 15 \
+    button .eintrag_bearbeiten.main.button_frame.speichern -text "Speichern" -bg "#569A40" -fg white -width 15 \
         -command {
         # Error-Handling für gesamten Speichervorgang
         if {[catch {

@@ -2019,11 +2019,11 @@ proc open_neuer_eintrag_fenster {} {
     pack $w.button_frame -in $w.main -fill x -pady 20
 
     # Button "Speichern" - initial deaktiviert, wird aktiviert wenn Kaliber ausgefüllt
-    button $w.button_frame.save -text "Speichern" -bg "#90EE90" -width 15 \
+    button $w.button_frame.save -text "Speichern" -bg "#569A40" -fg white -width 15 \
         -command ::neuer_eintrag::speichern_und_anzeigen -state disabled
     pack $w.button_frame.save -side left -padx 5
 
-    button $w.button_frame.cancel -text "Abbrechen" -bg "#FFB6C1" -width 15 \
+    button $w.button_frame.cancel -text "Abbrechen" -bg "#E0E0E0" -width 15 \
         -command ::neuer_eintrag::schliesse_fenster
     pack $w.button_frame.cancel -side right -padx 5
 

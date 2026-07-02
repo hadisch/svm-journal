@@ -146,6 +146,14 @@ source [file join [file dirname [info script]] inc statistik_dialog.tcl]
 source [file join [file dirname [info script]] inc teilnahme_dialog.tcl]
 
 # =============================================================================
+# Erscheinungsbild - Zentrale Optik-Einstellungen (flache Ränder, moderne Schrift)
+# =============================================================================
+# Muss VOR der Widget-Erzeugung angewendet werden, damit die Optionen greifen.
+# Zum Abschalten einfach die folgenden zwei Zeilen auskommentieren.
+source [file join [file dirname [info script]] inc erscheinungsbild.tcl]
+::erscheinungsbild::anwenden
+
+# =============================================================================
 # Lock-Mechanismus: Prüfen ob bereits eine Instanz läuft
 # =============================================================================
 if {![::programm_lock::acquire_lock]} {

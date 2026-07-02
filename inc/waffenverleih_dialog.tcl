@@ -455,11 +455,11 @@ proc ::waffenverleih::zeige_mitglieder_auswahl {mitglieder} {
     pack $dialog.buttons -pady 10
 
     # Auswählen-Button
-    button $dialog.buttons.select -text "Auswählen" -bg "#90EE90" -width 15 -command [list ::waffenverleih::mitglied_ausgewaehlt $dialog $mitglieder]
+    button $dialog.buttons.select -text "Auswählen" -bg "#569A40" -fg white -width 15 -command [list ::waffenverleih::mitglied_ausgewaehlt $dialog $mitglieder]
     pack $dialog.buttons.select -side left -padx 5
 
     # Abbrechen-Button
-    button $dialog.buttons.cancel -text "Abbrechen" -bg "#FFB6C1" -width 15 -command "destroy $dialog"
+    button $dialog.buttons.cancel -text "Abbrechen" -bg "#E0E0E0" -width 15 -command "destroy $dialog"
     pack $dialog.buttons.cancel -side left -padx 5
 
     # Erstes Element vorauswählen
@@ -1003,12 +1003,12 @@ proc open_waffenverleih_dialog {} {
     pack $w.button_frame -side bottom -fill x -padx 20 -before $w.scroll
 
     # Formular exportieren-Button (grün, links)
-    button $w.button_frame.exportieren -text "Formular exportieren" -bg "#90EE90" -width 20 \
+    button $w.button_frame.exportieren -text "Formular exportieren" -bg "#569A40" -fg white -width 20 \
         -command ::waffenverleih::validiere_und_exportiere
     pack $w.button_frame.exportieren -side left -padx 5
 
     # Abbrechen-Button (rot, rechts)
-    button $w.button_frame.abbrechen -text "Abbrechen" -bg "#FFB6C1" -width 15 \
+    button $w.button_frame.abbrechen -text "Abbrechen" -bg "#E0E0E0" -width 15 \
         -command "destroy $w"
     pack $w.button_frame.abbrechen -side right -padx 5
 

@@ -188,12 +188,12 @@ proc ::standpreise::oeffne_bearbeiten_dialog {} {
     pack $w.button_frame -side bottom -fill x -pady 10 -padx 20
 
     # Speichern-Button
-    button $w.button_frame.speichern -text "Speichern" -bg "#90EE90" -width 12 \
+    button $w.button_frame.speichern -text "Speichern" -bg "#569A40" -fg white -width 12 \
         -command [list ::standpreise::speichere_bearbeiteten_preis $w $alt_kategorie]
     pack $w.button_frame.speichern -side left -padx 5
 
     # Abbrechen-Button
-    button $w.button_frame.abbrechen -text "Abbrechen" -bg "#FFB6C1" -width 12 \
+    button $w.button_frame.abbrechen -text "Abbrechen" -bg "#E0E0E0" -width 12 \
         -command "destroy $w"
     pack $w.button_frame.abbrechen -side right -padx 5
 
@@ -298,12 +298,12 @@ proc ::standpreise::oeffne_neue_kategorie_dialog {} {
     pack $w.button_frame -side bottom -fill x -pady 10 -padx 20
 
     # Speichern-Button
-    button $w.button_frame.speichern -text "Hinzufügen" -bg "#90EE90" -width 12 \
+    button $w.button_frame.speichern -text "Hinzufügen" -bg "#569A40" -fg white -width 12 \
         -command [list ::standpreise::speichere_neue_kategorie $w]
     pack $w.button_frame.speichern -side left -padx 5
 
     # Abbrechen-Button
-    button $w.button_frame.abbrechen -text "Abbrechen" -bg "#FFB6C1" -width 12 \
+    button $w.button_frame.abbrechen -text "Abbrechen" -bg "#E0E0E0" -width 12 \
         -command "destroy $w"
     pack $w.button_frame.abbrechen -side right -padx 5
 
@@ -424,12 +424,12 @@ proc open_standnutzung_preise_dialog {} {
     pack $w.button_frame.bearbeiten -side left -padx 5
 
     # Button "Neu"
-    button $w.button_frame.neu -text "Neue Kategorie" -bg "#90EE90" -width 15 \
+    button $w.button_frame.neu -text "Neue Kategorie" -bg "#569A40" -fg white -width 15 \
         -command ::standpreise::oeffne_neue_kategorie_dialog
     pack $w.button_frame.neu -side left -padx 5
 
     # Button "Schließen"
-    button $w.button_frame.schliessen -text "Schließen" -bg "#4ACEFA" -width 15 \
+    button $w.button_frame.schliessen -text "Schließen" -bg "#E0E0E0" -width 15 \
         -command "destroy $w"
     pack $w.button_frame.schliessen -side right -padx 5
 

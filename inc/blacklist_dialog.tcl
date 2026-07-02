@@ -227,14 +227,14 @@ proc ::blacklist::oeffne_hinzufuegen_dialog {} {
 
     # Speichern-Button (initial deaktiviert, bis beide Felder gefüllt sind)
     button .blacklist.hinzufuegen.main.buttons.save \
-        -text "Hinzuf\u00fcgen" -bg #90EE90 -activebackground #70CC70 \
+        -text "Hinzuf\u00fcgen" -bg #569A40 -fg white -activebackground #4a8735 \
         -state disabled \
         -command ::blacklist::speichere_neuen_eintrag
     pack .blacklist.hinzufuegen.main.buttons.save -side left -padx 5
 
     # Abbrechen-Button
     button .blacklist.hinzufuegen.main.buttons.cancel \
-        -text "Abbrechen" -bg #FFB6C1 -activebackground #FF8C99 \
+        -text "Abbrechen" -bg #E0E0E0 -activebackground #C8C8C8 \
         -command {destroy .blacklist.hinzufuegen}
     pack .blacklist.hinzufuegen.main.buttons.cancel -side left -padx 5
 
@@ -410,7 +410,7 @@ proc open_blacklist_dialog {} {
     button .blacklist.toolbar.add \
         -image [::toolbar_icons::get neuer_eintrag] \
         -command ::blacklist::oeffne_hinzufuegen_dialog \
-        -bg #90EE90 -activebackground #70CC70 -relief raised -bd 1
+        -bg #569A40 -fg white -activebackground #4a8735 -relief flat -bd 1
     pack .blacklist.toolbar.add -side left -padx 5 -pady 3
     ::tooltip::register .blacklist.toolbar.add "Person zur Blacklist hinzuf\u00fcgen"
 
@@ -418,7 +418,7 @@ proc open_blacklist_dialog {} {
     button .blacklist.toolbar.delete \
         -image [::toolbar_icons::get loeschen] \
         -command ::blacklist::loesche_eintrag \
-        -bg #FFB6C1 -activebackground #FF8C99 -relief raised -bd 1
+        -bg #E0E0E0 -activebackground #C8C8C8 -relief flat -bd 1
     pack .blacklist.toolbar.delete -side left -padx 5 -pady 3
     ::tooltip::register .blacklist.toolbar.delete "Ausgew\u00e4hlte Person aus Blacklist entfernen"
 
@@ -426,7 +426,7 @@ proc open_blacklist_dialog {} {
     button .blacklist.toolbar.close \
         -image [::toolbar_icons::get schliessen] \
         -command {destroy .blacklist} \
-        -bg #E0E0E0 -activebackground #C0C0C0 -relief raised -bd 1
+        -bg #E0E0E0 -activebackground #C0C0C0 -relief flat -bd 1
     pack .blacklist.toolbar.close -side right -padx 5 -pady 3
     ::tooltip::register .blacklist.toolbar.close "Fenster schlie\u00dfen"
 

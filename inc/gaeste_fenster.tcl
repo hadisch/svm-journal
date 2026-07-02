@@ -260,14 +260,14 @@ proc ::gaeste_fenster::oeffne_hinzufuegen_dialog {} {
 
     # Speichern-Button (initial deaktiviert bis beide Felder gefüllt)
     button .gaestefenster.hinzufuegen.main.buttons.save \
-        -text "Hinzufügen" -bg #90EE90 -activebackground #70CC70 \
+        -text "Hinzufügen" -bg #569A40 -fg white -activebackground #4a8735 \
         -state disabled \
         -command ::gaeste_fenster::speichere_neuen_gast
     pack .gaestefenster.hinzufuegen.main.buttons.save -side left -padx 5
 
     # Abbrechen-Button
     button .gaestefenster.hinzufuegen.main.buttons.cancel \
-        -text "Abbrechen" -bg #FFB6C1 -activebackground #FF8C99 \
+        -text "Abbrechen" -bg #E0E0E0 -activebackground #C8C8C8 \
         -command {destroy .gaestefenster.hinzufuegen}
     pack .gaestefenster.hinzufuegen.main.buttons.cancel -side left -padx 5
 
@@ -453,13 +453,13 @@ proc ::gaeste_fenster::oeffne_bearbeiten_dialog {} {
 
     # Speichern-Button (initial aktiv, da Felder vorausgefüllt)
     button .gaestefenster.bearbeiten.main.buttons.save \
-        -text "Speichern" -bg #90EE90 -activebackground #70CC70 \
+        -text "Speichern" -bg #569A40 -fg white -activebackground #4a8735 \
         -command ::gaeste_fenster::speichere_geaenderten_gast
     pack .gaestefenster.bearbeiten.main.buttons.save -side left -padx 5
 
     # Abbrechen-Button
     button .gaestefenster.bearbeiten.main.buttons.cancel \
-        -text "Abbrechen" -bg #FFB6C1 -activebackground #FF8C99 \
+        -text "Abbrechen" -bg #E0E0E0 -activebackground #C8C8C8 \
         -command {destroy .gaestefenster.bearbeiten}
     pack .gaestefenster.bearbeiten.main.buttons.cancel -side left -padx 5
 
@@ -581,7 +581,7 @@ proc open_gaeste_fenster {} {
     button .gaestefenster.toolbar.add \
         -image [::toolbar_icons::get neuer_eintrag] \
         -command ::gaeste_fenster::oeffne_hinzufuegen_dialog \
-        -bg #90EE90 -activebackground #70CC70 -relief raised -bd 1
+        -bg #569A40 -fg white -activebackground #4a8735 -relief flat -bd 1
     pack .gaestefenster.toolbar.add -side left -padx 5 -pady 3
     ::tooltip::register .gaestefenster.toolbar.add "Gast manuell hinzufügen"
 
@@ -589,7 +589,7 @@ proc open_gaeste_fenster {} {
     button .gaestefenster.toolbar.edit \
         -image [::toolbar_icons::get bearbeiten] \
         -command ::gaeste_fenster::oeffne_bearbeiten_dialog \
-        -bg #B0C4DE -activebackground #8FA8C0 -relief raised -bd 1
+        -bg #B0C4DE -activebackground #8FA8C0 -relief flat -bd 1
     pack .gaestefenster.toolbar.edit -side left -padx 5 -pady 3
     ::tooltip::register .gaestefenster.toolbar.edit "Ausgewählten Gast bearbeiten"
 
@@ -597,7 +597,7 @@ proc open_gaeste_fenster {} {
     button .gaestefenster.toolbar.delete \
         -image [::toolbar_icons::get loeschen] \
         -command ::gaeste_fenster::loesche_gast \
-        -bg #FFB6C1 -activebackground #FF8C99 -relief raised -bd 1
+        -bg #E0E0E0 -activebackground #C8C8C8 -relief flat -bd 1
     pack .gaestefenster.toolbar.delete -side left -padx 5 -pady 3
     ::tooltip::register .gaestefenster.toolbar.delete "Ausgewählten Gast löschen"
 
@@ -605,7 +605,7 @@ proc open_gaeste_fenster {} {
     button .gaestefenster.toolbar.close \
         -image [::toolbar_icons::get schliessen] \
         -command {destroy .gaestefenster} \
-        -bg #E0E0E0 -activebackground #C0C0C0 -relief raised -bd 1
+        -bg #E0E0E0 -activebackground #C0C0C0 -relief flat -bd 1
     pack .gaestefenster.toolbar.close -side right -padx 5 -pady 3
     ::tooltip::register .gaestefenster.toolbar.close "Fenster schließen"
 

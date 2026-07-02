@@ -67,7 +67,7 @@ proc open_ueber_dialog {} {
     pack $w.main.appname -pady 5
 
     # Version
-    label $w.main.version -text "Version 1.7.1" -font {Arial 10} -fg "#666666" -bg white
+    label $w.main.version -text "Version 1.7.2" -font {Arial 10} -fg "#666666" -bg white
     pack $w.main.version -pady 3
 
     # Separator
@@ -119,7 +119,7 @@ proc open_ueber_dialog {} {
     # ==========================================================================
     # Schließen-Button
     # ==========================================================================
-    button $w.main.close -text "Schlie\u00dfen" -bg "#4ACEFA" -width 15 \
+    button $w.main.close -text "Schlie\u00dfen" -bg "#E0E0E0" -width 15 \
         -command "destroy $w"
     pack $w.main.close -pady 15
 

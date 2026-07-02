@@ -249,13 +249,13 @@ proc oeffne_hinzufuegen_dialog {} {
     grid columnconfigure .mitglieder.hinzufuegen.content 1 -weight 1
 
     # Button "Abbrechen" - schließt Dialog ohne Änderungen
-    button .mitglieder.hinzufuegen.buttons.abbrechen -text "Abbrechen" -bg "#FFB6C1" -command {
+    button .mitglieder.hinzufuegen.buttons.abbrechen -text "Abbrechen" -bg "#E0E0E0" -command {
         destroy .mitglieder.hinzufuegen
     }
     pack .mitglieder.hinzufuegen.buttons.abbrechen -side right -padx 5
 
     # Button "Speichern" - speichert neues Mitglied
-    button .mitglieder.hinzufuegen.buttons.speichern -text "Speichern" -state disabled -bg "#90EE90" -command {
+    button .mitglieder.hinzufuegen.buttons.speichern -text "Speichern" -state disabled -bg "#569A40" -fg white -command {
         # Error-Handling für gesamten Speichervorgang
         if {[catch {
             # Werte aus Eingabefeldern holen
@@ -464,13 +464,13 @@ proc oeffne_mitglied_bearbeiten_dialog {} {
     grid columnconfigure .mitglieder.bearbeiten.content 1 -weight 1
 
     # Button "Abbrechen"
-    button .mitglieder.bearbeiten.buttons.abbrechen -text "Abbrechen" -bg "#FFB6C1" -command {
+    button .mitglieder.bearbeiten.buttons.abbrechen -text "Abbrechen" -bg "#E0E0E0" -command {
         destroy .mitglieder.bearbeiten
     }
     pack .mitglieder.bearbeiten.buttons.abbrechen -side right -padx 5
 
     # Button "Speichern"
-    button .mitglieder.bearbeiten.buttons.speichern -text "Speichern" -bg "#90EE90" -command {
+    button .mitglieder.bearbeiten.buttons.speichern -text "Speichern" -bg "#569A40" -fg white -command {
         # Error-Handling für gesamten Speichervorgang
         if {[catch {
             # Werte aus Eingabefeldern holen

@@ -121,12 +121,12 @@ proc ::statistik::open_zeitraum_dialog {} {
     pack $w.main.buttons -fill x -pady 15
 
     # Button "Berechnen" (grün) - mit Padding für angemessene Button-Höhe
-    button $w.main.buttons.berechnen -text "Berechnen" -bg "#90EE90" -width 15 \
+    button $w.main.buttons.berechnen -text "Berechnen" -bg "#569A40" -fg white -width 15 \
         -command {::statistik::berechne_statistik}
     pack $w.main.buttons.berechnen -side left -padx 10 -ipady 8
 
     # Button "Abbrechen" (rosa) - mit Padding für angemessene Button-Höhe
-    button $w.main.buttons.abbrechen -text "Abbrechen" -bg "#FFB6C1" -width 15 \
+    button $w.main.buttons.abbrechen -text "Abbrechen" -bg "#E0E0E0" -width 15 \
         -command {::statistik::schliesse_zeitraum_dialog}
     pack $w.main.buttons.abbrechen -side right -padx 10 -ipady 8
 
@@ -774,7 +774,7 @@ proc ::statistik::zeige_ergebnis_dialog {} {
     pack $w.main.buttons.export -side left -padx 10 -ipady 8
 
     # Button "Schließen" (rosa) - mit Padding für angemessene Button-Höhe
-    button $w.main.buttons.schliessen -text "Schlie\u00dfen" -bg "#FFB6C1" -width 15 \
+    button $w.main.buttons.schliessen -text "Schlie\u00dfen" -bg "#E0E0E0" -width 15 \
         -command {::statistik::schliesse_ergebnis_dialog}
     pack $w.main.buttons.schliessen -side right -padx 10 -ipady 8
 

@@ -947,12 +947,12 @@ proc open_daten_pruefen_dialog {} {
     pack $w.button_frame -in $w.main -fill x -pady "20 0"
 
     # Button "Prüfung starten"
-    button $w.button_frame.start -text "Prüfung starten" -bg "#90EE90" -width 20 \
+    button $w.button_frame.start -text "Prüfung starten" -bg "#569A40" -fg white -width 20 \
         -command ::daten_pruefen::starte_pruefung
     pack $w.button_frame.start -side left -padx 5
 
     # Button "Schließen"
-    button $w.button_frame.close -text "Schließen" -bg "#FFB6C1" -width 15 \
+    button $w.button_frame.close -text "Schließen" -bg "#E0E0E0" -width 15 \
         -command "destroy $w"
     pack $w.button_frame.close -side right -padx 5
 }

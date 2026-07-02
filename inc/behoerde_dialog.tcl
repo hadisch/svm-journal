@@ -242,12 +242,12 @@ proc open_behoerde_dialog {} {
     pack $w.button_frame -side bottom -fill x -padx 20
 
     # Speichern-Button (grün, links)
-    button $w.button_frame.speichern -text "Speichern" -bg "#90EE90" -width 12 \
+    button $w.button_frame.speichern -text "Speichern" -bg "#569A40" -fg white -width 12 \
         -command ::behoerde::speichere_behoerde_daten
     pack $w.button_frame.speichern -side left -padx 5
 
     # Abbrechen-Button (rot, rechts)
-    button $w.button_frame.abbrechen -text "Abbrechen" -bg "#FFB6C1" -width 12 \
+    button $w.button_frame.abbrechen -text "Abbrechen" -bg "#E0E0E0" -width 12 \
         -command "destroy $w"
     pack $w.button_frame.abbrechen -side right -padx 5
 

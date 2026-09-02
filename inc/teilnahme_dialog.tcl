@@ -34,6 +34,10 @@ namespace eval ::teilnahme {
 
     # Ergebnisliste: jede Zeile ist ein Dict mit name, kurz, lang, gesamt
     variable ergebnis_liste [list]
+
+    # Ansicht-Filter für die Ergebnistabelle: alle/gruen/rot/schwarz
+    # (steuert sowohl die Tabellenanzeige als auch den HTML-Export)
+    variable ansicht_filter "alle"
 }
 
 # =============================================================================
@@ -377,6 +381,73 @@ proc ::teilnahme::bestimme_farbtag {zeile} {
 }
 
 # =============================================================================
+# Prozedur: filter_bezeichnung
+# Liefert die deutsche Bezeichnung eines Ansicht-Filterwerts (für Anzeige/Export)
+# =============================================================================
+proc ::teilnahme::filter_bezeichnung {filter} {
+    switch -- $filter {
+        gruen   { return "Grün (Mindestanzahl erfüllt)" }
+        rot     { return "Rot (noch keine Teilnahme)" }
+        schwarz { return "Schwarz (Mindestanzahl noch nicht erreicht)" }
+        default { return "Alle" }
+    }
+}
+
+# =============================================================================
+# Prozedur: gefilterte_liste
+# Liefert die Ergebniszeilen unter Berücksichtigung des aktuellen Ansicht-Filters
+# (wird sowohl für die Tabellenanzeige als auch für den Export verwendet, damit
+# immer nur das Angezeigte exportiert wird)
+# =============================================================================
+proc ::teilnahme::gefilterte_liste {} {
+    variable ergebnis_liste
+    variable ansicht_filter
+
+    # Ohne Filter (Ansicht "Alle") die vollständige Liste liefern
+    if {$ansicht_filter eq "alle"} {
+        return $ergebnis_liste
+    }
+
+    # Nur Zeilen mit passendem Farbtag übernehmen
+    set gefiltert [list]
+    foreach zeile $ergebnis_liste {
+        if {[bestimme_farbtag $zeile] eq $ansicht_filter} {
+            lappend gefiltert $zeile
+        }
+    }
+    return $gefiltert
+}
+
+# =============================================================================
+# Prozedur: aktualisiere_tabelle
+# Füllt die Ergebnistabelle im bestehenden Ergebnisfenster entsprechend dem
+# aktuell gewählten Ansicht-Filter neu (Aufruf bei Wechsel des Radiobuttons)
+# =============================================================================
+proc ::teilnahme::aktualisiere_tabelle {} {
+    variable ergebnis_fenster
+
+    set tree $ergebnis_fenster.main.tabelle.tree
+
+    # Ohne bestehende Tabelle nichts zu tun
+    if {![winfo exists $tree]} {
+        return
+    }
+
+    # Bisherige Zeilen entfernen
+    $tree delete [$tree children {}]
+
+    # Gefilterte Zeilen neu einfügen
+    foreach zeile [gefilterte_liste] {
+        set tag [bestimme_farbtag $zeile]
+        $tree insert {} end -tags $tag -values [list \
+            [dict get $zeile name] \
+            "[dict get $zeile kurz] mal" \
+            "[dict get $zeile lang] mal" \
+            "[dict get $zeile gesamt] mal"]
+    }
+}
+
+# =============================================================================
 # Prozedur: zeige_ergebnis_fenster
 # Zeigt das Ergebnisfenster mit der Teilnahme-Tabelle
 # =============================================================================
@@ -386,6 +457,10 @@ proc ::teilnahme::zeige_ergebnis_fenster {} {
     variable bis_datum
     variable ergebnis_liste
     variable mindest_teilnahmen
+    variable ansicht_filter
+
+    # Ansicht-Filter bei jeder neuen Auswertung zurücksetzen (Default: Alle)
+    set ansicht_filter "alle"
 
     # Fenster-Widget-Name
     set w .teilnahme_ergebnis
@@ -471,37 +546,43 @@ proc ::teilnahme::zeige_ergebnis_fenster {} {
     $w.main.tabelle.tree tag configure rot -foreground "#d7191c"
     $w.main.tabelle.tree tag configure schwarz -foreground "#000000"
 
-    # Zeilen einfügen
-    foreach zeile $ergebnis_liste {
-        set tag [bestimme_farbtag $zeile]
-        $w.main.tabelle.tree insert {} end -tags $tag -values [list \
-            [dict get $zeile name] \
-            "[dict get $zeile kurz] mal" \
-            "[dict get $zeile lang] mal" \
-            "[dict get $zeile gesamt] mal"]
-    }
-
-    # Legende
-    labelframe $w.main.legende -text "Legende" -padx 10 -pady 5
+    # Legende / Ansicht-Filter (Radiobuttons steuern Tabelle und Export)
+    labelframe $w.main.legende -text "Legende / Ansicht" -padx 10 -pady 5
     pack $w.main.legende -fill x -pady {10 5}
 
-    # Grün-Legende
-    label $w.main.legende.gruen \
-        -text "Gr\u00fcn: mind. $mindest_teilnahmen Teilnahmen bei beiden Waffengattungen" \
-        -fg "#1a9641" -anchor w
+    # Radiobutton "Alle" (Default-Ansicht)
+    radiobutton $w.main.legende.alle -text "Alle anzeigen" \
+        -variable ::teilnahme::ansicht_filter -value "alle" \
+        -anchor w -highlightthickness 0 \
+        -command ::teilnahme::aktualisiere_tabelle
+    pack $w.main.legende.alle -fill x
+
+    # Grün-Legende / Filter
+    radiobutton $w.main.legende.gruen \
+        -text "Grün: mind. $mindest_teilnahmen Teilnahmen bei beiden Waffengattungen" \
+        -variable ::teilnahme::ansicht_filter -value "gruen" \
+        -fg "#1a9641" -selectcolor "#1a9641" -anchor w -highlightthickness 0 \
+        -command ::teilnahme::aktualisiere_tabelle
     pack $w.main.legende.gruen -fill x
 
-    # Rot-Legende
-    label $w.main.legende.rot \
+    # Rot-Legende / Filter
+    radiobutton $w.main.legende.rot \
         -text "Rot: noch keine Teilnahme" \
-        -fg "#d7191c" -anchor w
+        -variable ::teilnahme::ansicht_filter -value "rot" \
+        -fg "#d7191c" -selectcolor "#d7191c" -anchor w -highlightthickness 0 \
+        -command ::teilnahme::aktualisiere_tabelle
     pack $w.main.legende.rot -fill x
 
-    # Schwarz-Legende
-    label $w.main.legende.schwarz \
+    # Schwarz-Legende / Filter
+    radiobutton $w.main.legende.schwarz \
         -text "Schwarz: Teilnahmen vorhanden, aber Mindestanzahl noch nicht erreicht" \
-        -fg "#000000" -anchor w
+        -variable ::teilnahme::ansicht_filter -value "schwarz" \
+        -fg "#000000" -selectcolor "#000000" -anchor w -highlightthickness 0 \
+        -command ::teilnahme::aktualisiere_tabelle
     pack $w.main.legende.schwarz -fill x
+
+    # Zeilen entsprechend dem aktuellen Ansicht-Filter einfügen (Default: Alle)
+    aktualisiere_tabelle
 
     # Button-Frame
     frame $w.main.buttons
@@ -548,8 +629,8 @@ proc ::teilnahme::schliesse_ergebnis_fenster {} {
 proc ::teilnahme::erstelle_html_dokument {} {
     variable von_datum
     variable bis_datum
-    variable ergebnis_liste
     variable mindest_teilnahmen
+    variable ansicht_filter
 
     # HTML-Dokument mit eingebettetem CSS
     set html "<!DOCTYPE html>\n"
@@ -587,6 +668,12 @@ proc ::teilnahme::erstelle_html_dokument {} {
     append html "  <h1>SVM Journal - Teilnahme am Training</h1>\n"
     append html "  <div class=\"subtitle\">Zeitraum: $von_datum bis $bis_datum</div>\n"
 
+    # Aktiven Ansicht-Filter anzeigen, damit die Datei den exportierten Ausschnitt dokumentiert
+    if {$ansicht_filter ne "alle"} {
+        set filter_text [::statistik::html_escape [filter_bezeichnung $ansicht_filter]]
+        append html "  <div class=\"subtitle\">Ansicht: $filter_text</div>\n"
+    }
+
     # Tabelle
     append html "  <table>\n"
     append html "    <thead>\n"
@@ -594,8 +681,8 @@ proc ::teilnahme::erstelle_html_dokument {} {
     append html "    </thead>\n"
     append html "    <tbody>\n"
 
-    # Tabellenzeilen
-    foreach zeile $ergebnis_liste {
+    # Tabellenzeilen (nur die aktuell gefilterte Ansicht exportieren)
+    foreach zeile [gefilterte_liste] {
         set tag [bestimme_farbtag $zeile]
         set name [::statistik::html_escape [dict get $zeile name]]
         set kurz [dict get $zeile kurz]
@@ -632,11 +719,18 @@ proc ::teilnahme::exportiere_html {} {
     variable ergebnis_fenster
     variable von_datum
     variable bis_datum
+    variable ansicht_filter
 
     # Standarddateiname mit Zeitraum
     set von_kurz [string map {"." ""} $von_datum]
     set bis_kurz [string map {"." ""} $bis_datum]
     set standard_name "Teilnahme_${von_kurz}_bis_${bis_kurz}.html"
+
+    # Bei aktivem Ansicht-Filter Namenszusatz anhängen, damit gefilterte Exporte
+    # nicht versehentlich einen ungefilterten Export überschreiben
+    if {$ansicht_filter ne "alle"} {
+        set standard_name "Teilnahme_${von_kurz}_bis_${bis_kurz}_[string totitle $ansicht_filter].html"
+    }
 
     # Datei-Dialog öffnen
     set dateiname [tk_getSaveFile \

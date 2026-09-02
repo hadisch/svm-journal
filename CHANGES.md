@@ -1,5 +1,24 @@
 # Änderungshistorie - SVM-Journal
 
+## Version 1.7.3 (2026-09-02)
+
+### Neu
+- **Teilnahme am Training: Ansicht-Filter für die Ergebnistabelle**
+  - Vor jeder Legende-Zeile (Grün/Rot/Schwarz) steht jetzt ein Radiobutton, mit dem sich die Tabelle auf die jeweilige Kategorie filtern lässt
+  - Zusätzlicher Radiobutton "Alle anzeigen" (Standardauswahl beim Öffnen des Ergebnisfensters)
+  - Der HTML-Export berücksichtigt den aktiven Filter und exportiert immer nur die aktuell angezeigten Zeilen
+  - HTML-Export enthält bei aktivem Filter einen Hinweis "Ansicht: ..." im Dokumentkopf
+  - Vorgeschlagener Dateiname beim Export bekommt bei aktivem Filter einen Zusatz (z.B. `_Rot`), damit gefilterte Exporte nicht versehentlich einen vollständigen Export überschreiben
+
+### Technische Details
+- Datei: `inc/teilnahme_dialog.tcl`
+  - Neue Namespace-Variable `ansicht_filter` (alle/gruen/rot/schwarz)
+  - Neue Prozeduren: `filter_bezeichnung`, `gefilterte_liste`, `aktualisiere_tabelle`
+  - Legende in `zeige_ergebnis_fenster` von statischen Labels auf `radiobutton`-Widgets umgestellt, `-command` ruft `aktualisiere_tabelle` auf
+  - `erstelle_html_dokument` und `exportiere_html` nutzen `gefilterte_liste` bzw. berücksichtigen `ansicht_filter`
+
+---
+
 ## Version 1.7.2 (2026-07-02)
 
 ### Geändert

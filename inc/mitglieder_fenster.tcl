@@ -122,9 +122,16 @@ proc pruefe_speichern_button {} {
     }
 }
 
+# Globale Variable für einen optionalen Befehl, der nach erfolgreichem Speichern
+# im Hinzufügen-Dialog ausgeführt wird (z.B. Löschen aus der Warteliste)
+set ::mitglied_hinzufuegen_callback ""
+
 # Prozedur zum Öffnen des Hinzufügen-Dialogs
 # Erstellt ein Fenster mit Eingabefeldern für alle Mitgliedsdaten
-proc oeffne_hinzufuegen_dialog {} {
+# Parameter (optional):
+#   vorbelegung   - Dictionary mit Feldwerten (nachname, vorname, ..., eintrittsdatum)
+#   nach_speichern - Befehl, der nach erfolgreichem Speichern ausgeführt wird
+proc oeffne_hinzufuegen_dialog {{vorbelegung {}} {nach_speichern {}}} {
     # Prüfen, ob Dialog bereits existiert
     if {[winfo exists .mitglieder.hinzufuegen]} {
         # Dialog existiert bereits - in den Vordergrund bringen
@@ -284,6 +291,12 @@ proc oeffne_hinzufuegen_dialog {} {
             # Anzeige aktualisieren
             zeige_alle_mitglieder
 
+            # Optionalen Folgebefehl ausführen (z.B. Anwärter von der Warteliste entfernen)
+            if {$::mitglied_hinzufuegen_callback ne ""} {
+                uplevel #0 $::mitglied_hinzufuegen_callback
+                set ::mitglied_hinzufuegen_callback ""
+            }
+
             # Dialog schließen
             destroy .mitglieder.hinzufuegen
 
@@ -307,6 +320,18 @@ proc oeffne_hinzufuegen_dialog {} {
     # KeyRelease-Events für Validierung binden
     bind .mitglieder.hinzufuegen.content.nachname_entry <KeyRelease> {pruefe_speichern_button}
     bind .mitglieder.hinzufuegen.content.vorname_entry <KeyRelease> {pruefe_speichern_button}
+
+    # Befehl für nach dem Speichern merken (leer, wenn der Dialog normal geöffnet wird)
+    set ::mitglied_hinzufuegen_callback $nach_speichern
+
+    # Eingabefelder mit übergebenen Werten vorbelegen (z.B. bei Übernahme aus der Warteliste)
+    dict for {feld wert} $vorbelegung {
+        if {[winfo exists .mitglieder.hinzufuegen.content.${feld}_entry]} {
+            .mitglieder.hinzufuegen.content.${feld}_entry insert 0 $wert
+        }
+    }
+    # Speichern-Button aktivieren, falls Nachname und Vorname vorbelegt sind
+    pruefe_speichern_button
 
     # Fokus auf erstes Eingabefeld setzen
     focus .mitglieder.hinzufuegen.content.nachname_entry

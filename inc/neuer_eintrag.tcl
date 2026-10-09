@@ -22,6 +22,12 @@ namespace eval ::neuer_eintrag {
     # Mitgliederliste für Autovervollständigung
     variable mitglieder_dict [dict create]
 
+    # Warteliste (Anwärter), gleiche Struktur: Nachname -> Liste von Vornamen
+    variable warteliste_dict [dict create]
+
+    # Namensvorschläge für die Autovervollständigung: Mitglieder und Anwärter zusammen
+    variable vorschlag_dict [dict create]
+
     # Kaliber-Preisliste
     variable kaliber_preise_dict [dict create]
 
@@ -111,6 +117,57 @@ proc ::neuer_eintrag::lade_mitglieder_daten {} {
             }
         }
     }
+}
+
+# =============================================================================
+# Prozedur: lade_warteliste_daten
+# Lädt die Anwärter aus warteliste.json und baut die Vorschlagsliste
+# (Mitglieder + Anwärter) für die Autovervollständigung auf.
+# Muss nach lade_mitglieder_daten aufgerufen werden.
+# =============================================================================
+proc ::neuer_eintrag::lade_warteliste_daten {} {
+    variable mitglieder_dict
+    variable warteliste_dict
+    variable vorschlag_dict
+
+    # Warteliste neu aufbauen: Nachname -> Liste von Vornamen
+    set warteliste_dict [dict create]
+    foreach paar [::warteliste::lade_namen] {
+        lassign $paar nn vn
+        # Unvollständige Einträge überspringen
+        if {$nn ne "" && $vn ne ""} {
+            dict lappend warteliste_dict $nn $vn
+        }
+    }
+
+    # Vorschläge = Mitglieder, ergänzt um Anwärter (ohne doppelte Vornamen)
+    set vorschlag_dict $mitglieder_dict
+    dict for {nn vornamen} $warteliste_dict {
+        foreach vn $vornamen {
+            if {![dict exists $vorschlag_dict $nn] || $vn ni [dict get $vorschlag_dict $nn]} {
+                dict lappend vorschlag_dict $nn $vn
+            }
+        }
+    }
+}
+
+# =============================================================================
+# Prozedur: name_in_dict
+# Prüft, ob Nachname UND Vorname in einem Namens-Dictionary
+# (Nachname -> Liste von Vornamen) vorkommen, case-insensitiv.
+# Rückgabe: 1 bei Treffer, sonst 0
+# =============================================================================
+proc ::neuer_eintrag::name_in_dict {namen_dict nachname vorname} {
+    dict for {nn vornamen} $namen_dict {
+        if {[string equal -nocase $nachname $nn]} {
+            foreach vn $vornamen {
+                if {[string equal -nocase $vorname $vn]} {
+                    return 1
+                }
+            }
+        }
+    }
+    return 0
 }
 
 # =============================================================================
@@ -204,6 +261,11 @@ proc ::neuer_eintrag::lade_stand_preise {} {
         # Gilde
         if {[regexp {"Gilde":\s*"([^"]*)"} $line -> preis]} {
             dict set stand_preise "Gilde" [string trim $preis]
+        }
+        # Anwärter (Warteliste) Luftdruck/Kleinkaliber/Grosskaliber
+        # \u00e4 wird vom Regex-Parser als "ä" interpretiert (unabhängig von der Quelltext-Kodierung)
+        if {[regexp {"Anw\u00e4rter (Luftdruck|Kleinkaliber|Grosskaliber)":\s*"([^"]*)"} $line -> typ preis]} {
+            dict set stand_preise "Anw\u00e4rter $typ" [string trim $preis]
         }
     }
 }
@@ -396,6 +458,7 @@ proc ::neuer_eintrag::berechne_startgeld {} {
     variable vorname
     variable waffentyp
     variable mitglieder_dict
+    variable warteliste_dict
     variable stand_preise
     variable startgeld
     variable gratis
@@ -456,6 +519,16 @@ proc ::neuer_eintrag::berechne_startgeld {} {
                 }
             }
         }
+    } elseif {[name_in_dict $warteliste_dict $nachname $vorname]} {
+        # Anwärter (Warteliste) - eigene Preise nach Waffentyp
+        switch -exact $waffentyp {
+            "LD"    { set preis_schluessel "Anw\u00e4rter Luftdruck" }
+            "GK"    { set preis_schluessel "Anw\u00e4rter Grosskaliber" }
+            default { set preis_schluessel "Anw\u00e4rter Kleinkaliber" }
+        }
+        if {[dict exists $stand_preise $preis_schluessel]} {
+            set startgeld [dict get $stand_preise $preis_schluessel]
+        }
     } else {
         # Gast - Pauschalpreis
         if {[dict exists $stand_preise "Gast"]} {
@@ -472,7 +545,8 @@ proc ::neuer_eintrag::berechne_startgeld {} {
 proc ::neuer_eintrag::nachname_geaendert {args} {
     variable nachname
     variable vorname
-    variable mitglieder_dict
+    # Vorschläge aus Mitgliedern und Anwärtern (Warteliste)
+    variable vorschlag_dict
     variable fenster
     variable autocomplete_listbox
     variable autocomplete_visible
@@ -495,7 +569,7 @@ proc ::neuer_eintrag::nachname_geaendert {args} {
 
     # Suche nach passenden Nachnamen
     set matches [list]
-    dict for {name vornamen} $mitglieder_dict {
+    dict for {name vornamen} $vorschlag_dict {
         # Case-insensitive Matching
         if {[string match -nocase "${nachname}*" $name]} {
             lappend matches $name
@@ -520,7 +594,7 @@ proc ::neuer_eintrag::nachname_geaendert {args} {
             set exact_match [lindex $matches 0]
             if {[string equal -nocase $nachname $exact_match]} {
                 # Nachname genau gefunden - Vorname ausfüllen
-                set vornamen_liste [dict get $mitglieder_dict $exact_match]
+                set vornamen_liste [dict get $vorschlag_dict $exact_match]
                 if {[llength $vornamen_liste] == 1} {
                     # Eindeutiger Vorname - automatisch ausfüllen
                     set vorname [lindex $vornamen_liste 0]
@@ -548,7 +622,8 @@ proc ::neuer_eintrag::nachname_geaendert {args} {
 proc ::neuer_eintrag::autocomplete_ausgewaehlt {args} {
     variable nachname
     variable vorname
-    variable mitglieder_dict
+    # Vorschläge aus Mitgliedern und Anwärtern (Warteliste)
+    variable vorschlag_dict
     variable autocomplete_listbox
     variable autocomplete_visible
 
@@ -562,8 +637,8 @@ proc ::neuer_eintrag::autocomplete_ausgewaehlt {args} {
     set nachname $selected_name
 
     # Vorname ausfüllen, wenn eindeutig
-    if {[dict exists $mitglieder_dict $selected_name]} {
-        set vornamen_liste [dict get $mitglieder_dict $selected_name]
+    if {[dict exists $vorschlag_dict $selected_name]} {
+        set vornamen_liste [dict get $vorschlag_dict $selected_name]
         if {[llength $vornamen_liste] == 1} {
             set vorname [lindex $vornamen_liste 0]
         } else {
@@ -593,7 +668,8 @@ proc ::neuer_eintrag::autocomplete_ausgewaehlt {args} {
 proc ::neuer_eintrag::vorname_geaendert {args} {
     variable nachname
     variable vorname
-    variable mitglieder_dict
+    # Vorschläge aus Mitgliedern und Anwärtern (Warteliste)
+    variable vorschlag_dict
     variable fenster
     variable vorname_autocomplete_listbox
     variable vorname_autocomplete_visible
@@ -616,7 +692,7 @@ proc ::neuer_eintrag::vorname_geaendert {args} {
 
     # Prüfen ob Nachname im Dictionary existiert
     set nachname_gefunden ""
-    dict for {name vornamen} $mitglieder_dict {
+    dict for {name vornamen} $vorschlag_dict {
         if {[string equal -nocase $nachname $name]} {
             set nachname_gefunden $name
             break
@@ -633,7 +709,7 @@ proc ::neuer_eintrag::vorname_geaendert {args} {
     }
 
     # Vornamen für diesen Nachnamen holen
-    set vornamen_liste [dict get $mitglieder_dict $nachname_gefunden]
+    set vornamen_liste [dict get $vorschlag_dict $nachname_gefunden]
 
     # Nach passenden Vornamen suchen
     set matches [list]
@@ -974,7 +1050,9 @@ proc ::neuer_eintrag::pruefe_blacklist {args} {
 # Ablauf:
 #   1. Nur ausführen wenn beide Namensfelder ausgefüllt sind
 #   2. Mitglieder überspringen (kein Gastschütze-Dialog für Vereinsmitglieder)
-#   3. Für Gastschützen:
+#   3. Anwärter (Warteliste): Bemerkung "Auf der Warteliste", kein Gast-Dialog,
+#      kein Eintrag in gaeste.json
+#   4. Für Gastschützen:
 #      - Bemerkungsfeld mit "Gastschütze" vorausfüllen (wenn noch leer)
 #      - Bekannter Gast → Info-Dialog (Daten bereits vorhanden)
 #      - Unbekannter Gast → Warn-Dialog (Daten erheben!) + Eintrag in gaeste.json
@@ -986,6 +1064,7 @@ proc ::neuer_eintrag::pruefe_gastschuetze {args} {
     variable nachname
     variable vorname
     variable mitglieder_dict
+    variable warteliste_dict
     variable fenster
     variable gaeste_dialog_angezeigt
     variable letzter_gepruefter_name
@@ -1025,14 +1104,24 @@ proc ::neuer_eintrag::pruefe_gastschuetze {args} {
         return
     }
 
-    # Ab hier: Gastschütze erkannt
-    # Flag setzen und Namenskombination merken, damit Dialog nicht doppelt erscheint
+    # Flag setzen und Namenskombination merken, damit die Prüfung nicht doppelt läuft
     set gaeste_dialog_angezeigt 1
     set letzter_gepruefter_name $aktueller_name
 
-    # Bemerkungsfeld mit "Gastschütze" vorausfüllen - nur wenn noch leer,
-    # damit manuell eingetragene Bemerkungen nicht überschrieben werden
-    if {[string trim $bemerkungen] eq ""} {
+    # Anwärter auf der Warteliste: kein Gast-Hinweis und kein Eintrag in gaeste.json
+    if {[name_in_dict $warteliste_dict $pruef_nn $pruef_vn]} {
+        # Bemerkung setzen, wenn leer oder noch die automatische Gast-Bemerkung drinsteht
+        # (z.B. weil zuvor ein anderer Name eingegeben war) - eigene Texte bleiben erhalten
+        if {[string trim $bemerkungen] in [list "" "Gastsch\u00fctze"]} {
+            set bemerkungen "Auf der Warteliste"
+        }
+        return
+    }
+
+    # Ab hier: Gastschütze erkannt
+    # Bemerkungsfeld mit "Gastschütze" vorausfüllen - nur wenn leer oder noch die
+    # automatische Anwärter-Bemerkung drinsteht; eigene Texte werden nicht überschrieben
+    if {[string trim $bemerkungen] in [list "" "Auf der Warteliste"]} {
         set bemerkungen "Gastsch\u00fctze"
     }
 
@@ -1712,6 +1801,8 @@ proc open_neuer_eintrag_fenster {} {
 
     # Daten laden
     ::neuer_eintrag::lade_mitglieder_daten
+    # Warteliste nach den Mitgliedern laden (baut die gemeinsame Vorschlagsliste auf)
+    ::neuer_eintrag::lade_warteliste_daten
     ::neuer_eintrag::lade_kaliber_preise
     ::neuer_eintrag::lade_stand_preise
 

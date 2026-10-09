@@ -63,6 +63,9 @@ set blacklist_json [::pfad::get_json_path "daten" "blacklist.json"]
 # Ermöglicht die Prüfung, ob Personalien und Ausweiskopie bereits vorliegen
 set gaeste_json [::pfad::get_json_path "daten" "gaeste.json"]
 
+# Warteliste: Anwärter auf eine Mitgliedschaft in der Reihenfolge ihrer Eintragung
+set warteliste_json [::pfad::get_json_path "daten" "warteliste.json"]
+
 # =============================================================================
 
 # Bestätigungsdialog für Programmbeendigung laden
@@ -129,6 +132,10 @@ source [file join [file dirname [info script]] inc gaeste_verwaltung.tcl]
 # Gäste-Fenster - Manuelle Verwaltung der Gästeliste (gaeste.json)
 # Erlaubt das Hinzufügen, Bearbeiten und Löschen von Gastschützen-Einträgen
 source [file join [file dirname [info script]] inc gaeste_fenster.tcl]
+
+# Warteliste-Fenster - Verwaltung der Anwärter auf eine Mitgliedschaft (warteliste.json)
+# Erlaubt Hinzufügen, Bearbeiten, Löschen und die Übernahme in die Mitgliederliste
+source [file join [file dirname [info script]] inc warteliste_fenster.tcl]
 
 # Journal-Suche - Suchfunktion für das Hauptfenster (Nachname/Vorname)
 source [file join [file dirname [info script]] inc journal_suche.tcl]
@@ -242,9 +249,10 @@ menu .menubar.settings -tearoff 0
 
 # Menü "Werkzeuge" erstellen
 menu .menubar.tools -tearoff 0
-# Personen-Verwaltung: Mitgliederliste und Gästeliste (Unicode-Escapes für Windows-Kompatibilität)
+# Personen-Verwaltung: Mitgliederliste, Gästeliste und Warteliste (Unicode-Escapes für Windows-Kompatibilität)
 .menubar.tools add command -label "Mitgliederliste" -command {open_mitglieder_fenster}
 .menubar.tools add command -label "G\u00e4steliste" -command {open_gaeste_fenster}
+.menubar.tools add command -label "Warteliste" -command {open_warteliste_fenster}
 .menubar.tools add separator
 .menubar.tools add command -label "Waffenregister" -command {open_waffenregister_dialog}
 .menubar.tools add command -label "Waffenverleih" -command {open_waffenverleih_dialog}

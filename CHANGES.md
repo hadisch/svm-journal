@@ -1,5 +1,40 @@
 # Änderungshistorie - SVM-Journal
 
+## Version 1.8.0 (2026-10-09)
+
+### Neu
+- **Warteliste für Anwärter auf eine Mitgliedschaft** (Menü Werkzeuge → Warteliste, direkt unter "Gästeliste")
+  - Fenster analog zur Mitgliederliste (ohne Eintrittsdatum und Funktion) mit zusätzlicher Spalte "Platz"
+  - Reihenfolge der Eintragung bleibt erhalten: zuletzt Eingetragene stehen am Ende, beim Bearbeiten behält ein Anwärter seinen Platz
+  - Statuszeile mit der Anzahl der Personen auf der Warteliste
+  - Kontextmenü (Rechtsklick): Bearbeiten, In die Mitgliederliste übernehmen, Löschen
+  - Übernahme öffnet den Dialog "Neues Mitglied hinzufügen", vorbelegt mit den Daten des Anwärters und dem heutigen Datum als Eintrittsdatum; erst nach "Speichern" wird der Anwärter von der Warteliste entfernt, "Abbrechen" ändert nichts
+  - Hinweis mit Rückfrage, wenn eine Person bereits Mitglied ist oder schon auf der Warteliste steht
+  - Backup (`backups/warteliste.json.bak`) vor dem Löschen eines Eintrags
+- **Neuer Eintrag: Erkennung von Anwärtern**
+  - Nach der Mitgliederprüfung wird in der Warteliste nachgeschaut; nur wer in keiner der beiden Listen steht, gilt als Gast
+  - Für Anwärter wird "Auf der Warteliste" in die Bemerkungen eingetragen; kein Gastschützen-Hinweis und kein Eintrag in die Gästeliste
+  - Startgeld für Anwärter aus den Preisen "Anwärter Luftdruck/Kleinkaliber/Grosskaliber" (`stand-nutzung.json`)
+  - Namen von der Warteliste erscheinen in der Autovervollständigung
+  - Automatische Bemerkungen ("Gastschütze" / "Auf der Warteliste") werden bei Namenswechsel gegenseitig ersetzt, eigene Bemerkungen bleiben erhalten
+  - In Statistik und Auswertungen werden Anwärter wie Gäste behandelt
+
+### Technische Details
+- Datei: `inc/warteliste_fenster.tcl` (neu, Namespace `::warteliste`)
+  - Daten in `daten/warteliste.json` (ein Feld pro Zeile, JSON-Escapes für Anführungszeichen und Backslash)
+  - Feldnamen überschneiden sich nicht mit Journal-Feldern, damit der Journal-Parser die Datei ignoriert
+  - `::warteliste::lade_namen` liefert die Namen für den Dialog "Neuer Eintrag"
+- Datei: `inc/neuer_eintrag.tcl`
+  - Neue Namespace-Variablen `warteliste_dict` und `vorschlag_dict` (Mitglieder + Anwärter für die Autovervollständigung)
+  - Neue Prozeduren `lade_warteliste_daten` und `name_in_dict`
+  - `lade_stand_preise`, `berechne_startgeld` und `pruefe_gastschuetze` um Anwärter erweitert
+- Datei: `inc/mitglieder_fenster.tcl`
+  - `oeffne_hinzufuegen_dialog` akzeptiert optional eine Vorbelegung und einen Befehl, der nach erfolgreichem Speichern ausgeführt wird
+- Datei: `svm-journal.tcl`
+  - Neue Variable `warteliste_json`, `source` von `inc/warteliste_fenster.tcl`, Menüeintrag "Warteliste"
+
+---
+
 ## Version 1.7.3 (2026-09-02)
 
 ### Neu

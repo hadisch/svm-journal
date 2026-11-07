@@ -44,11 +44,11 @@ proc ::gaeste::lade_gaeste {} {
     foreach zeile $zeilen {
         # Nachname extrahieren
         if {[regexp {"nachname":\s*"([^"]*)"} $zeile -> nn]} {
-            set aktueller_nachname [string trim $nn]
+            set aktueller_nachname [::namen::normalisiere $nn]
         }
         # Vorname extrahieren - zusammen mit gespeichertem Nachnamen als Paar ablegen
         if {[regexp {"vorname":\s*"([^"]*)"} $zeile -> vn]} {
-            set vn [string trim $vn]
+            set vn [::namen::normalisiere $vn]
             if {$aktueller_nachname ne ""} {
                 lappend gaeste_liste [dict create nachname $aktueller_nachname vorname $vn]
                 # Nachnamen zurücksetzen für nächsten Eintrag
@@ -96,6 +96,10 @@ proc ::gaeste::ist_gast {vorname nachname} {
 # =============================================================================
 proc ::gaeste::trage_gast_ein {vorname nachname} {
     global gaeste_json
+
+    # Namen bereinigt speichern (zentrale Namensbereinigung)
+    set vorname [::namen::normalisiere $vorname]
+    set nachname [::namen::normalisiere $nachname]
 
     # Bestehende Gäste laden (damit vorhandene Einträge nicht überschrieben werden)
     set gaeste [lade_gaeste]

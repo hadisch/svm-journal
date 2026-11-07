@@ -163,8 +163,8 @@ proc ::gaeste_fenster::speichere_neuen_gast {} {
     variable gaeste_liste
 
     # Eingaben trimmen
-    set nachname [string trim $::gaeste_fenster::neu_nachname]
-    set vorname  [string trim $::gaeste_fenster::neu_vorname]
+    set nachname [::namen::normalisiere $::gaeste_fenster::neu_nachname]
+    set vorname  [::namen::normalisiere $::gaeste_fenster::neu_vorname]
 
     # Duplikatprüfung (case-insensitiv)
     foreach eintrag $gaeste_liste {
@@ -327,8 +327,8 @@ proc ::gaeste_fenster::speichere_geaenderten_gast {} {
     variable ausgewaehlter_index
 
     # Neue Werte aus den Eingabefeldern lesen
-    set neuer_nachname [string trim $::gaeste_fenster::edit_nachname]
-    set neuer_vorname  [string trim $::gaeste_fenster::edit_vorname]
+    set neuer_nachname [::namen::normalisiere $::gaeste_fenster::edit_nachname]
+    set neuer_vorname  [::namen::normalisiere $::gaeste_fenster::edit_vorname]
 
     # Duplikatprüfung: Anderen Eintrag mit gleichem Namen verhindern
     # (eigener Eintrag beim gleichen Index ist erlaubt)

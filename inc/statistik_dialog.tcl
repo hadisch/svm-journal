@@ -246,11 +246,8 @@ proc ::statistik::datum_zu_vergleichswert {datum_str} {
 # Rückgabe: Schlüssel im Format "nachname|vorname" (Kleinbuchstaben)
 # =============================================================================
 proc ::statistik::name_schluessel {nachname vorname} {
-    # Leerzeichen am Rand entfernen und innere Mehrfach-Leerzeichen zusammenfassen
-    set nn [regsub -all {\s+} [string trim $nachname] " "]
-    set vn [regsub -all {\s+} [string trim $vorname] " "]
-    # Kleinschreibung für case-insensitiven Vergleich
-    return [string tolower "$nn|$vn"]
+    # Zentrale Implementierung in inc/namen.tcl
+    return [::namen::schluessel $nachname $vorname]
 }
 
 # =============================================================================
@@ -260,10 +257,8 @@ proc ::statistik::name_schluessel {nachname vorname} {
 #   nachname, vorname - Namensbestandteile wie gespeichert
 # =============================================================================
 proc ::statistik::anzeige_name {nachname vorname} {
-    # Gleiche Leerzeichen-Bereinigung wie beim Schlüssel, aber Schreibweise erhalten
-    set nn [regsub -all {\s+} [string trim $nachname] " "]
-    set vn [regsub -all {\s+} [string trim $vorname] " "]
-    return "$nn, $vn"
+    # Zentrale Implementierung in inc/namen.tcl
+    return [::namen::anzeige $nachname $vorname]
 }
 
 # =============================================================================

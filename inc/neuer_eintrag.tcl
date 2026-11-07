@@ -98,11 +98,11 @@ proc ::neuer_eintrag::lade_mitglieder_daten {} {
     foreach line $lines {
         # Nachname extrahieren
         if {[regexp {"nachname":\s*"([^"]*)"} $line -> nachname]} {
-            set aktueller_nachname [string trim $nachname]
+            set aktueller_nachname [::namen::normalisiere $nachname]
         }
         # Vorname extrahieren
         if {[regexp {"vorname":\s*"([^"]*)"} $line -> vorname]} {
-            set aktueller_vorname [string trim $vorname]
+            set aktueller_vorname [::namen::normalisiere $vorname]
 
             # Wenn beide vorhanden, zum Dictionary hinzufügen
             if {$aktueller_nachname ne "" && $aktueller_vorname ne ""} {
@@ -1008,15 +1008,15 @@ proc ::neuer_eintrag::pruefe_blacklist {args} {
                 set aktueller_nachname ""
                 foreach zeile $zeilen {
                     if {[regexp {"nachname":\s*"([^"]*)"} $zeile -> bl_nn]} {
-                        set aktueller_nachname [string trim $bl_nn]
+                        set aktueller_nachname [::namen::normalisiere $bl_nn]
                     }
                     if {[regexp {"vorname":\s*"([^"]*)"} $zeile -> bl_vn]} {
-                        set bl_vn [string trim $bl_vn]
+                        set bl_vn [::namen::normalisiere $bl_vn]
                         # Case-insensitiver Vergleich beider Felder
                         # Eingabe ebenfalls getrimmt vergleichen - sonst umgeht ein
                         # angehängtes Leerzeichen ("Müller ") die Sperre
-                        if {[string equal -nocase [string trim $nachname] $aktueller_nachname] &&
-                            [string equal -nocase [string trim $vorname] $bl_vn]} {
+                        if {[string equal -nocase [::namen::normalisiere $nachname] $aktueller_nachname] &&
+                            [string equal -nocase [::namen::normalisiere $vorname] $bl_vn]} {
                             set blacklist_gesperrt 1
                             break
                         }
@@ -1042,6 +1042,86 @@ proc ::neuer_eintrag::pruefe_blacklist {args} {
 
     # Speichern-Button-Zustand neu bewerten
     pruefe_speichern_button
+}
+
+# =============================================================================
+# Prozedur: pruefe_namensvorschlag
+# Prüft einen unbekannten Namen auf vertauschte Vor-/Nachnamen oder Tippfehler
+# gegenüber Mitgliedern, Anwärtern und bekannten Gästen. Bei einem Treffer wird
+# nachgefragt; auf Wunsch werden die Eingabefelder korrigiert.
+# Parameter:
+#   pruef_nn, pruef_vn - bereinigter Nachname und Vorname der Eingabe
+# Rückgabe: 1 wenn der Name korrigiert wurde, sonst 0
+# =============================================================================
+proc ::neuer_eintrag::pruefe_namensvorschlag {pruef_nn pruef_vn} {
+    variable nachname
+    variable vorname
+    variable mitglieder_dict
+    variable warteliste_dict
+    variable fenster
+    variable autocomplete_listbox
+    variable autocomplete_visible
+    variable vorname_autocomplete_listbox
+    variable vorname_autocomplete_visible
+
+    # Alle bekannten Personen mit Kategorie sammeln: {nachname vorname kategorie}
+    # Reihenfolge = Vorrang bei gleich guten Treffern (Mitglieder zuerst)
+    set bekannte [list]
+    dict for {nn vornamen} $mitglieder_dict {
+        foreach vn $vornamen {
+            lappend bekannte [list $nn $vn "Mitglied"]
+        }
+    }
+    dict for {nn vornamen} $warteliste_dict {
+        foreach vn $vornamen {
+            lappend bekannte [list $nn $vn "Anw\u00e4rter"]
+        }
+    }
+    foreach gast [::gaeste::lade_gaeste] {
+        lappend bekannte [list [dict get $gast nachname] [dict get $gast vorname] "Gast"]
+    }
+
+    # Passenden bekannten Namen suchen (leer = Eingabe bekannt oder kein Vorschlag)
+    set vorschlag [::namen::finde_vorschlag $pruef_nn $pruef_vn $bekannte]
+    if {$vorschlag eq ""} {
+        return 0
+    }
+
+    # Vorschlagsdaten auslesen
+    set v_nn [dict get $vorschlag nachname]
+    set v_vn [dict get $vorschlag vorname]
+    set v_kat [dict get $vorschlag kategorie]
+
+    # Meldungstext je nach Art des vermuteten Fehlers
+    if {[dict get $vorschlag art] eq "vertauscht"} {
+        set grund "Vor- und Nachname scheinen vertauscht zu sein."
+    } else {
+        set grund "Der Name ist nicht bekannt, ein sehr \u00e4hnlicher Name aber schon."
+    }
+
+    # Nachfragen: Ja übernimmt den bekannten Namen, Nein behält die Eingabe
+    set antwort [tk_messageBox -parent $fenster -icon question -type yesno \
+        -title "Name pr\u00fcfen" \
+        -message "Eingegeben: Nachname \u201e$pruef_nn\u201c, Vorname \u201e$pruef_vn\u201c\n\n$grund\n\nMeinten Sie:\n$v_nn, $v_vn ($v_kat)?\n\n\[Ja\] \u00fcbernimmt diesen Namen, \[Nein\] beh\u00e4lt die Eingabe."]
+    if {$antwort ne "yes"} {
+        return 0
+    }
+
+    # Eingabefelder korrigieren (die Traces aktualisieren Startgeld, Blacklist usw.)
+    set nachname $v_nn
+    set vorname $v_vn
+
+    # Autovervollständigungen ausblenden, die durch das Setzen aufgegangen sein können
+    if {$autocomplete_visible} {
+        pack forget $autocomplete_listbox
+        set autocomplete_visible 0
+    }
+    if {$vorname_autocomplete_visible} {
+        pack forget $vorname_autocomplete_listbox
+        set vorname_autocomplete_visible 0
+    }
+
+    return 1
 }
 
 # =============================================================================
@@ -1072,9 +1152,9 @@ proc ::neuer_eintrag::pruefe_gastschuetze {args} {
     variable letzter_gepruefter_name
     variable bemerkungen
 
-    # Nur prüfen wenn beide Namensfelder ausgefüllt sind (getrimmt)
-    set pruef_nn [string trim $nachname]
-    set pruef_vn [string trim $vorname]
+    # Nur prüfen wenn beide Namensfelder ausgefüllt sind (bereinigt)
+    set pruef_nn [::namen::normalisiere $nachname]
+    set pruef_vn [::namen::normalisiere $vorname]
     if {$pruef_nn eq "" || $pruef_vn eq ""} {
         return
     }
@@ -1109,6 +1189,16 @@ proc ::neuer_eintrag::pruefe_gastschuetze {args} {
     # Flag setzen und Namenskombination merken, damit die Prüfung nicht doppelt läuft
     set gaeste_dialog_angezeigt 1
     set letzter_gepruefter_name $aktueller_name
+
+    # Unbekannter Name: vor der Gastprüfung auf vertauschte Namen oder Tippfehler
+    # prüfen. Sonst würde z.B. ein Mitglied mit vertauschtem Vor-/Nachnamen als
+    # neuer Gast behandelt und dauerhaft in die Gästeliste eingetragen.
+    if {[pruefe_namensvorschlag $pruef_nn $pruef_vn]} {
+        # Name wurde korrigiert - Prüfung mit dem korrigierten Namen neu starten
+        # (die Namens-Traces haben das Flag bereits zurückgesetzt)
+        pruefe_gastschuetze
+        return
+    }
 
     # Anwärter auf der Warteliste: kein Gast-Hinweis und kein Eintrag in gaeste.json
     if {[name_in_dict $warteliste_dict $pruef_nn $pruef_vn]} {
@@ -1277,8 +1367,8 @@ proc ::neuer_eintrag::speichern_und_anzeigen {} {
     set eintrag [dict create \
         "datum" $datum \
         "uhrzeit" $uhrzeit \
-        "nachname" [regsub -all {\s+} [string trim $nachname] " "] \
-        "vorname" [regsub -all {\s+} [string trim $vorname] " "] \
+        "nachname" [::namen::normalisiere $nachname] \
+        "vorname" [::namen::normalisiere $vorname] \
         "kurzwaffe" [expr {$kurzwaffe ? "Ja" : "Nein"}] \
         "langwaffe" [expr {$langwaffe ? "Ja" : "Nein"}] \
         "waffentyp" $waffentyp \

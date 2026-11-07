@@ -287,8 +287,8 @@ proc oeffne_bearbeiten_dialog {} {
         set speichern_rc [catch {
             # Werte aus Eingabefeldern holen
             set datum [string trim [.eintrag_bearbeiten.main.datum_frame.entry get]]
-            set nachname [string trim [.eintrag_bearbeiten.main.name_frame.entry get]]
-            set vorname [string trim [.eintrag_bearbeiten.main.vorname_frame.entry get]]
+            set nachname [::namen::normalisiere [.eintrag_bearbeiten.main.name_frame.entry get]]
+            set vorname [::namen::normalisiere [.eintrag_bearbeiten.main.vorname_frame.entry get]]
             set kurzwaffe [expr {$::eintrag_bearbeiten_kurzwaffe ? "Ja" : "Nein"}]
             set langwaffe [expr {$::eintrag_bearbeiten_langwaffe ? "Ja" : "Nein"}]
             set waffentyp $::eintrag_bearbeiten_waffentyp

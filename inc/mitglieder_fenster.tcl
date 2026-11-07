@@ -111,8 +111,8 @@ proc filtere_mitglieder {suchbegriff} {
 # Wird bei jeder Eingabe in Nachname oder Vorname aufgerufen
 proc pruefe_speichern_button {} {
     # Werte aus Eingabefeldern holen
-    set nachname [string trim [.mitglieder.hinzufuegen.content.nachname_entry get]]
-    set vorname [string trim [.mitglieder.hinzufuegen.content.vorname_entry get]]
+    set nachname [::namen::normalisiere [.mitglieder.hinzufuegen.content.nachname_entry get]]
+    set vorname [::namen::normalisiere [.mitglieder.hinzufuegen.content.vorname_entry get]]
 
     # Button aktivieren wenn beide Felder ausgefüllt sind
     if {$nachname ne "" && $vorname ne ""} {
@@ -266,8 +266,8 @@ proc oeffne_hinzufuegen_dialog {{vorbelegung {}} {nach_speichern {}}} {
         # Error-Handling für gesamten Speichervorgang
         if {[catch {
             # Werte aus Eingabefeldern holen
-            set nachname [string trim [.mitglieder.hinzufuegen.content.nachname_entry get]]
-            set vorname [string trim [.mitglieder.hinzufuegen.content.vorname_entry get]]
+            set nachname [::namen::normalisiere [.mitglieder.hinzufuegen.content.nachname_entry get]]
+            set vorname [::namen::normalisiere [.mitglieder.hinzufuegen.content.vorname_entry get]]
             set geburtsdatum [string trim [.mitglieder.hinzufuegen.content.geburtsdatum_entry get]]
             set geburtsort [string trim [.mitglieder.hinzufuegen.content.geburtsort_entry get]]
             set strasse [string trim [.mitglieder.hinzufuegen.content.strasse_entry get]]
@@ -499,8 +499,8 @@ proc oeffne_mitglied_bearbeiten_dialog {} {
         # Error-Handling für gesamten Speichervorgang
         if {[catch {
             # Werte aus Eingabefeldern holen
-            set nachname [string trim [.mitglieder.bearbeiten.content.nachname_entry get]]
-            set vorname [string trim [.mitglieder.bearbeiten.content.vorname_entry get]]
+            set nachname [::namen::normalisiere [.mitglieder.bearbeiten.content.nachname_entry get]]
+            set vorname [::namen::normalisiere [.mitglieder.bearbeiten.content.vorname_entry get]]
             set geburtsdatum [string trim [.mitglieder.bearbeiten.content.geburtsdatum_entry get]]
             set geburtsort [string trim [.mitglieder.bearbeiten.content.geburtsort_entry get]]
             set strasse [string trim [.mitglieder.bearbeiten.content.strasse_entry get]]
@@ -965,8 +965,8 @@ proc open_mitglieder_fenster {} {
 
             # Namen ohne Rand-Leerzeichen übernehmen (Altdaten vor dem Trimmen beim Speichern);
             # beim nächsten Speichern der Mitgliederliste werden sie so bereinigt geschrieben
-            set nachname [string trim $nachname]
-            set vorname [string trim $vorname]
+            set nachname [::namen::normalisiere $nachname]
+            set vorname [::namen::normalisiere $vorname]
 
             # Mitglied als Liste zur globalen Liste hinzufügen (12 Felder inkl. geburtsort)
             lappend ::mitglieder_liste [list $nachname $vorname $strasse $plz $ort $festnetz $mobilfunk $email $geburtsdatum $geburtsort $eintrittsdatum $funktion]

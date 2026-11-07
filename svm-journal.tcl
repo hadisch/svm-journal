@@ -80,6 +80,10 @@ source [file join [file dirname [info script]] inc json_writer.tcl]
 # JSON-Reader-Funktionen - Lesen von JSON-Dateien
 source [file join [file dirname [info script]] inc json_reader.tcl]
 
+# Namen - Zentrale Bereinigung von Personennamen und Erkennung von
+# vertauschten Vor-/Nachnamen bzw. Tippfehlern (wird von vielen Modulen genutzt)
+source [file join [file dirname [info script]] inc namen.tcl]
+
 # Mitglieder-Fenster - Fenster zur Verwaltung von Vereinsmitgliedern
 source [file join [file dirname [info script]] inc mitglieder_fenster.tcl]
 

@@ -54,11 +54,11 @@ proc ::blacklist::lade_blacklist {} {
     foreach zeile $zeilen {
         # "nachname"-Feld gefunden
         if {[regexp {"nachname":\s*"([^"]*)"} $zeile -> nachname]} {
-            set aktueller_nachname [string trim $nachname]
+            set aktueller_nachname [::namen::normalisiere $nachname]
         }
         # "vorname"-Feld gefunden: Paar vervollständigen und zur Liste hinzufügen
         if {[regexp {"vorname":\s*"([^"]*)"} $zeile -> vorname]} {
-            set vorname [string trim $vorname]
+            set vorname [::namen::normalisiere $vorname]
             if {$aktueller_nachname ne "" && $vorname ne ""} {
                 lappend blacklist_liste [list $aktueller_nachname $vorname]
             }
@@ -293,8 +293,8 @@ proc ::blacklist::speichere_neuen_eintrag {} {
     variable blacklist_liste
 
     # Eingaben trimmen
-    set nachname [string trim $::blacklist::neu_nachname]
-    set vorname  [string trim $::blacklist::neu_vorname]
+    set nachname [::namen::normalisiere $::blacklist::neu_nachname]
+    set vorname  [::namen::normalisiere $::blacklist::neu_vorname]
 
     # Doppelten Eintrag prüfen (case-insensitive)
     foreach eintrag $blacklist_liste {

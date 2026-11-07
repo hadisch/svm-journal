@@ -1,5 +1,24 @@
 # Änderungshistorie - SVM-Journal
 
+## Version 1.9.0 (2026-11-07)
+
+### Neu
+- **Neuer Eintrag: Rückfrage bei vertauschten oder ähnlichen Namen**
+  - Ist ein eingegebener Name weder Mitglied, Anwärter noch bekannter Gast, wird geprüft, ob Vor- und Nachname vertauscht sind ("Patryk Omilian" → "Omilian, Patryk") oder ob ein sehr ähnlicher bekannter Name existiert (Tippfehler, z.B. "Scherschenwitz" → "Scherschenewitz")
+  - Rückfrage "Meinten Sie …?": [Ja] übernimmt den bekannten Namen in die Eingabefelder, [Nein] behält die Eingabe
+  - Die Prüfung erfolgt vor der Gastprüfung. Dadurch wird ein Mitglied mit vertauschtem oder vertipptem Namen nicht mehr fälschlich als neuer Gast behandelt und in die Gästeliste eingetragen
+  - Tippfehler werden nur vorgeschlagen, wenn genau eine Person in Frage kommt (höchstens 1 abweichendes Zeichen bei kurzen, 2 bei längeren Namen)
+- **Einheitliche Namensbereinigung**
+  - Nachname und Vorname werden überall gleich bereinigt gespeichert (Leerzeichen am Rand entfernt, Mehrfach-Leerzeichen zusammengefasst): Neuer Eintrag, Eintrag bearbeiten, Mitgliederliste, Gästeliste, Warteliste, Blacklist und Daten überprüfen
+  - Vergleiche (Teilnahme, Statistik, Export, Blacklist) nutzen denselben Vergleichsschlüssel
+
+### Technische Details
+- Datei: `inc/namen.tcl` (neu, Namespace `::namen`)
+  - `normalisiere`, `schluessel`, `anzeige`, `levenshtein`, `finde_vorschlag`
+- Datei: `inc/neuer_eintrag.tcl`
+  - Neue Prozedur `pruefe_namensvorschlag`, aufgerufen in `pruefe_gastschuetze` vor der Anwärter-/Gastprüfung
+- `::statistik::name_schluessel` und `::statistik::anzeige_name` delegieren an `::namen`
+
 ## Version 1.8.2 (2026-11-07)
 
 ### Fehlerbehebungen

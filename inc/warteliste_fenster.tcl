@@ -403,6 +403,9 @@ proc ::warteliste::speichere_dialog {} {
     foreach feld $felder {
         dict set neu $feld [string trim $eingabe($feld)]
     }
+    # Namen zusätzlich zentral bereinigen (Mehrfach-Leerzeichen zusammenfassen)
+    dict set neu nachname [::namen::normalisiere [dict get $neu nachname]]
+    dict set neu vorname  [::namen::normalisiere [dict get $neu vorname]]
     set nachname [dict get $neu nachname]
     set vorname  [dict get $neu vorname]
 

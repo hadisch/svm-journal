@@ -356,7 +356,16 @@ proc ::statistik::lade_mitglieder {} {
     set mitglieder [list]
 
     # Nach "mitglieder" Array suchen
-    if {[regexp {"mitglieder"\s*:\s*\[(.*?)\]} $json_inhalt -> mitglieder_json]} {
+    # Ohne regulären Ausdruck über die ganze Datei: Der frühere Ausdruck
+    # {"mitglieder"\s*:\s*\[(.*?)\]} war in Tcl sehr langsam (mehrere Sekunden
+    # bei ca. 100 Mitgliedern). Stattdessen Position des Arrays per string first
+    # bestimmen; die Mitglieder-Objekte werden danach einzeln herausgelöst.
+    set array_start [string first "\"mitglieder\"" $json_inhalt]
+    set array_start [expr {$array_start < 0 ? -1 : [string first "\[" $json_inhalt $array_start]}]
+    set array_ende [expr {$array_start < 0 ? -1 : [string first "\]" $json_inhalt $array_start]}]
+    if {$array_start >= 0 && $array_ende > $array_start} {
+        # Inhalt zwischen [ und ] (entspricht dem früheren Treffer)
+        set mitglieder_json [string range $json_inhalt [expr {$array_start + 1}] [expr {$array_ende - 1}]]
         # Einzelne Mitglieder-Objekte extrahieren
         set objekt_pattern {\{[^{}]+\}}
         set matches [regexp -all -inline $objekt_pattern $mitglieder_json]

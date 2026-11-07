@@ -11,7 +11,11 @@
 #                         gegenüber bekannten Personen
 # =============================================================================
 
-namespace eval ::namen {}
+namespace eval ::namen {
+    # Zwischenspeicher "nachname\0vorname" -> Vergleichsschlüssel (siehe finde_vorschlag)
+    variable schluessel_cache
+    array set schluessel_cache {}
+}
 
 # =============================================================================
 # Prozedur: normalisiere
@@ -92,6 +96,60 @@ proc ::namen::levenshtein {a b} {
 }
 
 # =============================================================================
+# Prozedur: levenshtein_max
+# Wie levenshtein, rechnet aber nur so weit wie nötig: Sobald feststeht, dass
+# die Distanz größer als max ist, wird abgebrochen. Dadurch ist der Vergleich
+# vieler Namen deutlich schneller.
+# Parameter:
+#   a, b - zu vergleichende Zeichenketten
+#   max  - größte interessierende Distanz
+# Rückgabe: Distanz, oder max+1 wenn sie größer als max ist
+# =============================================================================
+proc ::namen::levenshtein_max {a b max} {
+    set la [string length $a]
+    set lb [string length $b]
+    set zu_gross [expr {$max + 1}]
+
+    # Längenunterschied ist eine untere Schranke der Distanz
+    if {abs($la - $lb) > $max} {
+        return $zu_gross
+    }
+    if {$la == 0 || $lb == 0} {
+        return [expr {max($la, $lb)}]
+    }
+
+    # Erste Zeile der Distanzmatrix
+    set vorher [list]
+    for {set j 0} {$j <= $lb} {incr j} {
+        lappend vorher $j
+    }
+
+    for {set i 1} {$i <= $la} {incr i} {
+        set aktuell [list $i]
+        set zeichen_a [string index $a [expr {$i - 1}]]
+        # Kleinster Wert dieser Zeile für den vorzeitigen Abbruch
+        set zeilen_min $i
+        for {set j 1} {$j <= $lb} {incr j} {
+            set kosten [expr {$zeichen_a eq [string index $b [expr {$j - 1}]] ? 0 : 1}]
+            set wert [expr {min([lindex $vorher $j] + 1, [lindex $aktuell end] + 1, [lindex $vorher [expr {$j - 1}]] + $kosten)}]
+            lappend aktuell $wert
+            if {$wert < $zeilen_min} {
+                set zeilen_min $wert
+            }
+        }
+        # Jeder Wert der Zeile übersteigt max → Gesamtdistanz kann nicht mehr kleiner werden
+        if {$zeilen_min > $max} {
+            return $zu_gross
+        }
+        set vorher $aktuell
+    }
+
+    # Ergebnis, auf max+1 begrenzt
+    set distanz [lindex $vorher end]
+    return [expr {$distanz > $max ? $zu_gross : $distanz}]
+}
+
+# =============================================================================
 # Prozedur: finde_vorschlag
 # Sucht zu einer eingegebenen, unbekannten Person einen passenden bekannten
 # Namen. Erkannt werden:
@@ -125,9 +183,17 @@ proc ::namen::finde_vorschlag {nachname vorname bekannte} {
     set beste_distanz [expr {$max_distanz + 1}]
     set eindeutig 1
 
+    # Zwischenspeicher für Vergleichsschlüssel: Die Liste der bekannten Personen
+    # ist bei vielen Aufrufen dieselbe, die Bereinigung muss nur einmal laufen
+    variable schluessel_cache
+
     foreach person $bekannte {
         lassign $person b_nachname b_vorname b_kategorie
-        set b_schluessel [schluessel $b_nachname $b_vorname]
+        set cache_key "$b_nachname\x00$b_vorname"
+        if {![info exists schluessel_cache($cache_key)]} {
+            set schluessel_cache($cache_key) [schluessel $b_nachname $b_vorname]
+        }
+        set b_schluessel $schluessel_cache($cache_key)
 
         # Eingabe entspricht einer bekannten Person → kein Vorschlag nötig
         if {$b_schluessel eq $eingabe} {
@@ -146,8 +212,8 @@ proc ::namen::finde_vorschlag {nachname vorname bekannte} {
             continue
         }
 
-        # Tippfehler-Abstand berechnen
-        set distanz [levenshtein $eingabe $b_schluessel]
+        # Tippfehler-Abstand berechnen (bricht ab, sobald max_distanz überschritten ist)
+        set distanz [levenshtein_max $eingabe $b_schluessel $max_distanz]
         if {$distanz < $beste_distanz} {
             # Neuer bester Kandidat
             set beste_distanz $distanz

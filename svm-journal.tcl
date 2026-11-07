@@ -126,6 +126,10 @@ source [file join [file dirname [info script]] inc waffenverleih_html_export.tcl
 # Daten-Prüfungs-Dialog - Werkzeug zur Überprüfung und Reparatur der JSON-Datenbank
 source [file join [file dirname [info script]] inc daten_pruefen_dialog.tcl]
 
+# Namensbericht - Prüfbericht über falsch erfasste, doppelte oder ähnliche Namen
+# (wird aus dem Fenster "Daten überprüfen" aufgerufen)
+source [file join [file dirname [info script]] inc namensbericht.tcl]
+
 # Blacklist-Dialog - Verwaltung der vom Schießbetrieb gesperrten Personen
 source [file join [file dirname [info script]] inc blacklist_dialog.tcl]
 

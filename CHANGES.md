@@ -1,5 +1,28 @@
 # Änderungshistorie - SVM-Journal
 
+## Version 1.10.0 (2026-11-07)
+
+### Neu
+- **Namensbericht** (Werkzeuge → Daten überprüfen → Button "Namensbericht")
+  - Listet verdächtige Namen auf, ändert aber keine Daten - ob ein Fehler vorliegt, entscheidet der Nutzer
+  - Abschnitt 1: Journal-Einträge mit vermutlich falsch erfasstem Namen (vertauschte Vor-/Nachnamen oder Tippfehler gegenüber Mitgliedern, Anwärtern und Gästen), mit Anzahl und Datum der Einträge und dem vermuteten richtigen Namen
+  - Abschnitt 2: Doppelt erfasste Personen in Mitglieder-, Gäste- und Warteliste
+  - Abschnitt 3: Sehr ähnliche oder vertauschte Namen innerhalb der Stammdaten (z.B. "Seifert" als Mitglied und "Seiffert" als Gast); wer in mehreren Listen steht, wird zusammengefasst angezeigt ("Mitglied, Gast")
+  - Abschnitt 4: Namen mit überflüssigen Leerzeichen in Mitglieder- und Warteliste
+  - Zu jedem Abschnitt ein Hinweis, wie die Korrektur vorgenommen wird
+
+### Verbesserungen
+- **Statistik und Teilnahme am Training öffnen deutlich schneller**: Das Einlesen der Mitgliederliste dauerte durch einen ineffizienten regulären Ausdruck mehrere Sekunden (bei ca. 100 Mitgliedern rund 4 s), jetzt wenige Millisekunden
+- Namensvergleich (Rückfrage im Dialog "Neuer Eintrag") etwa viermal schneller
+
+### Technische Details
+- Datei: `inc/namensbericht.tcl` (neu, Namespace `::namensbericht`)
+  - `erstelle_bericht` ermittelt die Befunde ohne Oberfläche, `starte` gibt sie im Textfeld von "Daten überprüfen" aus
+- Datei: `inc/namen.tcl`
+  - Neue Prozedur `levenshtein_max` (bricht ab, sobald die erlaubte Distanz überschritten ist)
+  - Zwischenspeicher für Vergleichsschlüssel in `finde_vorschlag`
+- Datei: `inc/statistik_dialog.tcl`: `lade_mitglieder` ermittelt das Mitglieder-Array per `string first` statt per regulärem Ausdruck
+
 ## Version 1.9.0 (2026-11-07)
 
 ### Neu

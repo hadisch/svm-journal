@@ -928,7 +928,7 @@ proc open_daten_pruefen_dialog {} {
     # =========================================================================
     # Beschreibung
     # =========================================================================
-    label $w.main.beschreibung -text "Dieses Werkzeug pr\u00fcft alle JSON-Datenbank-Dateien auf Fehler und korrigiert diese automatisch.\n\nGepr\u00fcfte Verzeichnisse:\n\u2022 daten/ - Schie\u00dfjournal-Eintr\u00e4ge (Jahres-Dateien)\n\u2022 preferences/ - Kaliber-Preise und Stand-Nutzungsgeb\u00fchren\n\nValidierungen:\n\u2022 Preis-Felder auf numerische Werte und korrektes Format\n\u2022 Datumsformate und Plausibilit\u00e4t\n\u2022 Vollst\u00e4ndigkeit der Pflichtfelder\n\nVor jeder \u00c4nderung wird automatisch ein Backup erstellt." \
+    label $w.main.beschreibung -text "Dieses Werkzeug pr\u00fcft alle JSON-Datenbank-Dateien auf Fehler und korrigiert diese automatisch.\n\nGepr\u00fcfte Verzeichnisse:\n\u2022 daten/ - Schie\u00dfjournal-Eintr\u00e4ge (Jahres-Dateien)\n\u2022 preferences/ - Kaliber-Preise und Stand-Nutzungsgeb\u00fchren\n\nValidierungen:\n\u2022 Preis-Felder auf numerische Werte und korrektes Format\n\u2022 Datumsformate und Plausibilit\u00e4t\n\u2022 Vollst\u00e4ndigkeit der Pflichtfelder\n\nVor jeder \u00c4nderung wird automatisch ein Backup erstellt.\n\n\u201eNamensbericht\u201c listet vermutlich falsch erfasste, doppelte oder sehr \u00e4hnliche Namen auf (\u00e4ndert keine Daten)." \
         -justify left -anchor w
     pack $w.main.beschreibung -fill x -pady "0 20"
 
@@ -963,6 +963,11 @@ proc open_daten_pruefen_dialog {} {
     button $w.button_frame.start -text "Prüfung starten" -bg "#569A40" -fg white -width 20 \
         -command ::daten_pruefen::starte_pruefung
     pack $w.button_frame.start -side left -padx 5
+
+    # Button "Namensbericht" - listet verdächtige Namen auf, ohne Daten zu ändern
+    button $w.button_frame.namensbericht -text "Namensbericht" -bg "#569A40" -fg white -width 20 \
+        -command [list ::namensbericht::starte $w.ausgabe_frame.text]
+    pack $w.button_frame.namensbericht -side left -padx 5
 
     # Button "Schließen"
     button $w.button_frame.close -text "Schließen" -bg "#E0E0E0" -width 15 \

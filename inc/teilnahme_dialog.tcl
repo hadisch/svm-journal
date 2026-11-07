@@ -290,10 +290,18 @@ proc ::teilnahme::berechne_teilnahme {} {
     # Key = "nachname|vorname"; Wert = Dict mit je einem Tage-Set für kurz/lang
     set tage [dict create]
 
+    # Anzeigename je Schlüssel ("Nachname, Vorname" in Originalschreibweise)
+    set anzeige [dict create]
+
     # Mitglieder als gültige Schlüssel registrieren (auch ohne Teilnahme sichtbar)
+    # Normalisierter Schlüssel: Leerzeichen am Rand und Groß-/Kleinschreibung egal,
+    # sonst gingen Einträge verloren, wenn z.B. "Müller " im Mitglied gespeichert ist
     foreach mitglied $mitglieder {
-        set key "[dict get $mitglied nachname]|[dict get $mitglied vorname]"
+        set nn [dict get $mitglied nachname]
+        set vn [dict get $mitglied vorname]
+        set key [::statistik::name_schluessel $nn $vn]
         dict set tage $key [dict create kurz [dict create] lang [dict create]]
+        dict set anzeige $key [::statistik::anzeige_name $nn $vn]
     }
 
     # Einträge durchgehen und Trainingstage zählen
@@ -302,7 +310,8 @@ proc ::teilnahme::berechne_teilnahme {} {
         if {![dict exists $eintrag nachname] || ![dict exists $eintrag vorname]} {
             continue
         }
-        set key "[dict get $eintrag nachname]|[dict get $eintrag vorname]"
+        # Normalisierter Schlüssel (gleiche Bereinigung wie bei den Mitgliedern)
+        set key [::statistik::name_schluessel [dict get $eintrag nachname] [dict get $eintrag vorname]]
 
         # Nur Vereinsmitglieder berücksichtigen
         if {![dict exists $tage $key]} {
@@ -332,7 +341,8 @@ proc ::teilnahme::berechne_teilnahme {} {
     # Ergebnisliste aufbauen (alphabetisch nach Name sortiert)
     set ergebnis_liste [list]
     foreach key [lsort -dictionary [dict keys $tage]] {
-        lassign [split $key "|"] nachname vorname
+        # Anzeigenamen in Originalschreibweise holen
+        set name [dict get $anzeige $key]
         set person [dict get $tage $key]
 
         # Anzahl eindeutiger Trainingstage je Kategorie
@@ -342,7 +352,7 @@ proc ::teilnahme::berechne_teilnahme {} {
         set gesamt_anzahl [expr {$kurz_anzahl + $lang_anzahl}]
 
         lappend ergebnis_liste [dict create \
-            name "$nachname, $vorname" \
+            name $name \
             kurz $kurz_anzahl \
             lang $lang_anzahl \
             gesamt $gesamt_anzahl]

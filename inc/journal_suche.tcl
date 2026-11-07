@@ -18,6 +18,10 @@ proc cache_journal_eintraege {} {
     # Cache leeren
     set ::journal_such_cache {}
 
+    # Zuerst die vollständige Liste von der Festplatte laden. Sonst würde bei einer
+    # noch gefilterten Ansicht (frühere Suche) nur in den alten Treffern gesucht.
+    aktualisiere_treeview
+
     # Alle Kinder-Items des Treeview durchlaufen
     foreach item [.main.tree children {}] {
         # Werte des Items holen (datum, uhrzeit, nachname, vorname, kw, lw, typ, kaliber, startgeld, munition, munpreis, bemerkungen, gratis)
@@ -43,8 +47,9 @@ proc filtere_journal_eintraege {suchbegriff} {
     # Zähler für gefundene Einträge
     set gefunden_count 0
 
-    # Suchbegriff in Kleinbuchstaben für case-insensitive Suche
-    set suchbegriff_lower [string tolower $suchbegriff]
+    # Suchbegriff in Kleinbuchstaben in einzelne Wörter zerlegen
+    # (Mehrfach-Leerzeichen werden dabei ignoriert)
+    set suchwoerter [regexp -all -inline {\S+} [string tolower $suchbegriff]]
 
     # Alle gecachten Einträge durchlaufen und filtern
     foreach eintrag $::journal_such_cache {
@@ -57,8 +62,18 @@ proc filtere_journal_eintraege {suchbegriff} {
         set suchtext "$nachname $vorname"
         set suchtext_lower [string tolower $suchtext]
 
-        # Prüfen, ob Suchbegriff in Nachname oder Vorname enthalten ist
-        if {[string first $suchbegriff_lower $suchtext_lower] != -1} {
+        # Jedes Suchwort muss in Nachname oder Vorname vorkommen - die Reihenfolge
+        # ist egal, damit "Vorname Nachname" ebenso funktioniert wie "Nachname Vorname"
+        set treffer 1
+        foreach wort $suchwoerter {
+            if {[string first $wort $suchtext_lower] == -1} {
+                set treffer 0
+                break
+            }
+        }
+
+        # Treffer übernehmen
+        if {$treffer} {
             # Treffer - Zeile ins Treeview einfügen (mit allen Originalwerten)
             .main.tree insert {} end -values $eintrag
 
@@ -67,8 +82,40 @@ proc filtere_journal_eintraege {suchbegriff} {
         }
     }
 
+    # Filterhinweis in der Statusleiste anzeigen, damit klar ist, dass nicht
+    # alle Einträge sichtbar sind (wird beim Neuladen der Liste entfernt)
+    zeige_journal_filter_hinweis $suchbegriff $gefunden_count
+
     # Rückgabewert: Anzahl der gefundenen Einträge
     return $gefunden_count
+}
+
+# =============================================================================
+# Prozedur: zeige_journal_filter_hinweis
+# Blendet in der Statusleiste einen Hinweis auf die gefilterte Ansicht ein
+# Parameter:
+#   suchbegriff - Der aktive Suchbegriff
+#   anzahl      - Anzahl der angezeigten Treffer
+# =============================================================================
+proc zeige_journal_filter_hinweis {suchbegriff anzahl} {
+    # Statusleiste existiert erst nach dem Aufbau des Hauptfensters
+    if {![winfo exists .statusbar.filter]} {
+        return
+    }
+    # Hinweistext mit Suchbegriff, Trefferzahl und Rückweg setzen
+    .statusbar.filter configure \
+        -text "Gefiltert nach \u201e[string trim $suchbegriff]\u201c: $anzahl Eintr\u00e4ge \u2013 ESC zeigt alle Eintr\u00e4ge"
+}
+
+# =============================================================================
+# Prozedur: entferne_journal_filter_hinweis
+# Entfernt den Filterhinweis aus der Statusleiste (vollständige Liste sichtbar)
+# =============================================================================
+proc entferne_journal_filter_hinweis {} {
+    # Nur zurücksetzen, wenn die Statusleiste bereits aufgebaut ist
+    if {[winfo exists .statusbar.filter]} {
+        .statusbar.filter configure -text ""
+    }
 }
 
 # =============================================================================
@@ -170,6 +217,8 @@ proc oeffne_journal_such_dialog {} {
             foreach eintrag $::journal_such_cache {
                 .main.tree insert {} end -values $eintrag
             }
+            # Vollständige Liste sichtbar - Filterhinweis entfernen
+            entferne_journal_filter_hinweis
         } else {
             # Live-Filterung durchführen
             filtere_journal_eintraege $suchtext

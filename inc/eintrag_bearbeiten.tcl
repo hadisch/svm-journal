@@ -82,6 +82,9 @@ proc oeffne_bearbeiten_dialog {} {
 
     entry .eintrag_bearbeiten.main.datum_frame.entry -font {TkDefaultFont 11}
     .eintrag_bearbeiten.main.datum_frame.entry insert 0 $alt_datum
+    # Datum ist nicht änderbar (siehe Hinweis unten): Ein geändertes Jahr würde den
+    # Eintrag in einer anderen Jahresdatei anlegen und den alten stehen lassen
+    .eintrag_bearbeiten.main.datum_frame.entry configure -state readonly
     pack .eintrag_bearbeiten.main.datum_frame.entry -side left -fill x -expand 1
 
     # =========================================================================
@@ -279,7 +282,9 @@ proc oeffne_bearbeiten_dialog {} {
     button .eintrag_bearbeiten.main.button_frame.speichern -text "Speichern" -bg "#569A40" -fg white -width 15 \
         -command {
         # Error-Handling für gesamten Speichervorgang
-        if {[catch {
+        # Rückgabecode merken: 1 = Fehler, 2 = "return" nach Validierungs-Hinweis
+        # (nur Code 1 ist ein echter Fehler, sonst erschiene ein leerer Fehlerdialog)
+        set speichern_rc [catch {
             # Werte aus Eingabefeldern holen
             set datum [string trim [.eintrag_bearbeiten.main.datum_frame.entry get]]
             set nachname [string trim [.eintrag_bearbeiten.main.name_frame.entry get]]
@@ -329,8 +334,10 @@ proc oeffne_bearbeiten_dialog {} {
             }
 
             # Alten Eintrag aus JSON-Datei löschen
-            # Jahr aus dem Datum extrahieren
-            regexp {^\d{2}\.\d{2}\.(\d{4})$} $datum -> jahr
+            # Jahr aus dem ursprünglichen Datum extrahieren (Datum ist im Dialog gesperrt)
+            if {![regexp {^\d{2}\.\d{2}\.(\d{4})$} [dict get $::markierter_eintrag datum] -> jahr]} {
+                error "Ung\u00fcltiges Datumsformat: [dict get $::markierter_eintrag datum]"
+            }
 
             # Pfad zur Jahres-JSON-Datei bestimmen (alle Jahre in daten/)
             set jahres_json [::pfad::get_jahres_json_path $jahr]
@@ -357,7 +364,9 @@ proc oeffne_bearbeiten_dialog {} {
                 set e_vorname [dict get $eintrag vorname]
                 set e_kaliber [dict get $eintrag kaliber]
 
-                if {$e_datum eq $alt_datum && $e_uhrzeit eq $alt_uhrzeit &&
+                # Nur den ersten Treffer ersetzen, damit identische Duplikate erhalten bleiben
+                if {!$eintrag_gefunden &&
+                    $e_datum eq $alt_datum && $e_uhrzeit eq $alt_uhrzeit &&
                     $e_nachname eq $alt_nachname && $e_vorname eq $alt_vorname &&
                     $e_kaliber eq $alt_kaliber} {
                     # Dies ist der zu aktualisierende Eintrag - nicht zur neuen Liste hinzufügen
@@ -366,6 +375,11 @@ proc oeffne_bearbeiten_dialog {} {
                     # Eintrag behalten
                     lappend neue_eintraege $eintrag
                 }
+            }
+
+            # Ohne gefundenen Originaleintrag würde nur ein Duplikat angelegt - abbrechen
+            if {!$eintrag_gefunden} {
+                error "Der urspr\u00fcngliche Eintrag wurde in der Datei nicht gefunden.\nEs wurde nichts ge\u00e4ndert."
             }
 
             # Neuen (aktualisierten) Eintrag hinzufügen
@@ -404,7 +418,8 @@ proc oeffne_bearbeiten_dialog {} {
                           -type ok \
                           -title "Bearbeiten erfolgreich" \
                           -message "Der Eintrag wurde erfolgreich aktualisiert."
-        } error_msg]} {
+        } error_msg]
+        if {$speichern_rc == 1} {
             # Fehler anzeigen falls etwas schief geht
             tk_messageBox -parent .eintrag_bearbeiten \
                           -icon error \

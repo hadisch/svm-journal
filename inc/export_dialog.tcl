@@ -510,10 +510,11 @@ proc ::export::filtere_eintraege {eintraege} {
         if {$person_modus eq "person" && $person_suche ne ""} {
             set nachname [dict get $eintrag nachname]
             set vorname [dict get $eintrag vorname]
-            set person_string "$nachname, $vorname"
+            # Bereinigter Anzeigename (ohne Rand-/Mehrfach-Leerzeichen) für den Vergleich
+            set person_string [::statistik::anzeige_name $nachname $vorname]
 
-            # Case-insensitive Vergleich
-            if {[string tolower $person_string] ne [string tolower $person_suche]} {
+            # Case-insensitive Vergleich (Suchtext ebenfalls ohne Rand-Leerzeichen)
+            if {[string tolower $person_string] ne [string tolower [string trim $person_suche]]} {
                 set eintrag_behalten 0
             }
         }

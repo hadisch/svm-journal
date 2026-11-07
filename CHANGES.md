@@ -1,5 +1,35 @@
 # Änderungshistorie - SVM-Journal
 
+## Version 1.8.1 (2026-11-07)
+
+### Fehlerbehebungen
+- **Löschen entfernte mehrere Einträge auf einmal**
+  - Der zu löschende Eintrag wurde nur über Datum, Name und Kaliber gesucht, und alle Treffer wurden entfernt. Hatte ein Schütze am selben Tag mehrere Einträge mit demselben Kaliber, verschwanden alle
+  - Jetzt wird zusätzlich die Uhrzeit verglichen und genau ein Eintrag gelöscht
+- **Suche fand vorhandene Namen nicht**
+  - Die Suche durchsuchte nur die gerade angezeigte Liste. War diese noch von einer früheren Suche gefiltert, wurden andere Namen nicht gefunden. Jetzt wird immer über alle Einträge gesucht
+  - Die Reihenfolge der Suchwörter ist egal ("Vorname Nachname" findet ebenso wie "Nachname Vorname"), mehrfache Leerzeichen werden ignoriert
+  - Bei gefilterter Ansicht erscheint ein Hinweis in der Statusleiste ("Gefiltert nach ... – ESC zeigt alle Einträge"), damit nicht der Eindruck entsteht, Einträge seien verschwunden
+- **Falsche Zahlen in Teilnahme am Training und Statistik**
+  - Namen wurden exakt verglichen. Ein Leerzeichen am Ende (z.B. im Mitgliedsdatensatz) reichte, damit die Trainingseinträge eines Mitglieds nicht gezählt wurden bzw. eine Person in der Statistik doppelt gezählt wurde
+  - Teilnahme, Statistik und Personenfilter im Export vergleichen Namen jetzt ohne Rand-/Mehrfach-Leerzeichen und ohne Beachtung von Groß-/Kleinschreibung
+- **Neuer Eintrag:** Nachname und Vorname werden ohne überflüssige Leerzeichen gespeichert; Namen nur aus Leerzeichen werden abgewiesen
+- **Blacklist:** Ein angehängtes Leerzeichen im Namen umging die Sperrprüfung
+- **Eintrag bearbeiten**
+  - Das Datumsfeld ist gesperrt (wie im Hinweis angegeben). Ein geändertes Jahr legte bisher einen zweiten Eintrag in der anderen Jahresdatei an
+  - Wird der ursprüngliche Eintrag in der Datei nicht gefunden, wird nichts gespeichert statt ein Duplikat anzulegen
+  - Bei identischen Duplikaten wird nur einer ersetzt
+  - Nach einem Hinweis auf fehlende Pflichtfelder erschien zusätzlich ein leerer Fehlerdialog
+- **Daten überprüfen:** bereinigt jetzt auch Leerzeichen in Nachname/Vorname der Journal-Einträge (mit Backup)
+- **Mitgliederliste:** Namen aus Altdaten werden beim Laden von Rand-Leerzeichen befreit
+
+### Technische Details
+- `inc/eintrag_loeschen.tcl`: Vergleich inkl. `uhrzeit`, nur erster Treffer
+- `inc/journal_suche.tcl`: Cache wird aus der vollständigen Liste aufgebaut (`aktualisiere_treeview`), Wortsuche, neue Prozeduren `zeige_journal_filter_hinweis` / `entferne_journal_filter_hinweis`
+- `svm-journal.tcl`: neues Label `.statusbar.filter`
+- `inc/statistik_dialog.tcl`: neue Prozeduren `::statistik::name_schluessel` und `::statistik::anzeige_name`, genutzt in Statistik, Teilnahme und Export
+- `inc/eintrag_bearbeiten.tcl`: Jahr aus dem ursprünglichen Datum, Prüfung `eintrag_gefunden`, Auswertung des `catch`-Rückgabecodes
+
 ## Version 1.8.0 (2026-10-09)
 
 ### Neu

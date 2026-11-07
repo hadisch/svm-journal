@@ -236,6 +236,37 @@ proc ::statistik::datum_zu_vergleichswert {datum_str} {
 }
 
 # =============================================================================
+# Prozedur: name_schluessel
+# Erzeugt einen normalisierten Vergleichsschlüssel für eine Person.
+# Leerzeichen am Rand werden entfernt, mehrfache Leerzeichen zusammengefasst
+# und Groß-/Kleinschreibung ignoriert. So werden "Müller " und "müller"
+# derselben Person zugeordnet.
+# Parameter:
+#   nachname, vorname - Namensbestandteile wie gespeichert
+# Rückgabe: Schlüssel im Format "nachname|vorname" (Kleinbuchstaben)
+# =============================================================================
+proc ::statistik::name_schluessel {nachname vorname} {
+    # Leerzeichen am Rand entfernen und innere Mehrfach-Leerzeichen zusammenfassen
+    set nn [regsub -all {\s+} [string trim $nachname] " "]
+    set vn [regsub -all {\s+} [string trim $vorname] " "]
+    # Kleinschreibung für case-insensitiven Vergleich
+    return [string tolower "$nn|$vn"]
+}
+
+# =============================================================================
+# Prozedur: anzeige_name
+# Erzeugt den Anzeigenamen "Nachname, Vorname" ohne überflüssige Leerzeichen
+# Parameter:
+#   nachname, vorname - Namensbestandteile wie gespeichert
+# =============================================================================
+proc ::statistik::anzeige_name {nachname vorname} {
+    # Gleiche Leerzeichen-Bereinigung wie beim Schlüssel, aber Schreibweise erhalten
+    set nn [regsub -all {\s+} [string trim $nachname] " "]
+    set vn [regsub -all {\s+} [string trim $vorname] " "]
+    return "$nn, $vn"
+}
+
+# =============================================================================
 # Prozedur: datum_im_zeitraum
 # Prüft ob ein Datum innerhalb des angegebenen Zeitraums liegt
 # Parameter: datum - Zu prüfendes Datum (TT.MM.JJJJ)
@@ -373,8 +404,8 @@ proc ::statistik::zaehle_unique_schuetzen {} {
         # Nachname und Vorname holen
         set nachname [dict get $eintrag nachname]
         set vorname [dict get $eintrag vorname]
-        # Kombination als eindeutiger Schlüssel
-        set key "$nachname|$vorname"
+        # Normalisierte Kombination als eindeutiger Schlüssel
+        set key [name_schluessel $nachname $vorname]
         # Im Dictionary speichern (Duplikate werden automatisch überschrieben)
         dict set personen $key 1
     }
@@ -395,7 +426,8 @@ proc ::statistik::zaehle_vereinsmitglieder {} {
     # Set der Mitglieder erstellen (Nachname|Vorname als Key)
     set mitglieder_set [dict create]
     foreach mitglied $mitglieder_liste {
-        set key "[dict get $mitglied nachname]|[dict get $mitglied vorname]"
+        # Normalisierter Schlüssel (Leerzeichen/Schreibweise egal)
+        set key [name_schluessel [dict get $mitglied nachname] [dict get $mitglied vorname]]
         dict set mitglieder_set $key 1
     }
 
@@ -403,7 +435,8 @@ proc ::statistik::zaehle_vereinsmitglieder {} {
     set mitglied_schuetzen [dict create]
 
     foreach eintrag $eintraege_liste {
-        set key "[dict get $eintrag nachname]|[dict get $eintrag vorname]"
+        # Normalisierter Schlüssel des Schützen
+        set key [name_schluessel [dict get $eintrag nachname] [dict get $eintrag vorname]]
         # Prüfen ob diese Person Mitglied ist
         if {[dict exists $mitglieder_set $key]} {
             dict set mitglied_schuetzen $key 1
@@ -424,15 +457,18 @@ proc ::statistik::finde_haeufigsten_teilnehmer {typ} {
     variable eintraege_liste
     variable mitglieder_liste
 
-    # Set der Mitglieder erstellen
+    # Set der Mitglieder erstellen (normalisierte Schlüssel)
     set mitglieder_set [dict create]
     foreach mitglied $mitglieder_liste {
-        set key "[dict get $mitglied nachname]|[dict get $mitglied vorname]"
+        set key [name_schluessel [dict get $mitglied nachname] [dict get $mitglied vorname]]
         dict set mitglieder_set $key 1
     }
 
     # Zähler pro Person
     set zaehler [dict create]
+
+    # Anzeigename je Schlüssel (erste gefundene Schreibweise, bereinigt)
+    set anzeige [dict create]
 
     foreach eintrag $eintraege_liste {
         # Waffentyp des Eintrags
@@ -442,7 +478,12 @@ proc ::statistik::finde_haeufigsten_teilnehmer {typ} {
         if {$typ eq "gesamt" || $waffentyp eq $typ} {
             set nachname [dict get $eintrag nachname]
             set vorname [dict get $eintrag vorname]
-            set key "$nachname|$vorname"
+            set key [name_schluessel $nachname $vorname]
+
+            # Anzeigenamen beim ersten Auftreten merken
+            if {![dict exists $anzeige $key]} {
+                dict set anzeige $key [anzeige_name $nachname $vorname]
+            }
 
             # Nur Mitglieder zählen (außer bei "gesamt")
             if {$typ eq "gesamt" || [dict exists $mitglieder_set $key]} {
@@ -469,8 +510,8 @@ proc ::statistik::finde_haeufigsten_teilnehmer {typ} {
 
     # Ergebnis formatieren
     if {$max_key ne ""} {
-        lassign [split $max_key "|"] nachname vorname
-        return [dict create name "$nachname, $vorname" anzahl $max_count]
+        # Gespeicherten Anzeigenamen verwenden (Schlüssel ist kleingeschrieben)
+        return [dict create name [dict get $anzeige $max_key] anzahl $max_count]
     }
 
     # Fallback wenn keine Einträge gefunden

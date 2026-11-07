@@ -963,6 +963,11 @@ proc open_mitglieder_fenster {} {
             regexp {"eintrittsdatum":\s*"([^"]*)"} $match_text -> eintrittsdatum
             regexp {"funktion":\s*"([^"]*)"} $match_text -> funktion
 
+            # Namen ohne Rand-Leerzeichen übernehmen (Altdaten vor dem Trimmen beim Speichern);
+            # beim nächsten Speichern der Mitgliederliste werden sie so bereinigt geschrieben
+            set nachname [string trim $nachname]
+            set vorname [string trim $vorname]
+
             # Mitglied als Liste zur globalen Liste hinzufügen (12 Felder inkl. geburtsort)
             lappend ::mitglieder_liste [list $nachname $vorname $strasse $plz $ort $festnetz $mobilfunk $email $geburtsdatum $geburtsort $eintrittsdatum $funktion]
 

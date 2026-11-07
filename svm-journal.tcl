@@ -501,6 +501,11 @@ pack .statusbar -side bottom -fill x
 label .statusbar.datetime -text "" -bg #E0E0E0 -anchor e
 pack .statusbar.datetime -side right -padx 10 -pady 2
 
+# Label für den Filterhinweis nach einer Suche, linksbündig
+# Bleibt leer, solange alle Einträge angezeigt werden
+label .statusbar.filter -text "" -bg #E0E0E0 -fg "#B03A2E" -anchor w
+pack .statusbar.filter -side left -padx 10 -pady 2
+
 # Funktion zur Aktualisierung von Datum und Uhrzeit
 # Wird jede Sekunde aufgerufen, um die Anzeige zu aktualisieren
 proc update_datetime {} {

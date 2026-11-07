@@ -431,6 +431,19 @@ proc ::daten_pruefen::pruefe_datei {datei_pfad} {
         }
 
         # 2. PRÜFUNG: Datum validieren
+        # Namen bereinigen: Leerzeichen am Rand entfernen, Mehrfach-Leerzeichen zusammenfassen
+        # (solche Namen werden sonst in Teilnahme, Statistik und Suche nicht zugeordnet)
+        foreach feld {nachname vorname} {
+            set alt_name [dict get $eintrag $feld]
+            set neu_name [regsub -all {\s+} [string trim $alt_name] " "]
+            if {$alt_name ne $neu_name} {
+                log_ausgabe "  $feld korrigiert: '$alt_name' -> '$neu_name' ([dict get $eintrag datum])"
+                dict set eintrag $feld $neu_name
+                incr stat_korrigiert
+                set eintrag_geaendert 1
+            }
+        }
+
         set datum [dict get $eintrag datum]
         set datum_validierung [validiere_datum $datum]
 

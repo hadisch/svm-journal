@@ -124,13 +124,19 @@ proc loesche_ausgewaehlten_eintrag {} {
 
     foreach eintrag $alle_eintraege {
         # Prüfen ob dies der zu löschende Eintrag ist
-        # Vergleich: Datum, Nachname, Vorname, Kaliber
+        # Vergleich: Datum, Uhrzeit, Nachname, Vorname, Kaliber
+        # Die Uhrzeit ist nötig, weil ein Schütze am selben Tag mehrere Einträge
+        # mit demselben Kaliber haben kann - ohne sie würden alle gelöscht
         set e_datum [dict get $eintrag datum]
+        set e_uhrzeit [dict get $eintrag uhrzeit]
         set e_nachname [dict get $eintrag nachname]
         set e_vorname [dict get $eintrag vorname]
         set e_kaliber [dict get $eintrag kaliber]
 
-        if {$e_datum eq $datum && $e_nachname eq $nachname && $e_vorname eq $vorname && $e_kaliber eq $kaliber} {
+        # Nur den ersten Treffer entfernen (!$eintrag_gefunden), damit auch bei
+        # vollständig identischen Duplikaten genau ein Eintrag gelöscht wird
+        if {!$eintrag_gefunden && $e_datum eq $datum && $e_uhrzeit eq $uhrzeit &&
+            $e_nachname eq $nachname && $e_vorname eq $vorname && $e_kaliber eq $kaliber} {
             # Dies ist der zu löschende Eintrag - nicht zur neuen Liste hinzufügen
             set eintrag_gefunden 1
         } else {

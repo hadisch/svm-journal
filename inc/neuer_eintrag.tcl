@@ -1013,8 +1013,10 @@ proc ::neuer_eintrag::pruefe_blacklist {args} {
                     if {[regexp {"vorname":\s*"([^"]*)"} $zeile -> bl_vn]} {
                         set bl_vn [string trim $bl_vn]
                         # Case-insensitiver Vergleich beider Felder
-                        if {[string equal -nocase $nachname $aktueller_nachname] &&
-                            [string equal -nocase $vorname $bl_vn]} {
+                        # Eingabe ebenfalls getrimmt vergleichen - sonst umgeht ein
+                        # angehängtes Leerzeichen ("Müller ") die Sperre
+                        if {[string equal -nocase [string trim $nachname] $aktueller_nachname] &&
+                            [string equal -nocase [string trim $vorname] $bl_vn]} {
                             set blacklist_gesperrt 1
                             break
                         }
@@ -1182,14 +1184,14 @@ proc ::neuer_eintrag::validiere_eingaben {} {
         return 0
     }
 
-    # Prüfen, ob Name ausgefüllt ist
-    if {$nachname eq ""} {
+    # Prüfen, ob Name ausgefüllt ist (nur Leerzeichen zählen als leer)
+    if {[string trim $nachname] eq ""} {
         tk_messageBox -parent $fenster -icon error -title "Fehler" -message "Bitte geben Sie einen Nachnamen ein."
         return 0
     }
 
-    # Prüfen, ob Vorname ausgefüllt ist
-    if {$vorname eq ""} {
+    # Prüfen, ob Vorname ausgefüllt ist (nur Leerzeichen zählen als leer)
+    if {[string trim $vorname] eq ""} {
         tk_messageBox -parent $fenster -icon error -title "Fehler" -message "Bitte geben Sie einen Vornamen ein."
         return 0
     }
@@ -1275,8 +1277,8 @@ proc ::neuer_eintrag::speichern_und_anzeigen {} {
     set eintrag [dict create \
         "datum" $datum \
         "uhrzeit" $uhrzeit \
-        "nachname" $nachname \
-        "vorname" $vorname \
+        "nachname" [regsub -all {\s+} [string trim $nachname] " "] \
+        "vorname" [regsub -all {\s+} [string trim $vorname] " "] \
         "kurzwaffe" [expr {$kurzwaffe ? "Ja" : "Nein"}] \
         "langwaffe" [expr {$langwaffe ? "Ja" : "Nein"}] \
         "waffentyp" $waffentyp \
@@ -1657,6 +1659,9 @@ proc lade_existierende_eintraege {} {
 
     # Liste für alle Einträge aus allen Dateien
     set alle_eintraege [list]
+
+    # Vollständige Liste wird geladen - ein evtl. Filterhinweis der Suche entfällt
+    entferne_journal_filter_hinweis
 
     # Daten-Verzeichnis vom Pfad-Management abrufen
     set daten_dir [::pfad::get_daten_directory]

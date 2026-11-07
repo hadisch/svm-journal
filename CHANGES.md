@@ -1,5 +1,16 @@
 # Änderungshistorie - SVM-Journal
 
+## Version 1.8.2 (2026-11-07)
+
+### Fehlerbehebungen
+- **Teilnahme am Training: Gesamtzahl zählte Tage doppelt**
+  - Wurde an einem Tag mit Kurz- und Langwaffe trainiert, zählte dieser Tag in "Gesamt" zweimal
+  - "Gesamt" ist jetzt die Anzahl verschiedener Trainingstage; ein Tag zählt nur einmal, auch wenn mit beiden Waffengattungen trainiert wurde
+  - Spaltenüberschrift im Fenster und im HTML-Export von "Summe Kurz+Lang" in "Trainingstage gesamt" umbenannt
+
+### Technische Details
+- `inc/teilnahme_dialog.tcl`: `gesamt` = Größe der vereinigten Tage-Sets (`dict merge` aus `kurz` und `lang`)
+
 ## Version 1.8.1 (2026-11-07)
 
 ### Fehlerbehebungen

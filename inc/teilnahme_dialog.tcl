@@ -348,8 +348,10 @@ proc ::teilnahme::berechne_teilnahme {} {
         # Anzahl eindeutiger Trainingstage je Kategorie
         set kurz_anzahl [dict size [dict get $person kurz]]
         set lang_anzahl [dict size [dict get $person lang]]
-        # Gesamt = Summe der Teilnahmen beider Waffengattungen
-        set gesamt_anzahl [expr {$kurz_anzahl + $lang_anzahl}]
+        # Gesamt = Anzahl verschiedener Trainingstage über beide Waffengattungen.
+        # Ein Tag mit Kurz- UND Langwaffe zählt nur einmal: die beiden Tage-Sets
+        # werden zusammengeführt, doppelte Tage fallen dabei weg
+        set gesamt_anzahl [dict size [dict merge [dict get $person kurz] [dict get $person lang]]]
 
         lappend ergebnis_liste [dict create \
             name $name \
@@ -543,7 +545,7 @@ proc ::teilnahme::zeige_ergebnis_fenster {} {
     $w.main.tabelle.tree heading name -text "Name"
     $w.main.tabelle.tree heading kurz -text "Kurzwaffe"
     $w.main.tabelle.tree heading lang -text "Langwaffe"
-    $w.main.tabelle.tree heading gesamt -text "Summe Kurz+Lang"
+    $w.main.tabelle.tree heading gesamt -text "Trainingstage gesamt"
 
     # Spaltenbreiten und Ausrichtung (füllen die breite Fensterfläche aus)
     $w.main.tabelle.tree column name -width 700 -anchor w
@@ -687,7 +689,7 @@ proc ::teilnahme::erstelle_html_dokument {} {
     # Tabelle
     append html "  <table>\n"
     append html "    <thead>\n"
-    append html "      <tr><th>Name</th><th>Kurzwaffe</th><th>Langwaffe</th><th>Summe Kurz+Lang</th></tr>\n"
+    append html "      <tr><th>Name</th><th>Kurzwaffe</th><th>Langwaffe</th><th>Trainingstage gesamt</th></tr>\n"
     append html "    </thead>\n"
     append html "    <tbody>\n"
 

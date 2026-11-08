@@ -67,7 +67,7 @@ Das zentrale Widget `.main.tree` zeigt alle Journal-Einträge. Die Spalten `uhrz
 
 ### Icons und Ressourcen
 
-Icons liegen im Verzeichnis `resources/` als PNG-Dateien und werden über `::toolbar_icons::load_all` geladen. Neue Icons dort ablegen und in `toolbar_icons.tcl` (Variable + Switch-Case) registrieren.
+Icons liegen im Verzeichnis `resources/` als PNG-Dateien und werden über `::toolbar_icons::load_all` geladen. Neue Icons dort ablegen und in `toolbar_icons.tcl` (Variable + Switch-Case) registrieren. Die Toolbar-Icons sind 32x32-PNG aus den Tabler Icons (MIT, siehe `resources/LICENSE-icons.txt`); SVG-Vorlagen und Erzeugungs-Skript liegen in `resources/icons-quelle/` - neue Icons dort als SVG ablegen, in die Liste in `erzeuge_icons.sh` eintragen und `sh resources/icons-quelle/erzeuge_icons.sh` ausführen.
 
 ## Coding-Regeln
 

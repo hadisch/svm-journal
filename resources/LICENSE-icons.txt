@@ -12,6 +12,10 @@ umgewandelt und eingefärbt:
   - Linienfarbe #2e3b2c (dunkles Grün-Grau) für alle Icons
   - Linienfarbe #569A40 (Vereinsgrün) für Neuer_Eintrag.png
 
+Die unveränderten SVG-Vorlagen und das Umwandlungs-Skript liegen in
+resources/icons-quelle/. Neu erzeugen (z.B. nach Farbänderung):
+  sh resources/icons-quelle/erzeuge_icons.sh
+
 Zuordnung Datei -> Tabler-Icon (Variante "outline"):
   Neuer_Eintrag.png  file-plus
   Bearbeiten.png     pencil

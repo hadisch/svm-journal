@@ -88,6 +88,6 @@ Beim Erhöhen der Versionsnummer:
 3. Commit auf beide Remotes pushen:
 
    ```bash
-   git push origin main   # Gitea (192.168.178.218)
+   git push origin main   # Forgejo (192.168.178.218)
    git push github main   # GitHub
    ```

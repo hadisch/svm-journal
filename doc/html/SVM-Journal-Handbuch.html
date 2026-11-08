@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SVM-Journal – Benutzerhandbuch</title>
+<style>
+  :root { --gruen:#3F7530; --vereinsgruen:#569A40; --text:#222; --grau:#666; --linie:#dcdcdc; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: "Noto Sans", "Segoe UI", Arial, sans-serif; color:var(--text); background:#f4f5f3; line-height:1.55; }
+  header { background:var(--vereinsgruen); color:#fff; padding:18px 24px; }
+  header h1 { margin:0; font-size:1.6em; }
+  header p { margin:4px 0 0; opacity:.9; }
+  .rahmen { display:flex; max-width:1280px; margin:0 auto; }
+  nav { width:300px; flex-shrink:0; padding:20px 16px; position:sticky; top:0; align-self:flex-start; max-height:100vh; overflow-y:auto; font-size:.92em; }
+  nav h2 { font-size:1em; color:var(--gruen); margin:0 0 8px; }
+  nav ul { list-style:none; margin:0; padding:0; }
+  nav li.e2 { margin-top:6px; font-weight:600; }
+  nav li.e3 { margin-left:14px; }
+  nav a { color:var(--text); text-decoration:none; }
+  nav a:hover { color:var(--vereinsgruen); text-decoration:underline; }
+  main { flex:1; min-width:0; background:#fff; padding:24px 40px 60px; border-left:1px solid var(--linie); }
+  h2 { color:var(--gruen); border-bottom:2px solid var(--vereinsgruen); padding-bottom:4px; margin-top:2.2em; scroll-margin-top:12px; }
+  h2:first-child { margin-top:0; }
+  h3 { color:var(--gruen); margin-top:1.6em; scroll-margin-top:12px; }
+  h4 { margin:1.4em 0 .3em; }
+  a { color:var(--gruen); }
+  .kasten { border-left:5px solid; padding:10px 14px; margin:14px 0; border-radius:2px; }
+  table { border-collapse:collapse; margin:12px 0; width:100%; max-width:760px; font-size:.95em; }
+  th { background:var(--vereinsgruen); color:#fff; text-align:left; padding:6px 10px; }
+  td { border-bottom:1px solid var(--linie); padding:6px 10px; vertical-align:top; }
+  figure { margin:18px 0; text-align:center; }
+  figure img { max-width:100%; border:1px solid #ccc; }
+  figcaption { color:var(--grau); font-style:italic; font-size:.9em; margin-top:4px; }
+  @media (max-width: 900px) { .rahmen { display:block; } nav { width:auto; position:static; max-height:none; } main { padding:20px; border-left:0; } }
+  @media print { nav, header { display:none; } main { padding:0; border:0; } }
+</style>
+</head>
+<body>
+<header><h1>SVM-Journal – Benutzerhandbuch</h1><p>Programmversion 1.12.0 · Stand: 8. November 2026</p></header>
+<div class="rahmen">
+<nav><h2>Inhalt</h2><ul>
+<li class="e2"><a href="#k1">1. Einleitung</a></li>
+<li class="e3"><a href="#k1-1">1.1 Aufbau des Handbuchs</a></li>
+<li class="e2"><a href="#k2">2. Erste Schritte</a></li>
+<li class="e3"><a href="#k2-1">2.1 Systemvoraussetzungen</a></li>
+<li class="e3"><a href="#k2-2">2.2 Installation</a></li>
+<li class="e3"><a href="#k2-3">2.3 Programmstart</a></li>
+<li class="e3"><a href="#k2-4">2.4 Speicherort der Daten</a></li>
+<li class="e3"><a href="#k2-5">2.5 Schutz vor Mehrfachstart</a></li>
+<li class="e2"><a href="#k3">3. Grundeinrichtung – vor dem ersten Nutzungstag</a></li>
+<li class="e3"><a href="#k3-1">3.1 Vereinsdaten hinterlegen</a></li>
+<li class="e3"><a href="#k3-2">3.2 Behördendaten hinterlegen</a></li>
+<li class="e3"><a href="#k3-3">3.3 Standnutzungspreise einrichten</a></li>
+<li class="e3"><a href="#k3-4">3.4 Munitionspreise einrichten</a></li>
+<li class="e3"><a href="#k3-5">3.5 Mitgliederliste anlegen</a></li>
+<li class="e3"><a href="#k3-6">3.6 Waffenregister anlegen (falls der Verein eigene Waffen besitzt)</a></li>
+<li class="e2"><a href="#k4">4. Die Programmoberfläche im Überblick</a></li>
+<li class="e3"><a href="#k4-1">4.1 Menüleiste</a></li>
+<li class="e3"><a href="#k4-2">4.2 Symbolleiste</a></li>
+<li class="e3"><a href="#k4-3">4.3 Eintragstabelle</a></li>
+<li class="e3"><a href="#k4-4">4.4 Statuszeile</a></li>
+<li class="e2"><a href="#k5">5. Täglicher Gebrauch: einen Schießstand-Besuch erfassen</a></li>
+<li class="e3"><a href="#k5-1">5.1 Neuen Eintrag anlegen</a></li>
+<li class="e3"><a href="#k5-2">5.2 Automatische Startgeld-Berechnung</a></li>
+<li class="e3"><a href="#k5-3">5.3 Gastschützen dokumentieren</a></li>
+<li class="e3"><a href="#k5-4">5.4 Gesperrte Personen (Blacklist-Prüfung)</a></li>
+<li class="e3"><a href="#k5-5">5.5 Eintrag bearbeiten</a></li>
+<li class="e3"><a href="#k5-6">5.6 Eintrag löschen</a></li>
+<li class="e3"><a href="#k5-7">5.7 Im Journal suchen</a></li>
+<li class="e3"><a href="#k5-8">5.8 Rückfrage bei vertauschten oder ähnlichen Namen</a></li>
+<li class="e2"><a href="#k6">6. Mitgliederverwaltung</a></li>
+<li class="e3"><a href="#k6-1">6.1 Erfasste Felder</a></li>
+<li class="e3"><a href="#k6-2">6.2 Mitglied hinzufügen, bearbeiten, löschen</a></li>
+<li class="e3"><a href="#k6-3">6.3 Mitglieder suchen</a></li>
+<li class="e3"><a href="#k6-4">6.4 Warteliste (Anwärter auf eine Mitgliedschaft)</a></li>
+<li class="e2"><a href="#k7">7. Gästeverwaltung</a></li>
+<li class="e2"><a href="#k8">8. Personen sperren (Blacklist)</a></li>
+<li class="e2"><a href="#k9">9. Waffenregister</a></li>
+<li class="e2"><a href="#k10">10. Waffenverleih dokumentieren</a></li>
+<li class="e3"><a href="#k10-1">10.1 Art des Verleihs</a></li>
+<li class="e3"><a href="#k10-2">10.2 Angaben zum vorübergehenden Besitzer</a></li>
+<li class="e3"><a href="#k10-3">10.3 Formular exportieren</a></li>
+<li class="e2"><a href="#k11">11. Datenexport</a></li>
+<li class="e3"><a href="#k11-1">11.1 Zeitraum und Personen-Filter</a></li>
+<li class="e3"><a href="#k11-2">11.2 Feldauswahl</a></li>
+<li class="e2"><a href="#k12">12. Statistik über den Schießbetrieb</a></li>
+<li class="e2"><a href="#k13">13. Teilnahme am Training (Bedürfnisnachweis)</a></li>
+<li class="e2"><a href="#k14">14. Daten überprüfen und reparieren</a></li>
+<li class="e3"><a href="#k14-1">14.1 Namensbericht</a></li>
+<li class="e2"><a href="#k15">15. Datensicherung</a></li>
+<li class="e3"><a href="#k15-1">15.1 Automatische Sicherungen</a></li>
+<li class="e3"><a href="#k15-2">15.2 Empfehlung für zusätzliche externe Sicherung</a></li>
+<li class="e3"><a href="#k15-3">15.3 Fehlersuche über die Log-Datei</a></li>
+<li class="e2"><a href="#k16">16. Tastenkürzel – Übersicht</a></li>
+<li class="e2"><a href="#k17">17. Häufige Fragen und Problemlösungen</a></li>
+<li class="e2"><a href="#k18">18. Ansprechpartner</a></li>
+</ul></nav>
+<main>
+<h2 id="k1">1. Einleitung</h2>
+<p>SVM-Journal ist die digitale Verwaltungssoftware unseres Schießsportvereins. Sie ersetzt die frühere Dokumentation auf Papier, in Excel-Tabellen und Word-Dokumenten und bündelt an einer Stelle alles, was für den laufenden Schießbetrieb und die Vereinsverwaltung gebraucht wird: das Schießstand-Protokoll, die Mitgliederliste, das Waffenregister, die Gästeliste, eine Sperrliste sowie Auswertungen und Exporte für Behörden und Vorstand.</p>
+<p>Dieses Handbuch richtet sich an alle, die künftig im Vereinsbüro Dienst tun und mit dem Programm arbeiten – unabhängig von Vorkenntnissen. Es erklärt Schritt für Schritt, welche Daten vor der ersten Nutzung hinterlegt werden müssen, wie ein gewöhnlicher Schießstand-Besuch erfasst wird und welche zusätzlichen Werkzeuge (Statistik, Bedürfnisnachweis, Waffenverleih, Datenprüfung) zur Verfügung stehen.</p>
+<div class="kasten" style="background:#FDF1AF;border-left-color:#C9A227"><strong>Wichtig:  </strong>Dieses Handbuch ersetzt keine rechtliche Beratung zu waffenrechtlichen Pflichten (z. B. WaffG, Bedürfnisnachweis, Aufbewahrung). Es beschreibt ausschließlich die Bedienung der Software, mit der die entsprechende Dokumentation erleichtert wird.</div>
+<h3 id="k1-1">1.1 Aufbau des Handbuchs</h3>
+<p>Kapitel <a href="#k2">2</a> und 3 behandeln die Installation und die einmalige Grundeinrichtung, die vor dem ersten Nutzungstag erledigt sein sollte. Kapitel <a href="#k4">4</a> gibt einen Überblick über die Programmoberfläche. Ab Kapitel <a href="#k5">5</a> wird die tägliche Arbeit beschrieben, gefolgt von den Verwaltungswerkzeugen (Mitglieder, Gäste, Blacklist, Waffenregister, Waffenverleih), den Auswertungen (Export, Statistik, Bedürfnisnachweis) sowie Hinweisen zu Datensicherung und Fehlerbehebung.</p>
+<p>Alle Bildschirmfotos in diesem Handbuch zeigen aus Datenschutzgründen frei erfundene Beispieldaten (fiktiver Musterverein, fiktive Mitglieder) und keine echten Personendaten unseres Vereins.</p>
+<h2 id="k2">2. Erste Schritte</h2>
+<h3 id="k2-1">2.1 Systemvoraussetzungen</h3>
+<p>SVM-Journal ist eine Tcl/Tk-Anwendung und benötigt einen installierten Tcl/Tk-Interpreter (Version 8.6). Unter Linux lässt sich Tcl/Tk über die Paketverwaltung installieren, sofern nicht bereits vorhanden:</p>
+<ul>
+<li>Debian / Ubuntu:  sudo apt install tcl tk</li>
+<li>RedHat / Fedora / SUSE:  sudo dnf install tcl tk</li>
+<li>Arch Linux:  sudo pacman -S tcl tk</li>
+</ul>
+<p>Unter Windows empfiehlt sich die Installation von „Magicsplat Tcl/Tk for Windows“.</p>
+<h3 id="k2-2">2.2 Installation</h3>
+<p>Eine Installation im klassischen Sinn ist nicht erforderlich. Es genügt, den Programmordner „svm-journal“ an eine gewünschte Stelle zu kopieren – unter Linux bietet sich /opt an, unter Windows C:\Programme.</p>
+<h3 id="k2-3">2.3 Programmstart</h3>
+<p>Das Programm wird gestartet mit:</p>
+<ul>
+<li>./svm-journal.tcl  (unter Linux/Mac, wenn die Datei ausführbar ist)</li>
+<li>wish svm-journal.tcl  (plattformunabhängig)</li>
+</ul>
+<h3 id="k2-4">2.4 Speicherort der Daten</h3>
+<p>Beim allerersten Start legt SVM-Journal automatisch alle benötigten Verzeichnisse im Benutzerprofil an – nicht im Programmordner selbst. Das Programmverzeichnis kann dadurch problemlos aktualisiert oder ausgetauscht werden, ohne dass Daten verloren gehen.</p>
+<table>
+<tr><th><strong>Betriebssystem</strong></th><th><strong>Speicherort</strong></th></tr>
+<tr><td>Linux / Mac</td><td>~/.config/svm/</td></tr>
+<tr><td>Windows</td><td>%APPDATA%\SVM\</td></tr>
+</table>
+<p>Innerhalb dieses Ordners gibt es drei Unterverzeichnisse:</p>
+<ul>
+<li><strong>daten/  </strong>– Journal-Einträge (jahresweise als JSON-Datei, z. B. 2026.json), Mitgliederliste, Waffenregister, Gästeliste, Blacklist</li>
+<li><strong>preferences/  </strong>– Munitions- und Standnutzungspreise, Vereins- und Behördendaten</li>
+<li><strong>backups/  </strong>– automatisch erstellte Sicherungskopien, siehe Kapitel <a href="#k15">15</a></li>
+</ul>
+<h3 id="k2-5">2.5 Schutz vor Mehrfachstart</h3>
+<p>SVM-Journal verhindert, dass das Programm versehentlich zweimal gleichzeitig geöffnet wird (z. B. auf zwei Arbeitsplätzen im Büro über eine gemeinsame Netzwerkfreigabe). Beim Versuch, eine zweite Instanz zu starten, erscheint eine Warnmeldung und das Programm beendet sich sofort wieder. Das schützt vor widersprüchlichen Speicherungen in denselben Dateien.</p>
+<h2 id="k3">3. Grundeinrichtung – vor dem ersten Nutzungstag</h2>
+<p>Die folgenden Schritte sollten einmalig durchgeführt werden, bevor das Programm im laufenden Betrieb genutzt wird. Ohne diese Einrichtung funktionieren wichtige Automatismen (automatische Startgeld-Berechnung, Mitgliedserkennung) nicht korrekt.</p>
+<h3 id="k3-1">3.1 Vereinsdaten hinterlegen</h3>
+<p>Menü Einstellungen → Verein. Hier werden Vereinsname, Anschrift, Telefon, E-Mail und Registereintrag hinterlegt. Diese Angaben erscheinen automatisch auf dem Waffenverleih-Formular als „Überlasser“.</p>
+<figure><img src="bilder/abb01.png" alt="" loading="lazy">
+<figcaption>Abb. 1: Dialog Vereinsdaten</figcaption></figure>
+<h3 id="k3-2">3.2 Behördendaten hinterlegen</h3>
+<p>Menü Einstellungen → Behörde. Hier wird die zuständige Waffenbehörde (Name, Anschrift, Telefon, Fax, E-Mail) hinterlegt. Diese Angabe wird im Waffenregister und beim Waffenverleih-Formular automatisch eingeblendet.</p>
+<h3 id="k3-3">3.3 Standnutzungspreise einrichten</h3>
+<p>Menü Einstellungen → Preise Standnutzung. Hier werden die Startgelder je Schützenkategorie festgelegt, die im Dialog „Neuer Eintrag“ automatisch vorgeschlagen werden. Die Anwärter-Preise gelten für Personen auf der Warteliste (siehe <a href="#k6-4">6.4</a>).</p>
+<div class="kasten" style="background:#FDF1AF;border-left-color:#C9A227"><strong>Kritisch für die automatische Berechnung:  </strong>Die automatische Startgeld-Berechnung funktioniert nur, wenn die Kategorien exakt mit folgenden Bezeichnungen (Groß-/Kleinschreibung beachten) angelegt werden:</div>
+<ul>
+<li>Mitglied Luftdruck</li>
+<li>Mitglied Kleinkaliber</li>
+<li>Mitglied Grosskaliber</li>
+<li>Gast</li>
+<li>Anwärter Luftdruck</li>
+<li>Anwärter Kleinkaliber</li>
+<li>Anwärter Grosskaliber</li>
+</ul>
+<p>Weicht eine Kategorie-Bezeichnung hiervon ab (z. B. „Grossraum“ statt „Grosskaliber“, oder ein zusätzliches Leerzeichen), wird für diese Kategorie kein automatischer Preis vorgeschlagen und das Feld bleibt beim Anlegen eines Eintrags leer bzw. muss manuell eingetragen werden.</p>
+<figure><img src="bilder/abb02.png" alt="" loading="lazy">
+<figcaption>Abb. 2: Dialog Preise Standnutzung</figcaption></figure>
+<p>Über die Schaltflächen „Neue Kategorie“ und „Preis ändern“ lassen sich Kategorien anlegen bzw. deren Preis anpassen, z. B. bei einer allgemeinen Beitragserhöhung.</p>
+<h3 id="k3-4">3.4 Munitionspreise einrichten</h3>
+<p>Menü Einstellungen → Preise Munition. Hier wird für jedes im Verein gebräuchliche Kaliber ein Preis pro Schuss bzw. Packungseinheit hinterlegt. Diese Kaliber stehen anschließend im Dialog „Neuer Eintrag“ als Auswahlliste zur Verfügung; der Munitionspreis wird beim Erfassen automatisch mit der eingegebenen Anzahl multipliziert und aufaddiert.</p>
+<h3 id="k3-5">3.5 Mitgliederliste anlegen</h3>
+<p>Menü Werkzeuge → Mitgliederliste. Für jedes Vereinsmitglied sollten mindestens Nachname und Vorname korrekt erfasst werden; empfohlen werden zusätzlich Geburtsdatum, Geburtsort, Anschrift, Kontaktdaten, Eintrittsdatum und Funktion im Verein.</p>
+<div class="kasten" style="background:#FDE2E2;border-left-color:#C0392B"><strong>Warum das wichtig ist:  </strong>SVM-Journal erkennt beim Erfassen eines Schießstand-Besuchs automatisch, ob die eingegebene Person Vereinsmitglied ist. Dazu werden Nachname UND Vorname mit der Mitgliederliste abgeglichen (Groß-/Kleinschreibung und überflüssige Leerzeichen spielen keine Rolle, die Schreibweise muss aber ansonsten übereinstimmen). Nur bei einer Übereinstimmung wird automatisch der günstigere Mitgliedspreis statt des Gastpreises vorgeschlagen und der Eintrag als Mitglied gekennzeichnet.</div>
+<h3 id="k3-6">3.6 Waffenregister anlegen (falls der Verein eigene Waffen besitzt)</h3>
+<p>Menü Werkzeuge → Waffenregister. Hier werden alle Vereinswaffen mit Art, Kaliber, Seriennummer, WBK-Nummer, Hersteller, ausstellender Behörde und Bemerkungen erfasst. Ein gepflegtes Waffenregister ist Voraussetzung dafür, dass das Werkzeug „Waffenverleih“ (Kapitel <a href="#k10">10</a>) genutzt werden kann – ohne mindestens eine eingetragene Waffe verweigert das Programm das Öffnen des Verleihformulars.</p>
+<h2 id="k4">4. Die Programmoberfläche im Überblick</h2>
+<p>Nach dem Start zeigt SVM-Journal das Hauptfenster mit der Liste aller bisherigen Schießstand-Einträge. Das Fenster gliedert sich in vier Bereiche:</p>
+<figure><img src="bilder/abb03.png" alt="" loading="lazy">
+<figcaption>Abb. 3: Hauptfenster mit Menüleiste, Symbolleiste, Eintragstabelle und Statuszeile</figcaption></figure>
+<h3 id="k4-1">4.1 Menüleiste</h3>
+<table>
+<tr><th><strong>Menü</strong></th><th><strong>Enthält</strong></th></tr>
+<tr><td>Datei</td><td>Exportieren…, Beenden (Strg+Q)</td></tr>
+<tr><td>Bearbeiten</td><td>Suchen (Strg+S)</td></tr>
+<tr><td>Einstellungen</td><td>Preise Munition, Preise Standnutzung, Verein, Behörde</td></tr>
+<tr><td>Werkzeuge</td><td>Mitgliederliste, Gästeliste, Warteliste, Waffenregister, Waffenverleih, Daten überprüfen, Statistik, Teilnahme am Training, Person sperren</td></tr>
+<tr><td>Hilfe</td><td>Handbuch (öffnet dieses Handbuch im Webbrowser), Über…  (Versionsnummer und Lizenzinformationen)</td></tr>
+</table>
+<h3 id="k4-2">4.2 Symbolleiste</h3>
+<p>Die wichtigsten Funktionen sind zusätzlich als Symbole direkt erreichbar (von links nach rechts): Neuer Eintrag, Eintrag bearbeiten, Suchen, Mitgliederliste, Statistik, Blacklist, Ausgewählten Eintrag löschen – und ganz rechts Programm beenden.</p>
+<p>Der Papierkorb ist durch einen senkrechten Strich von den übrigen Symbolen abgesetzt, damit er nicht versehentlich angeklickt wird. Bleibt der Mauszeiger kurz über einem Symbol stehen, erscheint ein Hinweis mit der Funktion und gegebenenfalls dem Tastenkürzel.</p>
+<h3 id="k4-3">4.3 Eintragstabelle</h3>
+<p>Die zentrale Tabelle zeigt alle Einträge, sortiert nach Datum und Uhrzeit. Angezeigte Spalten: Datum, Nachname, Vorname, KW (Kurzwaffe), LW (Langwaffe), Typ (Waffentyp LD/KK/GK), Kaliber, Startgeld, Munition, Munitionspreis, Status und Bemerkungen. Zur besseren Lesbarkeit gilt:</p>
+<ul>
+<li><strong>Zeilen  </strong>– sind abwechselnd weiß und hellgrau hinterlegt.</li>
+<li><strong>Tageswechsel  </strong>– eine grüne Linie trennt die Einträge verschiedener Tage.</li>
+<li><strong>Keine Munition  </strong>– wurde keine Munition gekauft, steht in den Spalten Munition und Mun.Preis ein Strich „–“.</li>
+<li><strong>Status  </strong>– die schmale Spalte ohne Überschrift zeigt farbig hinterlegt, wer geschossen hat: M (grün) = Mitglied, A (blau) = Anwärter, G (sandfarben) = Gastschütze. Bleibt der Mauszeiger auf dem Kürzel stehen, erscheint der volle Begriff. Ein leeres Feld bedeutet „unbekannt“ (nur bei älteren Einträgen, siehe <a href="#k5-3">5.3</a>).</li>
+<li><strong>Lange Texte  </strong>– passt ein Text nicht in seine Spalte, zeigt ein Hinweis beim Überfahren mit der Maus den vollständigen Inhalt.</li>
+</ul>
+<p>Ein Rechtsklick auf einen Eintrag öffnet ein Kontextmenü zum Bearbeiten oder Löschen; ein Doppelklick bzw. die Eingabetaste öffnet direkt den Bearbeiten-Dialog.</p>
+<h3 id="k4-4">4.4 Statuszeile</h3>
+<p>Rechts in der Statuszeile stehen Anzahl, Summe Startgeld und Summe Munition der gerade angezeigten Einträge, z. B. „16 Einträge · Startgeld 72,00 € · Munition 311,00 €“. Die Werte werden nach jeder Änderung sofort aktualisiert. Nach einer Suche (siehe <a href="#k5-7">5.7</a>) gelten sie nur für die gefundenen Einträge; links erscheint dann in roter Schrift ein Hinweis, dass die Ansicht gefiltert ist.</p>
+<h2 id="k5">5. Täglicher Gebrauch: einen Schießstand-Besuch erfassen</h2>
+<h3 id="k5-1">5.1 Neuen Eintrag anlegen</h3>
+<p>Über das Symbol „Neuer Eintrag“, das Tastenkürzel Strg+N oder den entsprechenden Button wird der Erfassungsdialog geöffnet.</p>
+<figure><img src="bilder/abb04.png" alt="" loading="lazy">
+<figcaption>Abb. 4: Dialog „Neuer Eintrag“</figcaption></figure>
+<p>Folgende Angaben werden gemacht:</p>
+<ul>
+<li><strong>Datum  </strong>– wird mit dem heutigen Datum vorbelegt, kann bei Bedarf geändert werden</li>
+<li><strong>Nachname / Vorname  </strong>– mit Autovervollständigung aus der Mitgliederliste und der Warteliste; bei genauer Übereinstimmung wird der Vorname automatisch ergänzt</li>
+<li><strong>Waffe  </strong>– Kurzwaffe (KW) und/oder Langwaffe (LW), Mehrfachauswahl möglich</li>
+<li><strong>Waffentyp  </strong>– Luftdruck (LD), Kleinkaliber (KK) oder Großkaliber (GK); bestimmt zusammen mit der Mitgliedschaft das Startgeld</li>
+<li><strong>Startgeld  </strong>– wird automatisch berechnet (siehe <a href="#k5-2">5.2</a>), kann bei Bedarf manuell überschrieben werden</li>
+<li><strong>Gratis-Berechtigung  </strong>– Checkbox für Ausnahmefälle, in denen kein Startgeld erhoben wird; setzt das Startgeld fest auf 0,00 € und sperrt das Feld gegen Überschreiben</li>
+<li><strong>Munition und Anzahl  </strong>– Kaliber auswählen, Anzahl eingeben, mit „Hinzufügen“ der Liste hinzufügen; der Munitionspreis wird automatisch aufsummiert (mehrere Kaliber pro Eintrag möglich)</li>
+<li><strong>Bemerkungen  </strong>– Freitextfeld, z. B. für Besonderheiten. Ob die Person Mitglied, Anwärter oder Gast ist, muss hier nicht eingetragen werden – das Programm speichert den Status automatisch (siehe <a href="#k5-3">5.3</a>).</li>
+</ul>
+<p>Mit „Speichern“ wird der Eintrag übernommen und erscheint sofort in der Haupttabelle.</p>
+<h3 id="k5-2">5.2 Automatische Startgeld-Berechnung</h3>
+<p>Sobald Nachname und Vorname eingegeben sind, prüft das Programm, ob diese Kombination in der Mitgliederliste vorhanden ist:</p>
+<ul>
+<li>Mitglied erkannt: Es wird der für den gewählten Waffentyp hinterlegte Mitgliedspreis vorgeschlagen (Luftdruck/Kleinkaliber/Großkaliber, siehe <a href="#k3-3">3.3</a>).</li>
+<li>Anwärter erkannt: Steht die Person auf der Warteliste (siehe <a href="#k6-4">6.4</a>), wird der Anwärterpreis für den gewählten Waffentyp vorgeschlagen.</li>
+<li>Weder Mitglied noch Anwärter (Gast): Es wird der einheitliche Gastpreis vorgeschlagen, unabhängig vom Waffentyp.</li>
+</ul>
+<p>Der Abgleich erfolgt anhand von Nachname UND Vorname (nicht nach Nachname allein), damit z. B. „Anna Müller“ nicht fälschlich als Mitglied erkannt wird, nur weil ein „Karl Müller“ Mitglied ist. Ändert sich Waffentyp oder Name nachträglich, wird das Startgeld automatisch neu berechnet – außer die Gratis-Berechtigung ist aktiviert.</p>
+<h3 id="k5-3">5.3 Gastschützen dokumentieren</h3>
+<p>Wird beim Ausfüllen des Namensfelds erkannt, dass die Person weder Vereinsmitglied noch Anwärter ist, prüft das Programm zunächst, ob der Name nur vertauscht oder vertippt wurde (siehe <a href="#k5-8">5.8</a>), und gleicht ihn dann automatisch mit der Gästeliste (Kapitel <a href="#k7">7</a>) ab:</p>
+<ul>
+<li><strong>Unbekannter Gast: </strong>Es erscheint der Hinweis, unbedingt die Personalien aufzunehmen und den Personalausweis oder Reisepass zu kopieren. Nach Bestätigung wird die Person automatisch in die Gästeliste eingetragen.</li>
+<li><strong>Bekannter Gast: </strong>Es erscheint der Hinweis, dass die Person bereits in der Gästeliste geführt wird und keine weiteren Daten erhoben werden müssen.</li>
+</ul>
+<p><strong>Status des Eintrags:  </strong>Beim Speichern legt das Programm zu jedem Eintrag automatisch fest, ob die Person Mitglied (M), Anwärter (A) oder Gastschütze (G) ist. Der Status erscheint in der Haupttabelle als farbiges Kürzel (siehe <a href="#k4-3">4.3</a>) und bleibt erhalten, auch wenn ein Gast später Mitglied wird. Das Bemerkungsfeld bleibt so frei für echte Bemerkungen.</p>
+<div class="kasten" style="background:#FDF1AF;border-left-color:#C9A227"><strong>Hinweis zu älteren Einträgen:  </strong>Bis Version 1.11 wurde der Status als Text „Gastschütze“ bzw. „Auf der Warteliste“ in die Bemerkungen geschrieben. Beim ersten Start einer neueren Version werden alle älteren Einträge einmalig umgestellt: Der Status wird aus diesen Bemerkungen bzw. aus den Mitglieder-, Warte- und Gästelisten ermittelt und die Texte werden aus den Bemerkungen entfernt. Vorher wird jede Jahresdatei im Backup-Verzeichnis gesichert (siehe <a href="#k15-1">15.1</a>). Lässt sich eine Person keiner Liste zuordnen, bleibt der Status leer; er kann im Bearbeiten-Dialog nachgetragen werden (siehe <a href="#k5-5">5.5</a>).</div>
+<h3 id="k5-4">5.4 Gesperrte Personen (Blacklist-Prüfung)</h3>
+<p>Ist eine eingegebene Person auf der Sperrliste (Kapitel <a href="#k8">8</a>) vermerkt, erscheint sofort ein roter Warnhinweis „… ist vom Schießbetrieb ausgeschlossen“ und die Schaltfläche „Speichern“ wird deaktiviert. Ein Eintrag für diese Person kann dann nicht angelegt werden.</p>
+<h3 id="k5-5">5.5 Eintrag bearbeiten</h3>
+<p>Ein bestehender Eintrag wird bearbeitet, indem er in der Haupttabelle markiert und anschließend per Doppelklick, Eingabetaste, Symbol „Eintrag bearbeiten“ oder über das Rechtsklick-Kontextmenü geöffnet wird. Der Bearbeiten-Dialog entspricht dem Dialog „Neuer Eintrag“, ist jedoch mit den vorhandenen Werten vorbelegt.</p>
+<p>Datum und Uhrzeit eines Eintrags können nicht geändert werden. Zusätzlich lässt sich im Bearbeiten-Dialog der Status korrigieren (Mitglied, Anwärter, Gastschütze oder unbekannt) – etwa bei älteren Einträgen, deren Status bei der Umstellung nicht ermittelt werden konnte.</p>
+<h3 id="k5-6">5.6 Eintrag löschen</h3>
+<p>Ein Eintrag wird über das Rechtsklick-Kontextmenü oder das Symbol „Löschen“ entfernt. Vor dem endgültigen Löschen erscheint eine Sicherheitsabfrage; zusätzlich wird automatisch eine Sicherungskopie der betroffenen Jahresdatei im Backup-Verzeichnis abgelegt (siehe Kapitel <a href="#k15">15</a>).</p>
+<h3 id="k5-7">5.7 Im Journal suchen</h3>
+<p>Über Strg+S, das Symbol „Suchen“ oder Menü Bearbeiten → Suchen öffnet sich ein Suchfeld. Die Tabelle wird bei jeder Tasteneingabe live nach Nachname und Vorname gefiltert; die Reihenfolge der Suchwörter spielt keine Rolle („Max Beispiel“ findet dasselbe wie „Beispiel Max“). Gesucht wird immer in allen Einträgen. Solange die Ansicht gefiltert ist, weist die Statuszeile darauf hin (siehe <a href="#k4-4">4.4</a>). Die Taste Escape setzt die Ansicht wieder auf alle Einträge zurück.</p>
+<h3 id="k5-8">5.8 Rückfrage bei vertauschten oder ähnlichen Namen</h3>
+<p>Ist ein eingegebener Name weder Mitglied, Anwärter noch bekannter Gast, prüft das Programm, ob Vor- und Nachname vertauscht wurden (z. B. „Max Beispiel“ statt „Beispiel, Max“) oder ob ein sehr ähnlicher bekannter Name existiert (Tippfehler, z. B. „Mustermnn“ statt „Mustermann“). In diesem Fall erscheint die Rückfrage „Meinten Sie …?“:</p>
+<ul>
+<li><strong>Ja  </strong>– der bekannte Name wird in die Eingabefelder übernommen.</li>
+<li><strong>Nein  </strong>– die Eingabe bleibt unverändert, die Person wird als Gast behandelt.</li>
+</ul>
+<p>Ein Vorschlag erscheint nur, wenn genau eine Person in Frage kommt. So wird verhindert, dass ein Mitglied mit vertauschtem oder vertipptem Namen versehentlich als neuer Gast erfasst und in die Gästeliste eingetragen wird.</p>
+<h2 id="k6">6. Mitgliederverwaltung</h2>
+<p>Menü Werkzeuge → Mitgliederliste oder Symbol „Mitglieder“ öffnet die Verwaltung aller Vereinsmitglieder.</p>
+<figure><img src="bilder/abb05.png" alt="" loading="lazy">
+<figcaption>Abb. 5: Mitgliederverwaltung (mit fiktiven Beispieldaten)</figcaption></figure>
+<h3 id="k6-1">6.1 Erfasste Felder</h3>
+<table>
+<tr><th><strong>Feld</strong></th><th><strong>Bemerkung</strong></th></tr>
+<tr><td>Nachname, Vorname</td><td>Pflichtfelder; maßgeblich für die automatische Mitgliedserkennung</td></tr>
+<tr><td>Geburtsdatum, Geburtsort</td><td>wird u. a. für das Waffenverleih-Formular übernommen</td></tr>
+<tr><td>Straße, PLZ, Ort</td><td>Anschrift</td></tr>
+<tr><td>Festnetz, Mobilfunk, E-Mail</td><td>Kontaktdaten</td></tr>
+<tr><td>Eintrittsdatum</td><td>Datum des Vereinseintritts</td></tr>
+<tr><td>Funktion</td><td>z. B. Vorstandsamt, Übungsleiter</td></tr>
+</table>
+<h3 id="k6-2">6.2 Mitglied hinzufügen, bearbeiten, löschen</h3>
+<p>Über die Symbolleiste des Fensters lassen sich neue Mitglieder hinzufügen. Ein Doppelklick, die Eingabetaste oder das Rechtsklick-Kontextmenü öffnen die Detailansicht bzw. den Bearbeiten-Dialog eines markierten Mitglieds. Beim Löschen wird automatisch eine Sicherungskopie erstellt. Die Liste wird nach jeder Änderung automatisch alphabetisch nach Nachname, dann Vorname sortiert.</p>
+<div class="kasten" style="background:#FDF1AF;border-left-color:#C9A227"><strong>Zu beachten:  </strong>Eine Namensänderung wirkt sich nur auf künftige Einträge aus. Bereits gespeicherte Journal-Einträge bleiben mit dem zum Zeitpunkt der Erfassung gültigen Namen unverändert.</div>
+<h3 id="k6-3">6.3 Mitglieder suchen</h3>
+<p>Über die Lupe in der Symbolleiste des Mitgliederfensters kann gezielt nach einem Namen gesucht werden.</p>
+<h3 id="k6-4">6.4 Warteliste (Anwärter auf eine Mitgliedschaft)</h3>
+<p>Menü Werkzeuge → Warteliste öffnet die Liste der Personen, die auf eine Mitgliedschaft warten. Das Fenster entspricht der Mitgliederverwaltung (ohne Eintrittsdatum und Funktion) und zeigt zusätzlich in der Spalte „Platz“ die Reihenfolge der Eintragung: Wer zuletzt eingetragen wurde, steht am Ende; beim Bearbeiten behält ein Anwärter seinen Platz. Die Statuszeile zeigt die Anzahl der Personen auf der Warteliste.</p>
+<p>Über das Rechtsklick-Kontextmenü lässt sich ein Anwärter bearbeiten, löschen oder in die Mitgliederliste übernehmen. Die Übernahme öffnet den Dialog „Neues Mitglied hinzufügen“, vorbelegt mit den Daten des Anwärters und dem heutigen Datum als Eintrittsdatum. Erst mit „Speichern“ wird der Anwärter von der Warteliste entfernt; „Abbrechen“ ändert nichts. Steht eine Person bereits in der Mitgliederliste oder auf der Warteliste, weist das Programm darauf hin.</p>
+<p>Im Dialog „Neuer Eintrag“ werden Anwärter automatisch erkannt: Sie erhalten den Anwärterpreis (siehe <a href="#k3-3">3.3</a>), den Status A und keinen Gastschützen-Hinweis. In Statistik und Teilnahme-Auswertung werden Anwärter wie Gäste behandelt.</p>
+<h2 id="k7">7. Gästeverwaltung</h2>
+<p>Menü Werkzeuge → Gästeliste öffnet die Verwaltung aller bereits bekannten Gastschützen. Diese Liste wird primär automatisch gepflegt (siehe <a href="#k5-3">5.3</a>): Sobald ein bisher unbekannter Gast im Dialog „Neuer Eintrag“ erfasst wird, trägt das Programm ihn automatisch ein.</p>
+<p>Die manuelle Verwaltung erlaubt zusätzlich, Gäste im Voraus einzutragen (z. B. bei Wettkampfteilnehmern) sowie bestehende Einträge zu bearbeiten oder zu entfernen. Zweck der Liste ist es, bei wiederholten Besuchen desselben Gastes zu erkennen, dass die Personalien bereits aufgenommen und der Ausweis bereits kopiert wurden – so müssen diese Daten nicht bei jedem Besuch erneut erhoben werden.</p>
+<h2 id="k8">8. Personen sperren (Blacklist)</h2>
+<p>Menü Werkzeuge → Person sperren oder das Symbol „Blacklist“ öffnet die Verwaltung der vom Schießbetrieb ausgeschlossenen Personen.</p>
+<figure><img src="bilder/abb06.png" alt="" loading="lazy">
+<figcaption>Abb. 6: Verwaltung gesperrter Personen</figcaption></figure>
+<p>Über „Hinzufügen“ wird eine Person mit Nachname und Vorname gesperrt. Die Prüfung erfolgt automatisch und sofort bei jeder Namenseingabe im Dialog „Neuer Eintrag“ (siehe <a href="#k5-4">5.4</a>) – ein Eintrag für eine gesperrte Person kann nicht gespeichert werden. Über „Löschen“ kann eine Sperrung wieder aufgehoben werden.</p>
+<h2 id="k9">9. Waffenregister</h2>
+<p>Menü Werkzeuge → Waffenregister verwaltet alle Waffen, die im Besitz des Vereins sind.</p>
+<figure><img src="bilder/abb07.png" alt="" loading="lazy">
+<figcaption>Abb. 7: Waffenregister (mit fiktivem Beispieleintrag)</figcaption></figure>
+<table>
+<tr><th><strong>Feld</strong></th><th><strong>Bemerkung</strong></th></tr>
+<tr><td>Art der Waffe *</td><td>z. B. Pistole, Revolver, Gewehr</td></tr>
+<tr><td>Kaliber *</td><td></td></tr>
+<tr><td>Seriennummer *</td><td></td></tr>
+<tr><td>WBK-Nummer *</td><td>Nummer der Waffenbesitzkarte</td></tr>
+<tr><td>Hersteller</td><td>optional</td></tr>
+<tr><td>Ausstellende Behörde</td><td>wird automatisch aus den Behördendaten (3.2) vorbelegt</td></tr>
+<tr><td>Bemerkungen</td><td>Freitext</td></tr>
+</table>
+<p>(* Pflichtfelder)</p>
+<div class="kasten" style="background:#FDF1AF;border-left-color:#C9A227"><strong>Voraussetzung für den Waffenverleih:  </strong>Nur im Waffenregister erfasste Waffen stehen im Werkzeug „Waffenverleih“ (Kapitel <a href="#k10">10</a>) zur Auswahl. Ohne mindestens eine eingetragene Waffe kann das Verleihformular nicht geöffnet werden.</div>
+<h2 id="k10">10. Waffenverleih dokumentieren</h2>
+<p>Menü Werkzeuge → Waffenverleih öffnet das Formular zur Dokumentation der vorübergehenden Überlassung einer Vereinswaffe (§ 12 Abs. 1 WaffG), z. B. bei Leihe, Verwahrung oder Transport. Voraussetzung ist, dass mindestens eine Waffe im Waffenregister und die Vereinsdaten (3.1) hinterlegt sind – andernfalls erscheint ein entsprechender Warnhinweis.</p>
+<figure><img src="bilder/abb08.png" alt="" loading="lazy">
+<figcaption>Abb. 8: Waffenverleih-Formular (Ausschnitt)</figcaption></figure>
+<h3 id="k10-1">10.1 Art des Verleihs</h3>
+<p>Es kann eine oder mehrere der folgenden Kategorien angekreuzt werden: Leihe, Verwahrung, Gewerblicher Transport, Vereinsbeauftragter, Wettkampf. WBK-Nummer und ausstellende Behörde des vorübergehenden Besitzers sind nur bei „Leihe“ und „Verwahrung“ Pflichtangaben.</p>
+<h3 id="k10-2">10.2 Angaben zum vorübergehenden Besitzer</h3>
+<p>Beim Eintragen des Nachnamens gleicht das Programm automatisch mit der Mitgliederliste ab und füllt bei Übereinstimmung Vorname, Geburtsdatum, Straße, Hausnummer, PLZ und Ort automatisch aus (bei mehreren Mitgliedern mit gleichem Nachnamen erscheint eine Auswahl). Das erspart bei eigenen Mitgliedern die erneute manuelle Eingabe der Adressdaten.</p>
+<h3 id="k10-3">10.3 Formular exportieren</h3>
+<p>Über „Formular exportieren“ wird ein ausdruckbares HTML-Dokument erzeugt, das alle Angaben inklusive Vereinsdaten und Angaben zur überlassenen Waffe enthält und zur Unterschrift durch den vorübergehenden Besitzer verwendet werden kann.</p>
+<h2 id="k11">11. Datenexport</h2>
+<p>Menü Datei → Exportieren öffnet den Export-Dialog, mit dem sich die Journal-Einträge als HTML-Dokument ausgeben lassen, z. B. für Vorstandssitzungen oder Behördenanfragen.</p>
+<figure><img src="bilder/abb09.png" alt="" loading="lazy">
+<figcaption>Abb. 9: Export-Dialog</figcaption></figure>
+<h3 id="k11-1">11.1 Zeitraum und Personen-Filter</h3>
+<p>Es kann wahlweise der gesamte Datenbestand oder ein bestimmter Zeitraum (Von/Bis-Datum) exportiert werden. Zusätzlich lässt sich der Export auf eine einzelne Person eingrenzen, z. B. um für ein Mitglied eine Übersicht seiner Trainingsteilnahmen zu erstellen.</p>
+<h3 id="k11-2">11.2 Feldauswahl</h3>
+<p>Über Checkboxen wird festgelegt, welche der zwölf möglichen Spalten (Datum, Nachname, Vorname, KW, LW, Typ, Kaliber, Startgeld, Munition, Munitionspreis, Bemerkungen, Status) im Export enthalten sein sollen. Der Status wird im Export ausgeschrieben (Mitglied, Anwärter, Gastschütze). Für Nachweise gegenüber der Waffenbehörde bietet es sich beispielsweise an, die Preisspalten abzuwählen.</p>
+<h2 id="k12">12. Statistik über den Schießbetrieb</h2>
+<p>Menü Werkzeuge → Statistik oder das entsprechende Symbol öffnet zunächst einen Zeitraum-Dialog (vorbelegt mit dem 1. Januar des laufenden Jahres bis heute) und anschließend das Ergebnisfenster.</p>
+<figure><img src="bilder/abb10.png" alt="" loading="lazy">
+<figcaption>Abb. 10: Statistik-Ergebnis mit Kreisdiagramm (Beispieldaten)</figcaption></figure>
+<p>Angezeigt werden: Gesamtzahl der Schützen im Zeitraum, Anzahl der beteiligten Vereinsmitglieder, Gesamtzahl der Einträge, die jeweils häufigsten Teilnehmer nach Waffentyp (Luftdruck, Kleinkaliber, Großkaliber) sowie ein Kreisdiagramm mit der prozentualen Verteilung der Waffentypen. Über „HTML Export“ lässt sich die Auswertung inklusive Diagramm als Dokument speichern.</p>
+<h2 id="k13">13. Teilnahme am Training (Bedürfnisnachweis)</h2>
+<p>Menü Werkzeuge → Teilnahme am Training wertet aus, wie oft jedes Vereinsmitglied im gewählten Zeitraum mit Kurz- bzw. Langwaffe am Schießtraining teilgenommen hat.</p>
+<div class="kasten" style="background:#FDF1AF;border-left-color:#C9A227"><strong>Hintergrund:  </strong>Sportschützen müssen je Waffengattung, die sie besitzen, mindestens sechs Trainingsteilnahmen pro Jahr nachweisen, um das Bedürfnis zum Waffenbesitz aufrechtzuerhalten. Vereine sind zur Meldung säumiger Schützen verpflichtet.</div>
+<p>Gezählt wird pro Trainingstag: Mehrere Einträge am selben Datum mit derselben Waffengattung zählen als eine Teilnahme. Im Ergebnisfenster werden die Mitglieder farblich markiert:</p>
+<ul>
+<li>Grün: mindestens sechs Teilnahmen bei beiden Waffengattungen</li>
+<li>Rot: noch keine Teilnahme</li>
+<li>Schwarz: alle übrigen Fälle</li>
+</ul>
+<p>Die Spalte „Trainingstage gesamt“ zählt jeden Tag nur einmal, auch wenn an diesem Tag mit Kurz- und Langwaffe trainiert wurde.</p>
+<p>Mit den runden Auswahlknöpfen vor den Farben der Legende lässt sich die Tabelle auf eine Gruppe beschränken (z. B. nur „Rot“); „Alle anzeigen“ hebt die Einschränkung wieder auf. Der HTML-Export übernimmt die gewählte Ansicht, vermerkt sie im Dokument und ergänzt den vorgeschlagenen Dateinamen (z. B. „_Rot“), damit ein gefilterter Export nicht versehentlich einen vollständigen überschreibt.</p>
+<p>Auch dieses Ergebnis lässt sich per HTML-Export als Dokument speichern, z. B. zur Vorlage bei der Waffenbehörde.</p>
+<h2 id="k14">14. Daten überprüfen und reparieren</h2>
+<p>Menü Werkzeuge → Daten überprüfen startet ein Werkzeug, das alle JSON-Datendateien (Journal-Jahresdateien, Mitglieder, Waffenregister, Gästeliste, Blacklist sowie die Einstellungsdateien im preferences-Ordner) auf Konsistenz prüft.</p>
+<p>Fehlende Felder in älteren Einträgen (z. B. wenn nach einem Programm-Update neue Felder wie „Bemerkungen“ oder „Gratis“ hinzugekommen sind) werden automatisch ergänzt, sodass ältere Daten weiterhin korrekt angezeigt werden. Außerdem werden überflüssige Leerzeichen in Nach- und Vornamen bereinigt. Vor jeder automatischen Korrektur wird eine Sicherungskopie der betroffenen Datei im Backup-Verzeichnis angelegt. Am Ende der Prüfung zeigt das Werkzeug eine Zusammenfassung mit Anzahl der geprüften Dateien, gefundenen und korrigierten Fehlern sowie erstellten Backups.</p>
+<div class="kasten" style="background:#FDF1AF;border-left-color:#C9A227"><strong>Empfehlung:  </strong>Dieses Werkzeug sollte nach jedem Programm-Update sowie bei ungewöhnlichem Verhalten (z. B. fehlende Einträge in einer Übersicht) einmal ausgeführt werden.</div>
+<h3 id="k14-1">14.1 Namensbericht</h3>
+<p>Die Schaltfläche „Namensbericht“ im Fenster „Daten überprüfen“ listet verdächtige Namen auf, ändert aber selbst keine Daten – ob tatsächlich ein Fehler vorliegt, entscheidet der Nutzer. Der Bericht besteht aus vier Abschnitten:</p>
+<ul>
+<li>Journal-Einträge mit vermutlich falsch erfasstem Namen (vertauschte Vor- und Nachnamen oder Tippfehler gegenüber Mitgliedern, Anwärtern und Gästen) mit Anzahl und Datum der Einträge und dem vermuteten richtigen Namen</li>
+<li>doppelt erfasste Personen in Mitglieder-, Gäste- und Warteliste</li>
+<li>sehr ähnliche oder vertauschte Namen innerhalb dieser Listen (z. B. „Seifert“ als Mitglied und „Seiffert“ als Gast)</li>
+<li>Namen mit überflüssigen Leerzeichen in Mitglieder- und Warteliste</li>
+</ul>
+<p>Zu jedem Abschnitt steht ein Hinweis, wie die Korrektur vorgenommen wird.</p>
+<h2 id="k15">15. Datensicherung</h2>
+<h3 id="k15-1">15.1 Automatische Sicherungen</h3>
+<p>SVM-Journal legt beim Löschen von Journal-Einträgen, Mitgliedern und Anwärtern, bei automatischen Korrekturen durch die Datenprüfung (Kapitel <a href="#k14">14</a>) sowie vor der einmaligen Status-Umstellung älterer Einträge (siehe <a href="#k5-3">5.3</a>) automatisch Sicherungskopien der betroffenen Datei an. Diese liegen mit Zeitstempel versehen im zentralen Backup-Verzeichnis:</p>
+<ul>
+<li>Linux/Mac: ~/.config/svm/backups/</li>
+<li>Windows: %APPDATA%\SVM\backups\</li>
+</ul>
+<p>Um die Anzahl der gespeicherten Backups nicht unbegrenzt wachsen zu lassen, bereinigt das Programm ältere Sicherungen automatisch (maximal zehn Backups je Datei werden vorgehalten).</p>
+<h3 id="k15-2">15.2 Empfehlung für zusätzliche externe Sicherung</h3>
+<div class="kasten" style="background:#FDE2E2;border-left-color:#C0392B"><strong>Wichtig:  </strong>Die automatischen Backups schützen vor versehentlichem Löschen innerhalb des Programms, nicht aber vor einem Festplattendefekt oder Diebstahl des Rechners. Es wird dringend empfohlen, den gesamten Datenordner (~/.config/svm bzw. %APPDATA%\SVM) regelmäßig – z. B. wöchentlich – zusätzlich auf einem externen Datenträger oder in einem Cloud-Speicher zu sichern.</div>
+<h3 id="k15-3">15.3 Fehlersuche über die Log-Datei</h3>
+<p>Im Datenordner wird fortlaufend eine Log-Datei svm-journal.log geschrieben, die unter anderem den Ablauf der Programm-Initialisierung protokolliert. Bei Problemen, die telefonisch oder per E-Mail an die technische Betreuung gemeldet werden, kann diese Datei bei der Fehlersuche hilfreich sein.</p>
+<h2 id="k16">16. Tastenkürzel – Übersicht</h2>
+<table>
+<tr><th><strong>Tastenkombination</strong></th><th><strong>Wirkung</strong></th></tr>
+<tr><td>Strg + N</td><td>Neuen Eintrag anlegen</td></tr>
+<tr><td>Strg + S</td><td>Suchen im Journal</td></tr>
+<tr><td>Strg + Q</td><td>Programm beenden</td></tr>
+<tr><td>Doppelklick / Eingabetaste auf einem Eintrag</td><td>Eintrag bearbeiten</td></tr>
+<tr><td>Rechtsklick auf einem Eintrag</td><td>Kontextmenü Bearbeiten / Löschen</td></tr>
+<tr><td>Escape (im Hauptfenster nach einer Suche / in Suchfeldern)</td><td>Alle Einträge wieder anzeigen / Sucheingabe zurücksetzen</td></tr>
+</table>
+<h2 id="k17">17. Häufige Fragen und Problemlösungen</h2>
+<h4>Das Startgeld wird beim Anlegen eines Eintrags nicht automatisch vorgeschlagen.</h4>
+<p>Prüfen Sie unter Einstellungen → Preise Standnutzung, ob die Kategorien exakt wie in Kapitel <a href="#k3-3">3.3</a> beschrieben benannt sind (Mitglied Luftdruck, Mitglied Kleinkaliber, Mitglied Grosskaliber, Gast sowie Anwärter Luftdruck, Anwärter Kleinkaliber, Anwärter Grosskaliber). Bereits kleine Abweichungen in der Schreibweise verhindern die automatische Zuordnung.</p>
+<h4>Ein bekanntes Vereinsmitglied wird fälschlich als Gast erkannt.</h4>
+<p>Die automatische Erkennung vergleicht Nachname UND Vorname mit der Mitgliederliste; Groß-/Kleinschreibung und überflüssige Leerzeichen spielen dabei keine Rolle. Bei vertauschten Namen oder kleinen Tippfehlern schlägt das Programm den bekannten Namen vor (siehe <a href="#k5-8">5.8</a>). Prüfen Sie in der Mitgliederverwaltung, ob der Name genauso geschrieben ist wie im Journal eingegeben (z. B. Zusatz wie ein zweiter Vorname, abweichende Schreibweise).</p>
+<h4>Beim Programmstart erscheint die Meldung „Es läuft bereits eine Instanz“, obwohl das Programm nicht sichtbar geöffnet ist.</h4>
+<p>Dies deutet auf eine sogenannte verwaiste Sperrdatei hin, die z. B. nach einem Absturz zurückgeblieben ist. Prüfen Sie zunächst in der Aufgabenverwaltung des Betriebssystems, ob tatsächlich kein SVM-Journal-Prozess mehr läuft, und starten Sie den Rechner im Zweifel neu.</p>
+<h4>Wo landen exportierte HTML-Dateien?</h4>
+<p>Beim Export (Datei → Exportieren, Statistik, Teilnahme am Training oder Waffenverleih-Formular) öffnet sich jeweils ein Dateiauswahl-Dialog, in dem Speicherort und Dateiname frei gewählt werden können.</p>
+<h4>Der Waffenverleih-Dialog lässt sich nicht öffnen.</h4>
+<p>Prüfen Sie, ob mindestens eine Waffe im Waffenregister (Kapitel <a href="#k9">9</a>) sowie die Vereinsdaten (Kapitel <a href="#k3-1">3.1</a>) hinterlegt sind – beides ist Voraussetzung für dieses Werkzeug.</p>
+<h4>Bei einem Eintrag fehlt das farbige Status-Kürzel.</h4>
+<p>Der Status konnte bei der Umstellung älterer Einträge nicht ermittelt werden, weil die Person in keiner Liste steht (z. B. ein ehemaliges Mitglied). Er lässt sich im Bearbeiten-Dialog nachtragen (siehe <a href="#k5-5">5.5</a>).</p>
+<h4>Wie öffne ich dieses Handbuch aus dem Programm heraus?</h4>
+<p>Über das Menü Hilfe → Handbuch. Es öffnet sich im Standard-Webbrowser des Computers.</p>
+<h2 id="k18">18. Ansprechpartner</h2>
+<p>SVM-Journal wurde für unseren Verein entwickelt und wird bei Bedarf um weitere Funktionen erweitert. Bei technischen Fragen, Fehlermeldungen oder Änderungswünschen wenden Sie sich bitte an:</p>
+<p><strong>Hans-Dieter Schlabritz</strong></p>
+<p>E-Mail: hadisch@zavb.de</p>
+<p>Bitte fügen Sie bei technischen Problemen nach Möglichkeit eine kurze Beschreibung des Ablaufs sowie – falls vorhanden – die Log-Datei svm-journal.log (siehe Kapitel <a href="#k15-3">15.3</a>) bei.</p>
+</main>
+</div>
+</body>
+</html>

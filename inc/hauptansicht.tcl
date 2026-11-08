@@ -73,6 +73,7 @@ namespace eval ::hauptansicht {
         startgeld          57
         mun_anzeige       200
         munpreis_anzeige   62
+        status             22
         bemerkungen       160
     }
 
@@ -142,6 +143,31 @@ namespace eval ::hauptansicht {
     }
     # toolbar_hintergrund - Hintergrund der Button-Leiste im Hauptfenster
     # toolbar_trenner     - Farbe der senkrechten Trennlinie zwischen Button-Gruppen
+
+    # -------------------------------------------------------------------------
+    # Status-Spalte (M/A/G) - hier anpassen
+    # -------------------------------------------------------------------------
+    # Jedes Kürzel wird als kleines, farbig hinterlegtes Feld in der Zelle
+    # angezeigt. Dezente Töne passend zu Zebra-Streifen und Kopfzeile.
+    array set stil {
+        status_M_hintergrund "#dcebd5"
+        status_M_text        "#2f5f22"
+        status_A_hintergrund "#dce6f2"
+        status_A_text        "#2c4a6b"
+        status_G_hintergrund "#f3e5c3"
+        status_G_text        "#6e5212"
+        status_schrift       {TkDefaultFont 9 bold}
+        status_feld_breite   22
+        status_feld_abstand  3
+    }
+    # status_X_hintergrund - Hintergrund des Kürzels X (M=Mitglied, A=Anwärter, G=Gast)
+    # status_X_text        - Schriftfarbe des Kürzels X
+    # status_schrift       - Schrift der Kürzel
+    # status_feld_breite   - Breite des farbigen Feldes in px
+    # status_feld_abstand  - Abstand des Feldes zum oberen/unteren Zeilenrand in px
+
+    # Angelegte Status-Felder (Label-Widgets, werden wiederverwendet)
+    variable status_felder {}
 
     # Zeilen (Item-IDs), über denen eine Trennlinie liegt, und die dafür
     # angelegten Linien-Widgets (werden wiederverwendet)
@@ -667,6 +693,144 @@ proc ::hauptansicht::trenner_zeichnen {} {
         }
         incr nr
     }
+
+    # Die farbigen Status-Felder hängen an denselben Ereignissen (Scrollen,
+    # Größenänderung, Neubefüllen) und werden daher gleich mit gezeichnet
+    status_zeichnen
+}
+
+# =============================================================================
+# Status-Spalte: farbig hinterlegte Kürzel M/A/G
+# =============================================================================
+# ttk::treeview kann einzelne Zellen nicht einfärben (nur ganze Zeilen). Daher
+# wird - wie bei den Tageslinien - für jede SICHTBARE Zeile ein kleines Label
+# über die Zelle der Spalte "status" gelegt. Mausaktionen auf dem Label werden
+# an die Tabelle weitergereicht (Auswahl, Doppelklick, Kontextmenü, Scrollrad).
+# =============================================================================
+proc ::hauptansicht::status_zeichnen {} {
+    variable stil
+    variable tree
+    variable status_felder
+
+    if {![winfo exists $tree]} {
+        return
+    }
+
+    # Nur die sichtbaren Zeilen betrachten (aus der Scrollposition berechnet)
+    set items [$tree children {}]
+    set anzahl [llength $items]
+    lassign [$tree yview] von bis
+    set erster [expr {max(0, int($von * $anzahl) - 1)}]
+    set letzter [expr {min($anzahl - 1, int(ceil($bis * $anzahl)) + 1)}]
+
+    # Oberkante des Datenbereichs: erste sichtbare Zeile (darüber liegt die Kopfzeile)
+    set oben 0
+    foreach item [lrange $items $erster [expr {$erster + 2}]] {
+        set bbox [$tree bbox $item]
+        if {$bbox ne ""} {
+            set oben [lindex $bbox 1]
+            break
+        }
+    }
+
+    # Zu zeichnende Felder sammeln: {item kürzel x y breite höhe}
+    set felder {}
+    set abstand $stil(status_feld_abstand)
+    foreach item [lrange $items $erster $letzter] {
+        set kuerzel [$tree set $item status]
+        if {$kuerzel ni {M A G}} {
+            continue
+        }
+        # Zellen-Rechteck; leer, wenn Zeile oder Spalte nicht sichtbar ist
+        set bbox [$tree bbox $item status]
+        if {$bbox eq ""} {
+            continue
+        }
+        lassign $bbox x y b h
+        # Zeilen, die teilweise unter der Kopfzeile liegen, auslassen
+        if {$y < $oben} {
+            continue
+        }
+        # Feld mittig in die Zelle setzen, nie breiter als die Zelle
+        set breite [expr {min($stil(status_feld_breite), $b - 4)}]
+        if {$breite < 8} {
+            continue
+        }
+        lappend felder [list $item $kuerzel \
+            [expr {$x + ($b - $breite) / 2}] [expr {$y + $abstand}] \
+            $breite [expr {$h - 2 * $abstand}]]
+    }
+
+    # Fehlende Label-Widgets anlegen (vorhandene werden wiederverwendet)
+    while {[llength $status_felder] < [llength $felder]} {
+        set feld $tree.status[llength $status_felder]
+        label $feld -font $stil(status_schrift) -borderwidth 0 -padx 0 -pady 0
+        # Mausaktionen an die Tabelle weiterreichen
+        foreach ereignis {<ButtonPress-1> <ButtonRelease-1> <ButtonPress-3> <Button-4> <Button-5>} {
+            bind $feld $ereignis [list ::hauptansicht::status_weiterleiten %W $ereignis %x %y]
+        }
+        bind $feld <MouseWheel> {::hauptansicht::status_weiterleiten %W <MouseWheel> %x %y -delta %D}
+        # Doppelklick: wird nicht aus zwei weitergereichten Klicks erkannt, daher eigens
+        bind $feld <Double-ButtonPress-1> {::hauptansicht::status_doppelklick %W %x %y}
+        lappend status_felder $feld
+    }
+
+    # Felder platzieren und einfärben, überzählige ausblenden
+    set nr 0
+    foreach feld $status_felder {
+        if {$nr < [llength $felder]} {
+            lassign [lindex $felder $nr] item kuerzel x y breite hoehe
+            $feld configure -text $kuerzel \
+                -background $stil(status_${kuerzel}_hintergrund) \
+                -foreground $stil(status_${kuerzel}_text)
+            place $feld -x $x -y $y -width $breite -height $hoehe
+            # Langtext als Tooltip (z.B. "Gastschütze")
+            ::tooltip::register $feld [::schuetzenstatus::text $kuerzel]
+        } else {
+            place forget $feld
+        }
+        incr nr
+    }
+}
+
+# =============================================================================
+# Prozedur: ::hauptansicht::status_weiterleiten
+# Reicht ein Maus-Ereignis von einem Status-Feld an die Tabelle weiter, mit
+# auf die Tabelle umgerechneten Koordinaten.
+# Parameter:
+#   feld     - Status-Label, auf dem das Ereignis auftrat
+#   ereignis - Tk-Ereignis, z.B. <ButtonPress-1>
+#   x, y     - Mausposition relativ zum Label
+#   args     - weitere Optionen für event generate (z.B. -delta)
+# =============================================================================
+proc ::hauptansicht::status_weiterleiten {feld ereignis x y args} {
+    variable tree
+    # Tooltip des Feldes schließen (er würde sonst stehen bleiben)
+    ::tooltip::hide
+    event generate $tree $ereignis \
+        -x [expr {$x + [winfo x $feld]}] -y [expr {$y + [winfo y $feld]}] \
+        -rootx [winfo pointerx $tree] -rooty [winfo pointery $tree] {*}$args
+}
+
+# =============================================================================
+# Prozedur: ::hauptansicht::status_doppelklick
+# Doppelklick auf ein Status-Feld: Zeile auswählen und die Doppelklick-Aktion
+# der Tabelle ausführen (öffnet den Bearbeiten-Dialog). Aus zwei
+# weitergereichten Einzelklicks erkennt Tk keinen Doppelklick, weil
+# erzeugte Ereignisse keinen verlässlichen Zeitstempel tragen.
+# =============================================================================
+proc ::hauptansicht::status_doppelklick {feld x y} {
+    variable tree
+    # Zeile unter dem Feld auswählen (wie ein normaler Klick)
+    status_weiterleiten $feld <ButtonPress-1> $x $y
+    status_weiterleiten $feld <ButtonRelease-1> $x $y
+    # Doppelklick-Bindung der Tabelle ausführen (Koordinaten umgerechnet)
+    set skript [bind $tree <Double-Button-1>]
+    if {$skript ne ""} {
+        set tx [expr {$x + [winfo x $feld]}]
+        set ty [expr {$y + [winfo y $feld]}]
+        uplevel #0 [string map [list %x $tx %y $ty %W $tree] $skript]
+    }
 }
 
 # =============================================================================
@@ -683,13 +847,27 @@ proc ::hauptansicht::yscroll {scrollbar args} {
 }
 
 # =============================================================================
+# Prozedur: ::hauptansicht::xscroll
+# Wie yscroll, für die horizontale Scrollbar: beim seitlichen Scrollen
+# verschieben sich die Spalten, die Status-Felder müssen mitwandern.
+# =============================================================================
+proc ::hauptansicht::xscroll {scrollbar args} {
+    $scrollbar set {*}$args
+    trenner_planen
+}
+
+# =============================================================================
 # Prozedur: ::hauptansicht::trenner_einrichten
-# Bindet das Neuzeichnen an Größenänderungen des Treeviews. Einmal nach dem
-# Erzeugen von .main.tree aufrufen. (Scrollen wird über yscroll erfasst.)
+# Bindet das Neuzeichnen von Tageslinien und Status-Feldern an
+# Größenänderungen und an das Ändern von Spaltenbreiten (Ziehen in der
+# Kopfzeile). Einmal nach dem Erzeugen von .main.tree aufrufen.
+# (Scrollen wird über yscroll/xscroll erfasst.)
 # =============================================================================
 proc ::hauptansicht::trenner_einrichten {} {
     variable tree
-    bind $tree <Configure> {+::hauptansicht::trenner_planen}
+    bind $tree <Configure>       {+::hauptansicht::trenner_planen}
+    bind $tree <B1-Motion>       {+::hauptansicht::trenner_planen}
+    bind $tree <ButtonRelease-1> {+::hauptansicht::trenner_planen}
 }
 
 # =============================================================================

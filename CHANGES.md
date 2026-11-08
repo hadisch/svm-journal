@@ -1,5 +1,31 @@
 # Änderungshistorie - SVM-Journal
 
+## Version 1.12.0 (2026-11-08)
+
+### Neu
+- **Status je Journal-Eintrag: Mitglied (M), Anwärter (A) oder Gastschütze (G)**
+  - Neues Datenfeld `status`, wird beim Speichern eines neuen Eintrags automatisch ermittelt (Mitgliederliste, Warteliste, sonst Gast) und bleibt historisch richtig: wer später Mitglied wird, bleibt bei früheren Gast-Besuchen "G"
+  - Hauptansicht: schmale Spalte ohne Überschrift zwischen Mun.Preis und Bemerkungen mit farbig hinterlegtem Kürzel (M grün, A blau, G sandfarben); Tooltip mit dem vollen Begriff; Klick, Doppelklick, Rechtsklick und Mausrad auf dem Kürzel wirken wie auf der Zeile
+  - "Gastschütze" bzw. "Auf der Warteliste" werden nicht mehr in die Bemerkungen geschrieben - das Feld bleibt für echte Bemerkungen frei
+  - Eintrag bearbeiten: Status korrigierbar (Mitglied / Anwärter / Gastschütze / unbekannt)
+  - Export: neue Spalte "Status (M/A/G)", ausgegeben als Langtext
+- **Einmalige Umstellung älterer Einträge beim ersten Programmstart**
+  - Status aus der bisherigen Bemerkung ("Gastschütze", "Gast", "Gastschützin", "Auf der Warteliste"), sonst aus Mitglieder-, Warte- und Gästeliste; nicht zuzuordnende Einträge bleiben "unbekannt"
+  - Diese Texte werden aus den Bemerkungen entfernt, echte Bemerkungen bleiben erhalten (z.B. "Gastschütze-Warteliste" -> "Warteliste")
+  - Vorher wird jede Jahresdatei als `<Jahr>.json.<Zeitstempel>.vor_status.backup` gesichert; einmaliger Hinweis nach der Umstellung
+- **Benutzerhandbuch als HTML** (`doc/html/SVM-Journal-Handbuch.html`)
+  - Auf den Stand 1.12.0 gebracht (u.a. Warteliste, Namensvorschlag, Namensbericht, Teilnahme-Filter, neue Optik, Statuszeile, Status-Spalte), alle Bildschirmfotos neu mit erfundenen Beispieldaten
+  - Inhaltsverzeichnis als mitlaufende Navigation, Kapitelverweise als Links
+- **Menü "Hilfe"** (bisher "Info") mit neuem Eintrag "Handbuch" oberhalb von "Über...": öffnet das HTML-Handbuch im Standard-Webbrowser (Windows, macOS, Linux)
+
+### Technische Details
+- Datei: `inc/schuetzenstatus.tcl` (neu, Namespace `::schuetzenstatus`)
+  - `ermitteln`, `lade_listen`, `aus_bemerkung`, `eintrag_umstellen`, `migration_pruefen`, `text`
+- Datei: `inc/handbuch.tcl` (neu, Namespace `::handbuch`): `pfad`, `oeffnen`
+- Feld `status` in allen Lese-/Schreibstellen der Journal-Dateien (`neuer_eintrag.tcl`, `eintrag_loeschen.tcl`, `daten_pruefen_dialog.tcl`); fehlt es (noch nicht umgestellt), wird es beim Schreiben weggelassen, damit die Umstellung den Status noch ableiten kann
+- Datei: `svm-journal.tcl`: Treeview-Spalte `status` (Position 13), Umstellung vor `lade_existierende_eintraege`, `-xscrollcommand` über `::hauptansicht::xscroll`
+- Datei: `inc/hauptansicht.tcl`: Status-Felder als Overlay (`status_zeichnen`, `status_weiterleiten`, `status_doppelklick`), Farben im `stil`-Array (`status_M_hintergrund` usw.), Neuzeichnen auch bei Spaltenbreiten-Änderung und horizontalem Scrollen
+
 ## Version 1.11.0 (2026-11-08)
 
 ### Neu

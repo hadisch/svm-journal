@@ -37,6 +37,7 @@ namespace eval ::export {
     variable feld_munition 0
     variable feld_munpreis 0
     variable feld_bemerkungen 0
+    variable feld_status 0
 }
 
 # =============================================================================
@@ -58,6 +59,7 @@ proc ::export::get_feld_definitionen {} {
         [list "Munition" "munition" "::export::feld_munition"] \
         [list "Mun.Preis" "munitionspreis" "::export::feld_munpreis"] \
         [list "Bemerkungen" "bemerkungen" "::export::feld_bemerkungen"] \
+        [list "Status" "status" "::export::feld_status"] \
     ]
 }
 
@@ -128,6 +130,7 @@ proc ::export::waehle_alle_felder {} {
     variable feld_munition
     variable feld_munpreis
     variable feld_bemerkungen
+    variable feld_status
 
     # Alle Felder auf 1 setzen
     set feld_datum 1
@@ -141,6 +144,7 @@ proc ::export::waehle_alle_felder {} {
     set feld_munition 1
     set feld_munpreis 1
     set feld_bemerkungen 1
+    set feld_status 1
 }
 
 # =============================================================================
@@ -159,6 +163,7 @@ proc ::export::waehle_keine_felder {} {
     variable feld_munition
     variable feld_munpreis
     variable feld_bemerkungen
+    variable feld_status
 
     # Alle Felder auf 0 setzen
     set feld_datum 0
@@ -172,6 +177,7 @@ proc ::export::waehle_keine_felder {} {
     set feld_munition 0
     set feld_munpreis 0
     set feld_bemerkungen 0
+    set feld_status 0
 }
 
 # =============================================================================
@@ -331,6 +337,7 @@ proc ::export::schliesse_export_dialog {} {
     trace remove variable ::export::feld_munition write ::export::pruefe_feldauswahl
     trace remove variable ::export::feld_munpreis write ::export::pruefe_feldauswahl
     trace remove variable ::export::feld_bemerkungen write ::export::pruefe_feldauswahl
+    trace remove variable ::export::feld_status write ::export::pruefe_feldauswahl
 
     # Fenster schließen
     if {[winfo exists $fenster]} {
@@ -582,7 +589,15 @@ proc ::export::erstelle_html_tabelle {eintraege} {
         # Daten-Zellen (TD-Elemente)
         foreach feld $felder {
             lassign $feld anzeigename dict_key var_name
-            set wert [dict get $eintrag $dict_key]
+            # Fehlende Felder (z.B. Status bei alten Einträgen) als leer behandeln
+            set wert ""
+            if {[dict exists $eintrag $dict_key]} {
+                set wert [dict get $eintrag $dict_key]
+            }
+            # Status-Kürzel M/A/G als Langtext ausgeben (Mitglied/Anwärter/Gastschütze)
+            if {$dict_key eq "status"} {
+                set wert [::schuetzenstatus::text $wert]
+            }
             append html "        <td>$wert</td>\n"
         }
 
@@ -689,6 +704,7 @@ proc open_export_dialog {} {
     set ::export::feld_munition 0
     set ::export::feld_munpreis 0
     set ::export::feld_bemerkungen 0
+    set ::export::feld_status 0
 
     # Mitglieder für Suche laden
     ::export::lade_mitglieder_fuer_suche
@@ -861,6 +877,9 @@ proc open_export_dialog {} {
     checkbutton $w.felder_frame.checks.right.bemerkungen -text "Bemerkungen" \
         -variable ::export::feld_bemerkungen -font {Arial 11}
     pack $w.felder_frame.checks.right.bemerkungen -anchor w -pady 3
+    checkbutton $w.felder_frame.checks.right.status -text "Status (M/A/G)" \
+        -variable ::export::feld_status -font {Arial 11}
+    pack $w.felder_frame.checks.right.status -anchor w -pady 3
 
     # =========================================================================
     # Buttons (Exportieren / Abbrechen)
@@ -900,6 +919,7 @@ proc open_export_dialog {} {
     trace add variable ::export::feld_munition write ::export::pruefe_feldauswahl
     trace add variable ::export::feld_munpreis write ::export::pruefe_feldauswahl
     trace add variable ::export::feld_bemerkungen write ::export::pruefe_feldauswahl
+    trace add variable ::export::feld_status write ::export::pruefe_feldauswahl
 
     # =========================================================================
     # Initiale Prüfung des Export-Buttons

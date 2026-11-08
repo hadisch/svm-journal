@@ -145,6 +145,12 @@ source [file join [file dirname [info script]] inc gaeste_fenster.tcl]
 # Erlaubt Hinzufügen, Bearbeiten, Löschen und die Übernahme in die Mitgliederliste
 source [file join [file dirname [info script]] inc warteliste_fenster.tcl]
 
+# Schützenstatus - Status M/A/G je Journal-Eintrag ermitteln und alte Einträge einmalig umstellen
+source [file join [file dirname [info script]] inc schuetzenstatus.tcl]
+
+# Handbuch - öffnet die HTML-Fassung des Benutzerhandbuchs im Standard-Webbrowser (Menü Hilfe)
+source [file join [file dirname [info script]] inc handbuch.tcl]
+
 # Journal-Suche - Suchfunktion für das Hauptfenster (Nachname/Vorname)
 source [file join [file dirname [info script]] inc journal_suche.tcl]
 
@@ -277,10 +283,13 @@ menu .menubar.tools -tearoff 0
 .menubar.tools add command -label "Person sperren" -command {open_blacklist_dialog}
 .menubar add cascade -label "Werkzeuge" -menu .menubar.tools
 
-# Menü "Info" erstellen
-menu .menubar.info -tearoff 0
-.menubar.info add command -label "\u00dcber..." -command {open_ueber_dialog}
-.menubar add cascade -label "Info" -menu .menubar.info
+# Menü "Hilfe" erstellen
+menu .menubar.hilfe -tearoff 0
+# Handbuch als HTML im Standard-Webbrowser öffnen (siehe inc/handbuch.tcl)
+.menubar.hilfe add command -label "Handbuch" -command {::handbuch::oeffnen}
+# Versionsnummer und Lizenzinformationen
+.menubar.hilfe add command -label "\u00dcber..." -command {open_ueber_dialog}
+.menubar add cascade -label "Hilfe" -menu .menubar.hilfe
 
 # Menüleiste dem Hauptfenster zuweisen
 . configure -menu .menubar
@@ -407,15 +416,17 @@ if {$tcl_platform(platform) eq "windows"} {
 # (Datenquelle für Bearbeiten/Löschen/Suche) und sind versteckt. Angezeigt werden
 # stattdessen "mun_anzeige" und "munpreis_anzeige" (z.B. "–" statt "Keine"/"0,00"),
 # die ::hauptansicht::ansicht_aktualisiert befüllt. Sie stehen bewusst am ENDE,
-# damit die Positionen 0-12 der Werteliste unverändert bleiben.
+# damit die Positionen 0-13 der Werteliste unverändert bleiben.
+# Spalte "status" (Position 13): M/A/G, angezeigt als farbiges Kürzel
+# (Overlay, siehe ::hauptansicht::status_zeichnen).
 ttk::treeview .main.tree \
-    -columns {datum uhrzeit nachname vorname kw lw typ kaliber startgeld munition munpreis bemerkungen gratis mun_anzeige munpreis_anzeige} \
+    -columns {datum uhrzeit nachname vorname kw lw typ kaliber startgeld munition munpreis bemerkungen gratis status mun_anzeige munpreis_anzeige} \
     -show headings \
     -selectmode browse \
     -style $::hauptansicht::style \
     -yscrollcommand {::hauptansicht::yscroll .main.yscroll} \
-    -xscrollcommand {.main.xscroll set} \
-    -displaycolumns {datum nachname vorname kw lw typ kaliber startgeld mun_anzeige munpreis_anzeige bemerkungen}
+    -xscrollcommand {::hauptansicht::xscroll .main.xscroll} \
+    -displaycolumns {datum nachname vorname kw lw typ kaliber startgeld mun_anzeige munpreis_anzeige status bemerkungen}
 
 # Spaltenüberschriften und Breiten definieren
 .main.tree heading datum -text "Datum"
@@ -431,6 +442,9 @@ ttk::treeview .main.tree \
 .main.tree heading munpreis -text "Mun.Preis"
 .main.tree heading bemerkungen -text "Bemerkungen"
 .main.tree heading gratis -text "Gratis"
+# Status-Spalte: Kürzel M/A/G, farbig hinterlegt (Langtext als Tooltip);
+# bewusst ohne Überschrift, die farbigen Kürzel sprechen für sich
+.main.tree heading status -text ""
 # Sichtbare Anzeige-Spalten für Munition und Munitionspreis
 .main.tree heading mun_anzeige -text "Munition"
 .main.tree heading munpreis_anzeige -text "Mun.Preis"
@@ -449,6 +463,7 @@ ttk::treeview .main.tree \
 .main.tree column startgeld -anchor e
 .main.tree column mun_anzeige -anchor w
 .main.tree column munpreis_anzeige -anchor e
+.main.tree column status -anchor center
 .main.tree column bemerkungen -anchor w
 # Gratis-Spalte ist versteckt (nicht in displaycolumns) - wird nur intern verwendet
 .main.tree column gratis -width 50 -anchor center
@@ -497,9 +512,9 @@ bind .main.tree <<TreeviewSelect>> {
         # Werte des ausgewählten Eintrags holen
         set values [.main.tree item $item_id -values]
 
-        # Einzelne Felder extrahieren (Reihenfolge: datum, uhrzeit, nachname, vorname, kw, lw, typ, kaliber, startgeld, munition, munpreis, bemerkungen, gratis)
+        # Einzelne Felder extrahieren (Reihenfolge: datum, uhrzeit, nachname, vorname, kw, lw, typ, kaliber, startgeld, munition, munpreis, bemerkungen, gratis, status)
         # gratis ist eine versteckte Spalte - wird für den Bearbeiten-Dialog benötigt
-        lassign $values datum uhrzeit nachname vorname kw lw typ kaliber startgeld munition munpreis bemerkungen gratis
+        lassign $values datum uhrzeit nachname vorname kw lw typ kaliber startgeld munition munpreis bemerkungen gratis status
 
         # Markierten Eintrag als Dictionary speichern
         # Die Uhrzeit und Gratis-Flag werden aus den versteckten Spalten gelesen
@@ -517,6 +532,7 @@ bind .main.tree <<TreeviewSelect>> {
             "munitionspreis" $munpreis \
             "bemerkungen" $bemerkungen \
             "gratis" $gratis \
+            "status" $status \
         ]
     } else {
         # Keine Auswahl - markierter Eintrag zurücksetzen
@@ -546,6 +562,20 @@ pack .statusbar.filter -side left -padx 10 -pady 2
 
 # Header-Zeile für Einträge im Hauptfenster anzeigen
 zeige_eintraege_header
+
+# Einmalige Umstellung: alte Journal-Einträge um das Feld "status" (M/A/G)
+# ergänzen und die automatischen Bemerkungen "Gastschütze"/"Auf der Warteliste"
+# entfernen (vorher Backup im Backup-Verzeichnis). Danach ist nichts mehr zu tun.
+if {[catch {::schuetzenstatus::migration_pruefen} status_umgestellt]} {
+    # Fehler nur melden - das Programm bleibt mit den unveränderten Daten nutzbar
+    ::pfad::log "Status-Umstellung fehlgeschlagen: $status_umgestellt"
+    tk_messageBox -icon warning -type ok -title "Status-Umstellung" \
+        -message "Die Journal-Eintr\u00e4ge konnten nicht um den Status erg\u00e4nzt werden:\n$status_umgestellt"
+} elseif {$status_umgestellt > 0} {
+    # Einmaliger Hinweis, dass die Daten umgestellt wurden
+    tk_messageBox -icon info -type ok -title "Status-Umstellung" \
+        -message "$status_umgestellt Journal-Eintr\u00e4ge wurden um den Status (Mitglied/Anw\u00e4rter/Gast) erg\u00e4nzt.\n\nDie bisherigen Dateien wurden vorher im Backup-Verzeichnis gesichert."
+}
 
 # Existierende Einträge aus der Jahres-JSON-Datei laden und anzeigen
 lade_existierende_eintraege

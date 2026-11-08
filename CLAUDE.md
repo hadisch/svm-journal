@@ -45,6 +45,8 @@ Jedes Modul unter `inc/` kapselt seinen Code in einem eigenen Namespace:
 | `::standpreise`                    | `standnutzung_preise_dialog.tcl` | Standnutzungspreise verwalten                                                 |
 | `::verein`                         | `verein_dialog.tcl`              | Vereinsdaten verwalten                                                        |
 | `::behoerde`                       | `behoerde_dialog.tcl`            | Behördendaten verwalten                                                       |
+| `::schuetzenstatus`                | `schuetzenstatus.tcl`            | Status M/A/G je Journal-Eintrag ermitteln, einmalige Umstellung alter Einträge |
+| `::handbuch`                       | `handbuch.tcl`                   | HTML-Handbuch (`doc/html/`) im Standard-Webbrowser öffnen (Menü Hilfe)       |
 | `::hauptansicht`                   | `hauptansicht.tcl`               | Optik der Hauptansicht: zentrale Farben/Maße (`stil`-Array), Zeilen-Tags, Hook `ansicht_aktualisiert` |
 | `::erscheinungsbild` / `::palette` | `erscheinungsbild.tcl`           | Zentrale Optik-Einstellungen (flache Ränder, moderne Schrift) und Farbpalette |
 
@@ -59,11 +61,11 @@ Benutzerdaten werden **nicht** im Programmverzeichnis gespeichert, sondern über
 
 Unterverzeichnisse: `daten/` (Journal-Einträge, Mitglieder, Waffenregister, Gäste, Blacklist), `preferences/` (Kaliber, Preise, Verein, Behörde), `backups/`.
 
-Journal-Einträge werden jahresweise in JSON-Dateien gespeichert (z.B. `daten/2026.json`). Jeder Eintrag enthält die Felder: `datum`, `uhrzeit`, `nachname`, `vorname`, `kurzwaffe`, `langwaffe`, `waffentyp`, `kaliber`, `startgeld`, `munition`, `munitionspreis`, `bemerkungen`, `gratis`.
+Journal-Einträge werden jahresweise in JSON-Dateien gespeichert (z.B. `daten/2026.json`). Jeder Eintrag enthält die Felder: `datum`, `uhrzeit`, `nachname`, `vorname`, `kurzwaffe`, `langwaffe`, `waffentyp`, `kaliber`, `startgeld`, `munition`, `munitionspreis`, `bemerkungen`, `gratis`, `status` (`M`/`A`/`G`, leer = unbekannt). Der Status wird beim Erfassen über `::schuetzenstatus::ermitteln` gesetzt; "Gastschütze"/"Auf der Warteliste" gehören nicht mehr in `bemerkungen`. Neue Felder müssen in allen Lese-/Schreibstellen ergänzt werden (`neuer_eintrag.tcl`, `eintrag_loeschen.tcl`, `daten_pruefen_dialog.tcl`).
 
 ### Hauptfenster-Treeview
 
-Das zentrale Widget `.main.tree` zeigt alle Journal-Einträge. Die Spalten `uhrzeit` und `gratis` sind versteckt (nicht in `-displaycolumns`) und werden nur intern für Bearbeiten-Dialoge verwendet. Die globale Variable `::markierter_eintrag` (Dictionary) hält den aktuell ausgewählten Eintrag.
+Das zentrale Widget `.main.tree` zeigt alle Journal-Einträge. Die Spalten `uhrzeit` und `gratis` sind versteckt (nicht in `-displaycolumns`) und werden nur intern für Bearbeiten-Dialoge verwendet. Die gespeicherten Werte `munition`/`munpreis` sind ebenfalls versteckt; angezeigt werden `mun_anzeige`/`munpreis_anzeige` (am Ende der Spaltenliste, befüllt von `::hauptansicht::ansicht_aktualisiert`). Die Spalte `status` wird als farbiges Overlay gezeichnet. Nach jedem Neubefüllen von `.main.tree` muss `::hauptansicht::ansicht_aktualisiert` laufen. Die globale Variable `::markierter_eintrag` (Dictionary) hält den aktuell ausgewählten Eintrag.
 
 ### Icons und Ressourcen
 
@@ -91,3 +93,7 @@ Beim Erhöhen der Versionsnummer:
    git push origin main   # Forgejo (192.168.178.218)
    git push github main   # GitHub
    ```
+
+## Handbuch
+
+Das Benutzerhandbuch liegt ausschließlich als HTML vor: `doc/html/SVM-Journal-Handbuch.html` (Bilder in `doc/html/bilder/`). Es wird über Menü Hilfe → Handbuch geöffnet. Bei neuen oder geänderten Funktionen das Handbuch direkt im HTML mitpflegen (Kapitelnummern beibehalten, neue Abschnitte möglichst am Kapitelende; Anker-IDs `k<Kapitel>-<Abschnitt>`, Einträge in der Navigation `<nav>` ergänzen). Bildschirmfotos nur mit erfundenen Beispieldaten.

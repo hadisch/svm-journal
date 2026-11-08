@@ -52,6 +52,12 @@ proc oeffne_bearbeiten_dialog {} {
         set alt_gratis [dict get $::markierter_eintrag gratis]
     }
 
+    # Status M/A/G abrufen (leer = unbekannt)
+    set alt_status ""
+    if {[dict exists $::markierter_eintrag status]} {
+        set alt_status [dict get $::markierter_eintrag status]
+    }
+
     # Kurzwaffe und Langwaffe in Boolesche Werte konvertieren
     set kurzwaffe_bool [expr {$alt_kurzwaffe eq "Ja" ? 1 : 0}]
     set langwaffe_bool [expr {$alt_langwaffe eq "Ja" ? 1 : 0}]
@@ -65,7 +71,7 @@ proc oeffne_bearbeiten_dialog {} {
     wm title .eintrag_bearbeiten "Eintrag bearbeiten"
 
     # Fenstergröße festlegen (erhöht um Platz für Bemerkungen-Feld und Gratis-Checkbox)
-    wm geometry .eintrag_bearbeiten 720x640
+    wm geometry .eintrag_bearbeiten 720x680
 
     # Hauptframe mit Padding
     frame .eintrag_bearbeiten.main -padx 20 -pady 20
@@ -222,6 +228,29 @@ proc oeffne_bearbeiten_dialog {} {
     }
 
     # =========================================================================
+    # Status (Mitglied/Anwärter/Gast) - wird beim Erfassen automatisch gesetzt
+    # und kann hier korrigiert werden (z.B. bei alten Einträgen ohne Status)
+    # =========================================================================
+    frame .eintrag_bearbeiten.main.status_frame
+    pack .eintrag_bearbeiten.main.status_frame -fill x -pady 5
+
+    label .eintrag_bearbeiten.main.status_frame.label -text "Status:" -width 20 -anchor w
+    pack .eintrag_bearbeiten.main.status_frame.label -side left
+
+    # Globale Variable für die Status-Auswahl (Kürzel M/A/G, "?" = unbekannt).
+    # "?" statt leer, weil Tk-Radiobuttons einen leeren Wert als "unbestimmt"
+    # (tristate) darstellen würden; beim Speichern wird "?" wieder zu "".
+    set ::eintrag_bearbeiten_status [expr {$alt_status eq "" ? "?" : $alt_status}]
+
+    # Je ein Radiobutton pro Status, Text aus dem zentralen Modul
+    foreach {kuerzel name} [list M m A a G g ? u] {
+        set text [expr {$kuerzel eq "?" ? "unbekannt" : [::schuetzenstatus::text $kuerzel]}]
+        radiobutton .eintrag_bearbeiten.main.status_frame.$name -text $text \
+            -variable ::eintrag_bearbeiten_status -value $kuerzel
+        pack .eintrag_bearbeiten.main.status_frame.$name -side left -padx 5
+    }
+
+    # =========================================================================
     # Munition-Eingabefeld (Textfeld, da mehrere Kaliber möglich)
     # =========================================================================
     frame .eintrag_bearbeiten.main.munition_frame
@@ -299,6 +328,8 @@ proc oeffne_bearbeiten_dialog {} {
             set bemerkungen [string trim [.eintrag_bearbeiten.main.bemerkungen_frame.entry get]]
             # Gratis-Status aus der Checkbox lesen
             set gratis [expr {$::eintrag_bearbeiten_gratis ? "Ja" : "Nein"}]
+            # Status M/A/G aus der Auswahl lesen ("?" = unbekannt -> leer speichern)
+            set status [expr {$::eintrag_bearbeiten_status eq "?" ? "" : $::eintrag_bearbeiten_status}]
 
             # Alte Uhrzeit beibehalten
             set uhrzeit [dict get $::markierter_eintrag uhrzeit]
@@ -398,6 +429,7 @@ proc oeffne_bearbeiten_dialog {} {
                 "munitionspreis" $munitionspreis \
                 "bemerkungen" $bemerkungen \
                 "gratis" $gratis \
+                "status" $status \
             ]
             lappend neue_eintraege $neuer_eintrag
 

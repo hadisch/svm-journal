@@ -1201,21 +1201,13 @@ proc ::neuer_eintrag::pruefe_gastschuetze {args} {
     }
 
     # Anwärter auf der Warteliste: kein Gast-Hinweis und kein Eintrag in gaeste.json
+    # (Der Status M/A/G wird seit Version 1.12.0 beim Speichern als eigenes Feld
+    # ermittelt - "Auf der Warteliste"/"Gastschütze" kommen nicht mehr in die Bemerkungen)
     if {[name_in_dict $warteliste_dict $pruef_nn $pruef_vn]} {
-        # Bemerkung setzen, wenn leer oder noch die automatische Gast-Bemerkung drinsteht
-        # (z.B. weil zuvor ein anderer Name eingegeben war) - eigene Texte bleiben erhalten
-        if {[string trim $bemerkungen] in [list "" "Gastsch\u00fctze"]} {
-            set bemerkungen "Auf der Warteliste"
-        }
         return
     }
 
     # Ab hier: Gastschütze erkannt
-    # Bemerkungsfeld mit "Gastschütze" vorausfüllen - nur wenn leer oder noch die
-    # automatische Anwärter-Bemerkung drinsteht; eigene Texte werden nicht überschrieben
-    if {[string trim $bemerkungen] in [list "" "Auf der Warteliste"]} {
-        set bemerkungen "Gastsch\u00fctze"
-    }
 
     # In gaeste.json nachschauen ob dieser Gastschütze bereits bekannt ist
     if {[::gaeste::ist_gast $pruef_vn $pruef_nn]} {
@@ -1379,6 +1371,7 @@ proc ::neuer_eintrag::speichern_und_anzeigen {} {
         "munitionspreis" $munitionspreis \
         "bemerkungen" $bemerkungen \
         "gratis" [expr {$gratis ? "Ja" : "Nein"}] \
+        "status" [::schuetzenstatus::ermitteln $nachname $vorname] \
     ]
 
     # Eintrag zur JSON-Datei hinzufügen
@@ -1513,6 +1506,10 @@ proc ::neuer_eintrag::speichere_eintrag_json {dateiPfad eintrag} {
             if {[regexp {"gratis":\s*"([^"]*)"} $line -> gratis_val]} {
                 dict set eintrag_data gratis $gratis_val
             }
+            # Status-Feld lesen (M/A/G; fehlt bei alten Einträgen vor Version 1.12.0)
+            if {[regexp {"status":\s*"([^"]*)"} $line -> status_val]} {
+                dict set eintrag_data status $status_val
+            }
 
             # Prüfen ob ein vollständiger Eintrag vorliegt
             # Bei schließender Klammer den Eintrag abschließen
@@ -1577,7 +1574,15 @@ proc ::neuer_eintrag::speichere_eintrag_json {dateiPfad eintrag} {
         if {[dict exists $entry gratis]} {
             set gratis_wert [dict get $entry gratis]
         }
-        lappend lines "      \"gratis\": \"$gratis_wert\""
+        # Status-Feld (M/A/G, leer = unbekannt) als letztes Feld. Fehlt es (alter,
+        # noch nicht umgestellter Eintrag), wird es weggelassen, damit die
+        # Umstellung beim nächsten Programmstart den Status noch ableiten kann.
+        if {[dict exists $entry status]} {
+            lappend lines "      \"gratis\": \"$gratis_wert\","
+            lappend lines "      \"status\": \"[dict get $entry status]\""
+        } else {
+            lappend lines "      \"gratis\": \"$gratis_wert\""
+        }
 
         incr counter
         if {$counter < $anzahl} {
@@ -1711,6 +1716,12 @@ proc ::neuer_eintrag::lade_eintraege_aus_datei {datei_pfad} {
                 dict set eintrag_data gratis $gratis_val
             }
         }
+        # Status-Feld lesen (M/A/G; fehlt bei alten Einträgen vor Version 1.12.0)
+        if {[string match "*\"status\":*" $line]} {
+            if {[regexp {"status":\s*"([^"]*)"} $line -> status_val]} {
+                dict set eintrag_data status $status_val
+            }
+        }
 
         # Prüfen ob ein vollständiger Eintrag vorliegt (schließende Klammer)
         if {[string match "*\}*" $line] && [dict size $eintrag_data] >= 11} {
@@ -1786,7 +1797,13 @@ proc lade_existierende_eintraege {} {
             set gratis_wert [dict get $eintrag gratis]
         }
 
-        # Reihenfolge der Spalten: datum, uhrzeit, nachname, vorname, kw, lw, typ, kaliber, startgeld, munition, munpreis, bemerkungen, gratis
+        # Status M/A/G (leer, falls unbekannt oder noch nicht umgestellt)
+        set status_wert ""
+        if {[dict exists $eintrag status]} {
+            set status_wert [dict get $eintrag status]
+        }
+
+        # Reihenfolge der Spalten: datum, uhrzeit, nachname, vorname, kw, lw, typ, kaliber, startgeld, munition, munpreis, bemerkungen, gratis, status
         # Uhrzeit und gratis werden in versteckten Spalten gespeichert (nicht in displaycolumns)
         $treeview insert {} end -values [list \
             [dict get $eintrag datum] \
@@ -1801,7 +1818,8 @@ proc lade_existierende_eintraege {} {
             [dict get $eintrag munition] \
             $munitionspreis \
             $bemerkungen \
-            $gratis_wert]
+            $gratis_wert \
+            $status_wert]
     }
 
     # Darstellung (Zebra-Streifen usw.) für die neu geladenen Zeilen setzen

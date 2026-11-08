@@ -257,6 +257,12 @@ proc ::daten_pruefen::lade_eintraege_aus_datei {datei_pfad} {
                 dict set eintrag_data gratis $gratis_val
             }
         }
+        # Status-Feld lesen (M/A/G; fehlt bei alten Einträgen vor Version 1.12.0)
+        if {[string match "*\"status\":*" $line]} {
+            if {[regexp {"status":\s*"([^"]*)"} $line -> status_val]} {
+                dict set eintrag_data status $status_val
+            }
+        }
 
         # Prüfen ob ein vollständiger Eintrag vorliegt (schließende Klammer)
         if {[string match "*\}*" $line] && [dict size $eintrag_data] >= 11} {
@@ -321,7 +327,15 @@ proc ::daten_pruefen::speichere_eintraege_in_datei {datei_pfad eintraege} {
         if {[dict exists $entry gratis]} {
             set gratis_wert [dict get $entry gratis]
         }
-        lappend lines "      \"gratis\": \"$gratis_wert\""
+        # Status-Feld (M/A/G, leer = unbekannt) als letztes Feld. Fehlt es (alter,
+        # noch nicht umgestellter Eintrag), wird es weggelassen, damit die
+        # Umstellung beim nächsten Programmstart den Status noch ableiten kann.
+        if {[dict exists $entry status]} {
+            lappend lines "      \"gratis\": \"$gratis_wert\","
+            lappend lines "      \"status\": \"[dict get $entry status]\""
+        } else {
+            lappend lines "      \"gratis\": \"$gratis_wert\""
+        }
 
         incr counter
         if {$counter < $anzahl} {

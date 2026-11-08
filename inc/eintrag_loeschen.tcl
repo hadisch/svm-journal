@@ -211,7 +211,15 @@ proc schreibe_eintraege_json {dateiPfad eintraege} {
         if {[dict exists $entry gratis]} {
             set gratis_wert [dict get $entry gratis]
         }
-        lappend lines "      \"gratis\": \"$gratis_wert\""
+        # Status-Feld (M/A/G, leer = unbekannt) als letztes Feld. Fehlt es (alter,
+        # noch nicht umgestellter Eintrag), wird es weggelassen, damit die
+        # Umstellung beim nächsten Programmstart den Status noch ableiten kann.
+        if {[dict exists $entry status]} {
+            lappend lines "      \"gratis\": \"$gratis_wert\","
+            lappend lines "      \"status\": \"[dict get $entry status]\""
+        } else {
+            lappend lines "      \"gratis\": \"$gratis_wert\""
+        }
 
         incr counter
         if {$counter < $anzahl} {

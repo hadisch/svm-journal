@@ -1,0 +1,47 @@
+Toolbar-Icons von SVM-Journal
+=============================
+
+Die Icons in diesem Verzeichnis (Neuer_Eintrag.png, Bearbeiten.png,
+Suchen.png, Mitglieder.png, Statistik.png, Blacklist.png, Loeschen.png,
+Beenden.png, Schliessen.png) stammen aus dem Projekt "Tabler Icons"
+(https://tabler.io/icons, Version 3.50.0) und stehen unter der MIT-Lizenz
+(Lizenztext siehe unten). Die MIT-Lizenz ist mit der GPL v2 vereinbar.
+
+Bearbeitung: Die SVG-Vorlagen wurden mit rsvg-convert in 32x32-PNG
+umgewandelt und eingefärbt:
+  - Linienfarbe #2e3b2c (dunkles Grün-Grau) für alle Icons
+  - Linienfarbe #569A40 (Vereinsgrün) für Neuer_Eintrag.png
+
+Zuordnung Datei -> Tabler-Icon (Variante "outline"):
+  Neuer_Eintrag.png  file-plus
+  Bearbeiten.png     pencil
+  Suchen.png         search
+  Mitglieder.png     users
+  Statistik.png      chart-bar
+  Blacklist.png      user-off
+  Loeschen.png       trash
+  Beenden.png        logout
+  Schliessen.png     x
+
+-----------------------------------------------------------------------------
+MIT License
+
+Copyright (c) 2020-2026 Paweł Kuna
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

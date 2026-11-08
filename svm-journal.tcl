@@ -168,6 +168,9 @@ source [file join [file dirname [info script]] inc teilnahme_dialog.tcl]
 source [file join [file dirname [info script]] inc erscheinungsbild.tcl]
 ::erscheinungsbild::anwenden
 
+# Hauptansicht - zentrale Farben/Maße und Darstellung des Journal-Treeviews (Zebra-Streifen usw.)
+source [file join [file dirname [info script]] inc hauptansicht.tcl]
+
 # =============================================================================
 # Lock-Mechanismus: Prüfen ob bereits eine Instanz läuft
 # =============================================================================
@@ -288,8 +291,8 @@ menu .menubar.info -tearoff 0
 ::toolbar_icons::load_all
 
 # Button-Toolbar unterhalb der Menüleiste erstellen
-# Frame für die Button-Leiste mit hellgrauem Hintergrund
-frame .toolbar -bg #E0E0E0 -relief raised -bd 1
+# Frame für die Button-Leiste mit hellgrauem Hintergrund (Farbe zentral in inc/hauptansicht.tcl)
+frame .toolbar -bg $::hauptansicht::stil(toolbar_hintergrund) -relief raised -bd 1
 pack .toolbar -fill x -pady 2
 
 # Linke Button-Gruppe mit Icon-Buttons
@@ -335,6 +338,11 @@ pack .toolbar.blacklist -side left -padx 5 -pady 3
 # Tooltip für "Blacklist"-Button registrieren
 ::tooltip::register .toolbar.blacklist "Blacklist - Gesperrte Personen"
 
+# Senkrechte Trennlinie vor dem Löschen-Button: setzt die destruktive Aktion
+# optisch von den übrigen Buttons ab (1 px breit, mit Abstand oben/unten)
+frame .toolbar.trenner_loeschen -width 1 -bg $::hauptansicht::stil(toolbar_trenner)
+pack .toolbar.trenner_loeschen -side left -fill y -padx 8 -pady 6
+
 # Button "Löschen" - löscht den ausgewählten Eintrag
 button .toolbar.delete -image [::toolbar_icons::get loeschen] \
     -command {loesche_ausgewaehlten_eintrag}
@@ -375,9 +383,6 @@ scrollbar .main.yscroll -command {.main.tree yview} -orient vertical
 # Horizontale Scrollbar für das Treeview
 scrollbar .main.xscroll -command {.main.tree xview} -orient horizontal
 
-# Schriftgröße für Treeview-Widget konfigurieren (11 Punkte)
-ttk::style configure Treeview -font {TkDefaultFont 11} -rowheight 22
-
 # Unter Windows ignoriert das native Theme (vista/winnative) den -background
 # Parameter bei Treeview.Heading und nutzt stattdessen die Windows-Systemfarbe
 # (Hellgrau). Dadurch entsteht weiße Schrift auf grauem Hintergrund — unleserlich.
@@ -387,25 +392,30 @@ if {$tcl_platform(platform) eq "windows"} {
     ttk::style theme use clam
 }
 
-# Spaltenbezeichnungen (Heading) mit grünem Hintergrund und weißer Schrift
-ttk::style configure Treeview.Heading -background #569A40 -foreground white
+# Gedeckte Kopfzeile für ALLE Listen im Programm einrichten
+# (heller Hintergrund, dunkle Schrift, feine Trennlinie - siehe inc/hauptansicht.tcl)
+::hauptansicht::kopfzeile_einrichten
 
-# Verhindert graue Unterlegung der Spaltenbezeichnungen beim Überfahren mit der Maus
-# Ohne diesen Map-Eintrag würde der ttk-Theme-Zustand "active" eine graue Farbe anzeigen
-ttk::style map Treeview.Heading \
-    -background [list active #569A40 pressed #4a8735] \
-    -relief     [list active flat    pressed sunken]
+# Schrift und aus den Schriftmetriken berechnete Zeilenhöhe für ALLE Listen setzen,
+# dazu der Zellen-Innenabstand der Hauptansicht (siehe inc/hauptansicht.tcl)
+::hauptansicht::zeilen_einrichten
 
 # Treeview-Widget mit Spalten für Einträge
 # -selectmode browse: Erlaubt nur Einzelauswahl, keine Mehrfachauswahl mit Strg/Shift
 # Spalte "uhrzeit" ist versteckt (nicht in -show headings), wird aber für die Bearbeitung benötigt
+# Die Spalten "munition" und "munpreis" enthalten die gespeicherten Originalwerte
+# (Datenquelle für Bearbeiten/Löschen/Suche) und sind versteckt. Angezeigt werden
+# stattdessen "mun_anzeige" und "munpreis_anzeige" (z.B. "–" statt "Keine"/"0,00"),
+# die ::hauptansicht::ansicht_aktualisiert befüllt. Sie stehen bewusst am ENDE,
+# damit die Positionen 0-12 der Werteliste unverändert bleiben.
 ttk::treeview .main.tree \
-    -columns {datum uhrzeit nachname vorname kw lw typ kaliber startgeld munition munpreis bemerkungen gratis} \
+    -columns {datum uhrzeit nachname vorname kw lw typ kaliber startgeld munition munpreis bemerkungen gratis mun_anzeige munpreis_anzeige} \
     -show headings \
     -selectmode browse \
-    -yscrollcommand {.main.yscroll set} \
+    -style $::hauptansicht::style \
+    -yscrollcommand {::hauptansicht::yscroll .main.yscroll} \
     -xscrollcommand {.main.xscroll set} \
-    -displaycolumns {datum nachname vorname kw lw typ kaliber startgeld munition munpreis bemerkungen}
+    -displaycolumns {datum nachname vorname kw lw typ kaliber startgeld mun_anzeige munpreis_anzeige bemerkungen}
 
 # Spaltenüberschriften und Breiten definieren
 .main.tree heading datum -text "Datum"
@@ -421,23 +431,39 @@ ttk::treeview .main.tree \
 .main.tree heading munpreis -text "Mun.Preis"
 .main.tree heading bemerkungen -text "Bemerkungen"
 .main.tree heading gratis -text "Gratis"
+# Sichtbare Anzeige-Spalten für Munition und Munitionspreis
+.main.tree heading mun_anzeige -text "Munition"
+.main.tree heading munpreis_anzeige -text "Mun.Preis"
 
-# Spaltenbreiten festlegen (in Pixeln)
-# Breiten wurden angepasst um Platz für Bemerkungen-Spalte zu schaffen
-.main.tree column datum -width 85 -anchor w
+# Ausrichtung der Spalten festlegen
+# Die Breiten der sichtbaren Spalten stehen zentral in inc/hauptansicht.tcl
+# (Array spalten_inhalt) und werden unten per ::hauptansicht::spalten_einrichten gesetzt
+.main.tree column datum -anchor w
 .main.tree column uhrzeit -width 80 -anchor w
-.main.tree column nachname -width 130 -anchor w
-.main.tree column vorname -width 130 -anchor w
-.main.tree column kw -width 40 -anchor center
-.main.tree column lw -width 40 -anchor center
-.main.tree column typ -width 45 -anchor center
-.main.tree column kaliber -width 100 -anchor w
-.main.tree column startgeld -width 65 -anchor e
-.main.tree column munition -width 100 -anchor w
-.main.tree column munpreis -width 70 -anchor e
-.main.tree column bemerkungen -width 170 -anchor w
+.main.tree column nachname -anchor w
+.main.tree column vorname -anchor w
+.main.tree column kw -anchor center
+.main.tree column lw -anchor center
+.main.tree column typ -anchor center
+.main.tree column kaliber -anchor w
+.main.tree column startgeld -anchor e
+.main.tree column mun_anzeige -anchor w
+.main.tree column munpreis_anzeige -anchor e
+.main.tree column bemerkungen -anchor w
 # Gratis-Spalte ist versteckt (nicht in displaycolumns) - wird nur intern verwendet
 .main.tree column gratis -width 50 -anchor center
+
+# Spaltenbreiten aus Inhaltsbreite + Zellen-Padding berechnen (siehe inc/hauptansicht.tcl)
+::hauptansicht::spalten_einrichten
+
+# Darstellungs-Tags der Hauptansicht einrichten (Zebra-Streifen, siehe inc/hauptansicht.tcl)
+::hauptansicht::init
+
+# Tooltip für abgeschnittene Zelltexte aktivieren (siehe inc/hauptansicht.tcl)
+::hauptansicht::tooltip_einrichten
+
+# Trennlinien zwischen den Tagen aktivieren (siehe inc/hauptansicht.tcl)
+::hauptansicht::trenner_einrichten
 
 # Layout: Grid-Manager für optimale Platzierung
 # Treeview nimmt den gesamten verfügbaren Platz ein
@@ -500,35 +526,23 @@ bind .main.tree <<TreeviewSelect>> {
     }
 }
 
-# Statusleiste am unteren Rand für Datum und Uhrzeit
+# Statusleiste am unteren Rand: Filterhinweis (links) und Summen der
+# angezeigten Einträge (rechts). Farben zentral in inc/hauptansicht.tcl.
 # Frame für Statusleiste mit leicht erhöhtem Rand
-frame .statusbar -bg #E0E0E0 -relief sunken -bd 1
+frame .statusbar -bg $::hauptansicht::stil(status_hintergrund) -relief sunken -bd 1
 pack .statusbar -side bottom -fill x
 
-# Label für Datum und Uhrzeit, rechtsbündig
-label .statusbar.datetime -text "" -bg #E0E0E0 -anchor e
-pack .statusbar.datetime -side right -padx 10 -pady 2
+# Label für Anzahl und Summen der angezeigten (ggf. gefilterten) Einträge, rechtsbündig
+# Wird von ::hauptansicht::status_aktualisieren nach jeder Änderung der Ansicht befüllt
+label .statusbar.summen -text "" -anchor e \
+    -bg $::hauptansicht::stil(status_hintergrund) \
+    -fg $::hauptansicht::stil(status_text)
+pack .statusbar.summen -side right -padx 10 -pady 2
 
 # Label für den Filterhinweis nach einer Suche, linksbündig
 # Bleibt leer, solange alle Einträge angezeigt werden
-label .statusbar.filter -text "" -bg #E0E0E0 -fg "#B03A2E" -anchor w
+label .statusbar.filter -text "" -bg $::hauptansicht::stil(status_hintergrund) -fg "#B03A2E" -anchor w
 pack .statusbar.filter -side left -padx 10 -pady 2
-
-# Funktion zur Aktualisierung von Datum und Uhrzeit
-# Wird jede Sekunde aufgerufen, um die Anzeige zu aktualisieren
-proc update_datetime {} {
-    # Aktuelles Datum und Uhrzeit im deutschen Format ermitteln
-    set current_datetime [clock format [clock seconds] -format "%d.%m.%Y  %H:%M:%S"]
-
-    # Label-Text aktualisieren
-    .statusbar.datetime configure -text $current_datetime
-
-    # Funktion nach 1000ms (1 Sekunde) erneut aufrufen
-    after 1000 update_datetime
-}
-
-# Erste Aktualisierung der Datum/Uhrzeit-Anzeige starten
-update_datetime
 
 # Header-Zeile für Einträge im Hauptfenster anzeigen
 zeige_eintraege_header

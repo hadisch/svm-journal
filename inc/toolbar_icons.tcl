@@ -2,7 +2,9 @@
 # toolbar_icons.tcl - Zentrales Management für Toolbar-Icons
 # =============================================================================
 # Dieses Modul lädt und verwaltet alle Icons für die Toolbar-Buttons.
-# Die Icons werden beim Laden von 64x64 auf 32x32 Pixel skaliert.
+# Die Icons liegen als 32x32-PNG vor (Tabler Icons, MIT-Lizenz, siehe
+# resources/LICENSE-icons.txt) und werden unverändert verwendet. Größere
+# Dateien (z.B. ältere 64x64-Icons) werden auf 32x32 verkleinert.
 # =============================================================================
 
 # Namespace für das Icon-Management
@@ -72,13 +74,15 @@ proc ::toolbar_icons::load_all {} {
 
         # Icon laden und skalieren
         if {[catch {
-            # Temporäres Bild im Originalformat (64x64) laden
+            # Bild im Originalformat laden
             set temp_img [image create photo -file $icon_path]
 
-            # Skaliertes Bild erstellen (32x32)
-            # -subsample 2 2 reduziert die Größe um Faktor 2 in beiden Dimensionen
+            # Ziel: 32x32 Pixel. Größere Icons (z.B. 64x64) werden um einen
+            # ganzzahligen Faktor verkleinert; 32x32-Icons werden 1:1 kopiert,
+            # damit sie scharf bleiben (-subsample würde Pixel auslassen).
+            set faktor [expr {max(1, [image width $temp_img] / 32)}]
             set scaled_img [image create photo]
-            $scaled_img copy $temp_img -subsample 2 2
+            $scaled_img copy $temp_img -subsample $faktor $faktor
 
             # Temporäres Original-Bild löschen um Speicher freizugeben
             image delete $temp_img

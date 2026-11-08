@@ -31,7 +31,7 @@ proc confirm_exit {} {
     pack .exit_dialog.buttons -fill x
 
     # "Ja"-Button - beendet das Programm
-    button .exit_dialog.buttons.yes -text "Ja" -width 10 -command {
+    button .exit_dialog.buttons.yes {*}$::palette::knopf_positiv -text "Ja" -width 10 -command {
         # Dialog schließen
         destroy .exit_dialog
         # Fenstereinstellungen speichern (Größe, Position, Vollbildstatus)
@@ -42,7 +42,7 @@ proc confirm_exit {} {
     pack .exit_dialog.buttons.yes -side left -padx 20
 
     # "Nein"-Button - schließt nur den Dialog
-    button .exit_dialog.buttons.no -text "Nein" -width 10 -command {
+    button .exit_dialog.buttons.no {*}$::palette::knopf_neutral -text "Nein" -width 10 -command {
         # Dialog schließen, Hauptprogramm läuft weiter
         destroy .exit_dialog
     }

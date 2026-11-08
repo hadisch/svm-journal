@@ -153,6 +153,9 @@ proc ::blacklist::aktualisiere_anzeige {} {
         set vorname  [lindex $eintrag 1]
         .blacklist.main.tree insert {} end -values [list $nachname $vorname]
     }
+
+    # Zebra-Streifen für die neu befüllte Liste setzen (zentral in inc/hauptansicht.tcl)
+    ::hauptansicht::zebra .blacklist.main.tree
 }
 
 # =============================================================================
@@ -226,15 +229,15 @@ proc ::blacklist::oeffne_hinzufuegen_dialog {} {
     pack .blacklist.hinzufuegen.main.buttons -fill x -pady 8
 
     # Speichern-Button (initial deaktiviert, bis beide Felder gefüllt sind)
-    button .blacklist.hinzufuegen.main.buttons.save \
-        -text "Hinzuf\u00fcgen" -bg #569A40 -fg white -activebackground #4a8735 \
+    button .blacklist.hinzufuegen.main.buttons.save {*}$::palette::knopf_positiv \
+        -text "Hinzuf\u00fcgen" \
         -state disabled \
         -command ::blacklist::speichere_neuen_eintrag
     pack .blacklist.hinzufuegen.main.buttons.save -side left -padx 5
 
     # Abbrechen-Button
-    button .blacklist.hinzufuegen.main.buttons.cancel \
-        -text "Abbrechen" -bg #E0E0E0 -activebackground #C8C8C8 \
+    button .blacklist.hinzufuegen.main.buttons.cancel {*}$::palette::knopf_neutral \
+        -text "Abbrechen" \
         -command {destroy .blacklist.hinzufuegen}
     pack .blacklist.hinzufuegen.main.buttons.cancel -side left -padx 5
 
@@ -407,26 +410,28 @@ proc open_blacklist_dialog {} {
     pack .blacklist.toolbar -fill x
 
     # Button "Neuer Eintrag" - fügt eine neue gesperrte Person hinzu
-    button .blacklist.toolbar.add \
+    # Neutraler Hintergrund wie die übrigen Icon-Buttons: Das Icon selbst ist
+    # bereits vereinsgrün und wäre auf grünem Hintergrund nicht zu erkennen
+    button .blacklist.toolbar.add {*}$::palette::knopf_icon \
         -image [::toolbar_icons::get neuer_eintrag] \
         -command ::blacklist::oeffne_hinzufuegen_dialog \
-        -bg #569A40 -fg white -activebackground #4a8735 -relief flat -bd 1
+ -relief flat -bd 1
     pack .blacklist.toolbar.add -side left -padx 5 -pady 3
     ::tooltip::register .blacklist.toolbar.add "Person zur Blacklist hinzuf\u00fcgen"
 
     # Button "Löschen" - entfernt den markierten Eintrag
-    button .blacklist.toolbar.delete \
+    button .blacklist.toolbar.delete {*}$::palette::knopf_icon \
         -image [::toolbar_icons::get loeschen] \
         -command ::blacklist::loesche_eintrag \
-        -bg #E0E0E0 -activebackground #C8C8C8 -relief flat -bd 1
+ -relief flat -bd 1
     pack .blacklist.toolbar.delete -side left -padx 5 -pady 3
     ::tooltip::register .blacklist.toolbar.delete "Ausgew\u00e4hlte Person aus Blacklist entfernen"
 
     # Button "Schließen" - schließt das Fenster (rechts ausgerichtet)
-    button .blacklist.toolbar.close \
+    button .blacklist.toolbar.close {*}$::palette::knopf_icon \
         -image [::toolbar_icons::get schliessen] \
         -command {destroy .blacklist} \
-        -bg #E0E0E0 -activebackground #C8C8C8 -relief flat -bd 1
+ -relief flat -bd 1
     pack .blacklist.toolbar.close -side right -padx 5 -pady 3
     ::tooltip::register .blacklist.toolbar.close "Fenster schlie\u00dfen"
 

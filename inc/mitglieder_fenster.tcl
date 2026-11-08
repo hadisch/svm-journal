@@ -57,6 +57,9 @@ proc zeige_alle_mitglieder {} {
         # Zähler erhöhen
         incr original_index
     }
+
+    # Zebra-Streifen für die neu befüllte Liste setzen (zentral in inc/hauptansicht.tcl)
+    ::hauptansicht::zebra .mitglieder.main.tree
 }
 
 # Prozedur zum Filtern der Mitglieder nach Suchbegriff
@@ -102,6 +105,9 @@ proc filtere_mitglieder {suchbegriff} {
         # Original-Index immer erhöhen (für alle Mitglieder in der Hauptliste)
         incr original_index
     }
+
+    # Zebra-Streifen für die gefilterte Liste setzen (zentral in inc/hauptansicht.tcl)
+    ::hauptansicht::zebra .mitglieder.main.tree
 
     # Rückgabewert: Anzahl der gefundenen Mitglieder
     return $gefunden_count
@@ -256,13 +262,13 @@ proc oeffne_hinzufuegen_dialog {{vorbelegung {}} {nach_speichern {}}} {
     grid columnconfigure .mitglieder.hinzufuegen.content 1 -weight 1
 
     # Button "Abbrechen" - schließt Dialog ohne Änderungen
-    button .mitglieder.hinzufuegen.buttons.abbrechen -text "Abbrechen" -bg "#E0E0E0" -command {
+    button .mitglieder.hinzufuegen.buttons.abbrechen {*}$::palette::knopf_neutral -text "Abbrechen" -command {
         destroy .mitglieder.hinzufuegen
     }
     pack .mitglieder.hinzufuegen.buttons.abbrechen -side right -padx 5
 
     # Button "Speichern" - speichert neues Mitglied
-    button .mitglieder.hinzufuegen.buttons.speichern -text "Speichern" -state disabled -bg "#569A40" -fg white -disabledforeground white -command {
+    button .mitglieder.hinzufuegen.buttons.speichern {*}$::palette::knopf_positiv -text "Speichern" -state disabled -command {
         # Error-Handling für gesamten Speichervorgang
         if {[catch {
             # Werte aus Eingabefeldern holen
@@ -489,13 +495,13 @@ proc oeffne_mitglied_bearbeiten_dialog {} {
     grid columnconfigure .mitglieder.bearbeiten.content 1 -weight 1
 
     # Button "Abbrechen"
-    button .mitglieder.bearbeiten.buttons.abbrechen -text "Abbrechen" -bg "#E0E0E0" -command {
+    button .mitglieder.bearbeiten.buttons.abbrechen {*}$::palette::knopf_neutral -text "Abbrechen" -command {
         destroy .mitglieder.bearbeiten
     }
     pack .mitglieder.bearbeiten.buttons.abbrechen -side right -padx 5
 
     # Button "Speichern"
-    button .mitglieder.bearbeiten.buttons.speichern -text "Speichern" -bg "#569A40" -fg white -command {
+    button .mitglieder.bearbeiten.buttons.speichern {*}$::palette::knopf_positiv -text "Speichern" -command {
         # Error-Handling für gesamten Speichervorgang
         if {[catch {
             # Werte aus Eingabefeldern holen
@@ -667,7 +673,7 @@ proc oeffne_such_dialog {} {
     pack .mitglieder.suchdialog.buttons -in .mitglieder.suchdialog.frame -pady 5
 
     # Button "Suchen" - fixiert das Suchergebnis
-    button .mitglieder.suchdialog.buttons.suchen -text "Suchen" -command {
+    button .mitglieder.suchdialog.buttons.suchen {*}$::palette::knopf_positiv -text "Suchen" -command {
         # Suchbegriff aus Eingabefeld holen
         set suchtext [.mitglieder.suchdialog.eingabe get]
 
@@ -834,17 +840,8 @@ proc open_mitglieder_fenster {} {
     # Horizontale Scrollbar für das Treeview
     scrollbar .mitglieder.main.xscroll -command {.mitglieder.main.tree xview} -orient horizontal
 
-    # Schriftgröße für Treeview-Widget konfigurieren (11 Punkte, wie im Hauptfenster)
-    ttk::style configure Treeview -font {TkDefaultFont 11} -rowheight 22
-
-    # Spaltenbezeichnungen (Heading) mit grünem Hintergrund und weißer Schrift
-    ttk::style configure Treeview.Heading -background #569A40 -foreground white
-
-    # Verhindert graue Unterlegung der Spaltenbezeichnungen beim Überfahren mit der Maus
-    # Ohne diesen Map-Eintrag würde der ttk-Theme-Zustand "active" eine graue Farbe anzeigen
-    ttk::style map Treeview.Heading \
-        -background [list active #569A40 pressed #4a8735] \
-        -relief     [list active flat    pressed sunken]
+    # Schrift, Zeilenhöhe und Kopfzeilen-Optik werden zentral in
+    # inc/hauptansicht.tcl gesetzt - hier nichts überschreiben
 
     # Treeview-Widget mit Spalten für Mitgliederdaten
     # -selectmode browse: Erlaubt nur Einzelauswahl, keine Mehrfachauswahl mit Strg/Shift
@@ -1090,7 +1087,7 @@ proc zeige_mitglied_detail {} {
     grid columnconfigure .mitglieder.detail.content 1 -weight 1
 
     # Schließen-Button am unteren Rand (grau, neutral)
-    button .mitglieder.detail.close -text "Schlie\u00dfen" -bg "#E0E0E0" \
+    button .mitglieder.detail.close {*}$::palette::knopf_neutral -text "Schlie\u00dfen" \
         -command {destroy .mitglieder.detail}
     pack .mitglieder.detail.close -pady 10
 

@@ -1,5 +1,46 @@
 # Änderungshistorie - SVM-Journal
 
+## Version 1.11.0 (2026-11-08)
+
+### Neu
+- **Überarbeitete Optik der Hauptansicht**
+  - Zebra-Streifen: abwechselnd weiße und sehr hellgraue Zeilen; die Streifen bleiben nach Filtern, Hinzufügen, Bearbeiten und Löschen korrekt
+  - Gedeckte Kopfzeile (sehr helles Grün, dunkle Schrift) mit feiner Trennlinie und Spaltentrennern
+  - Mehr Zeilenhöhe; sie wird aus der Schriftgröße berechnet, damit Texte bei anderen Schriften nicht abgeschnitten werden
+  - Sichtbarer Abstand zwischen den Spalten (z.B. "Startgeld" und "Munition")
+  - "Keine" (Munition) und "0,00" (Mun.Preis) werden als "–" angezeigt; die gespeicherten Daten, Summen und Exporte bleiben unverändert
+  - Neu verteilte Spaltenbreiten: feste Spalten (Datum, KW, LW, Typ, Beträge) bleiben schmal, zusätzlicher Platz geht an Kaliber, Munition und Bemerkungen
+  - Tooltip zeigt den vollständigen Text einer abgeschnittenen Zelle
+  - Trennlinie beim Wechsel des Datums (nur wenn die Liste nach Datum geordnet ist)
+- **Statusleiste**: zeigt statt Datum und Uhrzeit Anzahl, Summe Startgeld und Summe Munition der angezeigten (ggf. gefilterten) Einträge, z.B. "35 Einträge · Startgeld 241,00 € · Munition 403,00 €"
+- **Einheitliches Icon-Set**: alle Toolbar-Icons stammen jetzt aus den Tabler Icons (MIT-Lizenz), einfarbig, "Neu" in Vereinsgrün; Trennlinie vor dem Löschen-Button
+
+### Verbesserungen
+- Alle Listen im Programm (Mitglieder, Gäste, Warteliste, Blacklist, Waffenregister, Teilnahme) haben dieselbe helle Kopfzeile, Zeilenhöhe und Zebra-Streifen wie die Hauptansicht
+- **Einheitliche Buttons im ganzen Programm**: bestätigende Aktionen in Vereinsgrün mit weißer Schrift, sekundäre Aktionen in Grau mit dunkler Schrift - auch beim Überfahren mit der Maus und im deaktivierten Zustand (bisher wechselten Hintergrund und Schriftfarbe je nach Button zwischen grün, grau, weiß, grau und schwarz)
+- Deaktivierte grüne Buttons (z.B. "Speichern", bevor alle Pflichtfelder ausgefüllt sind) sind an blassgrüner Schrift erkennbar
+- Toolbar-Icons werden in 32x32 Pixeln geladen statt aus 64x64 verkleinert und wirken dadurch schärfer
+
+### Fehlerbehebungen
+- Filterhinweis der Suche schreibt bei einem Treffer "1 Eintrag" statt "1 Einträge"
+- Neu-Icon in Gästeliste und Blacklist war auf grünem Button-Hintergrund nicht zu erkennen
+
+### Technische Details
+- Datei: `inc/hauptansicht.tcl` (neu, Namespace `::hauptansicht`)
+  - Alle Farben und Maße zentral im Array `stil` sowie `spalten_inhalt` (Spaltenbreiten) und `spalten_dehnbar`
+  - Zentraler Hook `ansicht_aktualisiert` nach jedem Befüllen des Haupt-Treeviews (Anzeigewerte, Zebra, Tagestrennung, Statusleiste)
+  - `zebra` für beliebige Listen; `kopfzeile_einrichten`, `zeilen_einrichten`, `spalten_einrichten`, Zellen-Tooltip, Tagestrennung (`trenner_*`), `status_aktualisieren`
+  - Eigener Style `Journal.Treeview` für die Hauptansicht
+- Datei: `svm-journal.tcl`
+  - Versteckte Anzeige-Spalten `mun_anzeige` und `munpreis_anzeige` am Ende der Spaltenliste; die Originalwerte bleiben Datenquelle für Bearbeiten, Löschen und Suche (Positionen 0-12 unverändert)
+  - `-yscrollcommand` über `::hauptansicht::yscroll` (Tagestrennung beim Scrollen)
+  - Datum/Uhrzeit-Anzeige (`update_datetime`) entfernt
+- Datei: `inc/erscheinungsbild.tcl`
+  - Neue Options-Sätze `::palette::knopf_positiv`, `knopf_neutral` und `knopf_icon`; alle Buttons verwenden diese statt einzelner `-bg`/`-fg`-Werte
+  - Grauton für sekundäre Buttons dunkler (`#CFCFCF`), damit sie sich vom Fensterhintergrund abheben
+- Datei: `inc/toolbar_icons.tcl`: verkleinert nur noch Icons größer als 32x32
+- Neue Datei: `resources/LICENSE-icons.txt` (Herkunft und MIT-Lizenztext der Tabler Icons)
+
 ## Version 1.10.0 (2026-11-07)
 
 ### Neu

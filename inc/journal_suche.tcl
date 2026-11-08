@@ -82,6 +82,9 @@ proc filtere_journal_eintraege {suchbegriff} {
         }
     }
 
+    # Darstellung (Zebra-Streifen usw.) für die gefilterten Zeilen neu setzen
+    ::hauptansicht::ansicht_aktualisiert
+
     # Filterhinweis in der Statusleiste anzeigen, damit klar ist, dass nicht
     # alle Einträge sichtbar sind (wird beim Neuladen der Liste entfernt)
     zeige_journal_filter_hinweis $suchbegriff $gefunden_count
@@ -102,9 +105,16 @@ proc zeige_journal_filter_hinweis {suchbegriff anzahl} {
     if {![winfo exists .statusbar.filter]} {
         return
     }
+    # Trefferzahl mit korrekter Einzahl/Mehrzahl ("1 Eintrag" / "2 Einträge")
+    if {$anzahl == 1} {
+        set anzahl_text "1 Eintrag"
+    } else {
+        set anzahl_text "$anzahl Eintr\u00e4ge"
+    }
+
     # Hinweistext mit Suchbegriff, Trefferzahl und Rückweg setzen
     .statusbar.filter configure \
-        -text "Gefiltert nach \u201e[string trim $suchbegriff]\u201c: $anzahl Eintr\u00e4ge \u2013 ESC zeigt alle Eintr\u00e4ge"
+        -text "Gefiltert nach \u201e[string trim $suchbegriff]\u201c: $anzahl_text \u2013 ESC zeigt alle Eintr\u00e4ge"
 }
 
 # =============================================================================
@@ -172,7 +182,7 @@ proc oeffne_journal_such_dialog {} {
     pack .journal_suchdialog.buttons -in .journal_suchdialog.frame -pady 5
 
     # Button "Suchen" - fixiert das Suchergebnis und schließt den Dialog
-    button .journal_suchdialog.buttons.suchen -text "Suchen" -bg "#569A40" -fg white -command {
+    button .journal_suchdialog.buttons.suchen {*}$::palette::knopf_positiv -text "Suchen" -command {
         # Suchbegriff aus Eingabefeld holen
         set suchtext [.journal_suchdialog.eingabe get]
 
@@ -217,6 +227,8 @@ proc oeffne_journal_such_dialog {} {
             foreach eintrag $::journal_such_cache {
                 .main.tree insert {} end -values $eintrag
             }
+            # Darstellung (Zebra-Streifen usw.) für die wiederhergestellten Zeilen setzen
+            ::hauptansicht::ansicht_aktualisiert
             # Vollständige Liste sichtbar - Filterhinweis entfernen
             entferne_journal_filter_hinweis
         } else {

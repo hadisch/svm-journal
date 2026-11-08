@@ -1803,6 +1803,9 @@ proc lade_existierende_eintraege {} {
             $bemerkungen \
             $gratis_wert]
     }
+
+    # Darstellung (Zebra-Streifen usw.) für die neu geladenen Zeilen setzen
+    ::hauptansicht::ansicht_aktualisiert
 }
 
 # =============================================================================
@@ -2151,7 +2154,7 @@ proc open_neuer_eintrag_fenster {} {
     bind $w.munition_anzahl_frame.anzahl_entry <Return> ::neuer_eintrag::munition_hinzufuegen
 
     # Hinzufügen-Button (hellblau, farbig)
-    button $w.munition_anzahl_frame.add_button -text "Hinzufügen" -bg "#569A40" -fg white -width 12 \
+    button $w.munition_anzahl_frame.add_button {*}$::palette::knopf_positiv -text "Hinzufügen" -width 12 \
         -command ::neuer_eintrag::munition_hinzufuegen
     pack $w.munition_anzahl_frame.add_button -side left -padx 10
 
@@ -2205,11 +2208,11 @@ proc open_neuer_eintrag_fenster {} {
     pack $w.button_frame -in $w.main -fill x -pady 20
 
     # Button "Speichern" - initial deaktiviert, wird aktiviert wenn Kaliber ausgefüllt
-    button $w.button_frame.save -text "Speichern" -bg "#569A40" -fg white -disabledforeground white -width 15 \
+    button $w.button_frame.save {*}$::palette::knopf_positiv -text "Speichern" -width 15 \
         -command ::neuer_eintrag::speichern_und_anzeigen -state disabled
     pack $w.button_frame.save -side left -padx 5
 
-    button $w.button_frame.cancel -text "Abbrechen" -bg "#E0E0E0" -width 15 \
+    button $w.button_frame.cancel {*}$::palette::knopf_neutral -text "Abbrechen" -width 15 \
         -command ::neuer_eintrag::schliesse_fenster
     pack $w.button_frame.cancel -side right -padx 5
 

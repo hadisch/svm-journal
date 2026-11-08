@@ -25,24 +25,56 @@ namespace eval ::erscheinungsbild {
 # =============================================================================
 # Zentrale Farbpalette (Schritt 2) - "hell & neutral"
 # =============================================================================
-# Einzige Referenzstelle für das Farbschema der Buttons. Die Werte sind aktuell
-# direkt in den Dialogen hinterlegt (gewachsener Code-Stil); dieses Namespace
-# dient als dokumentierte Quelle der Wahrheit und kann von neuen Buttons per
-# $::palette::<name> verwendet werden, damit das Schema konsistent bleibt.
+# Einzige Referenzstelle für das Farbschema der Buttons. Alle Buttons im
+# Programm verwenden einen der beiden fertigen Options-Sätze:
+#   button $w ... {*}$::palette::knopf_positiv   (bestätigende Aktion)
+#   button $w ... {*}$::palette::knopf_neutral   (Abbrechen/Schließen/sekundär)
+#   button $w ... {*}$::palette::knopf_icon      (Icon-Button in einer Toolbar)
+# Die Sätze legen ALLE Zustände fest (normal, Maus darüber, deaktiviert), damit
+# kein Button auf die uneinheitlichen Tk-Standardfarben zurückfällt.
+# Buttons ohne eigenen Satz (z.B. Icon-Buttons) erhalten über die Option-
+# Datenbank automatisch das Icon-Aussehen (siehe ::erscheinungsbild::anwenden).
 #
 # Bedeutung der Button-Farben:
 #   positiv          Vereinsgrün, weiße Schrift - bestätigende Aktionen
-#                    (Speichern, Hinzufügen, Exportieren, Neu ...)
+#                    (Speichern, Hinzufügen, Exportieren, Neu, Suchen, Ja ...)
 #   neutral          helles Grau, dunkle Schrift - Abbrechen/Schließen/sekundär
-#   akzent           Vereinsgrün als Akzentfarbe (z.B. Treeview-Kopf)
+#   akzent           Vereinsgrün als Akzentfarbe (Listen-Kopfzeilen sind hell, siehe inc/hauptansicht.tcl)
 # =============================================================================
 namespace eval ::palette {
-    variable positiv        "#569A40" ;# Vereinsgrün - bestätigende Aktionen
-    variable positiv_aktiv  "#4a8735" ;# Vereinsgrün (gedrückt/aktiv)
-    variable positiv_text   "white"   ;# Schriftfarbe auf positiv-Buttons
-    variable neutral        "#E0E0E0" ;# helles Grau - Abbrechen/Schließen
-    variable neutral_aktiv  "#C8C8C8" ;# helles Grau (gedrückt/aktiv)
-    variable akzent         "#569A40" ;# Akzentfarbe (identisch Vereinsgrün)
+    variable positiv              "#569A40" ;# Vereinsgrün - bestätigende Aktionen
+    variable positiv_aktiv        "#4a8735" ;# Vereinsgrün (Maus darüber/gedrückt)
+    variable positiv_text         "white"   ;# Schriftfarbe auf positiv-Buttons
+    variable positiv_text_inaktiv "#B5D3AA" ;# Schrift deaktivierter positiv-Buttons (blasses Grün)
+    variable neutral              "#CFCFCF" ;# Grau - Abbrechen/Schließen (hebt sich vom Fenster ab)
+    variable neutral_aktiv        "#BDBDBD" ;# Grau (Maus darüber/gedrückt)
+    variable neutral_text         "#2e3b2c" ;# Schriftfarbe auf neutral-Buttons (dunkles Grün-Grau)
+    variable neutral_text_inaktiv "#9A9A9A" ;# Schrift deaktivierter neutral-Buttons
+    variable akzent               "#569A40" ;# Akzentfarbe (identisch Vereinsgrün)
+    variable icon                 "#E0E0E0" ;# Hintergrund von Icon-Buttons (= Toolbar-Hintergrund)
+    variable icon_aktiv           "#C8C8C8" ;# Icon-Button (Maus darüber/gedrückt)
+
+    # Fertige Options-Sätze für button-Widgets (Verwendung: {*}$::palette::knopf_positiv)
+    variable knopf_positiv [list \
+        -background         $positiv \
+        -foreground         $positiv_text \
+        -activebackground   $positiv_aktiv \
+        -activeforeground   $positiv_text \
+        -disabledforeground $positiv_text_inaktiv]
+    variable knopf_neutral [list \
+        -background         $neutral \
+        -foreground         $neutral_text \
+        -activebackground   $neutral_aktiv \
+        -activeforeground   $neutral_text \
+        -disabledforeground $neutral_text_inaktiv]
+    # Icon-Buttons in Toolbars: Hintergrund wie die Toolbar, damit das Icon
+    # nicht auf einem abgesetzten Quadrat sitzt
+    variable knopf_icon [list \
+        -background         $icon \
+        -foreground         $neutral_text \
+        -activebackground   $icon_aktiv \
+        -activeforeground   $neutral_text \
+        -disabledforeground $neutral_text_inaktiv]
 }
 
 # -----------------------------------------------------------------------------
@@ -113,6 +145,15 @@ proc ::erscheinungsbild::anwenden {} {
     option add *Button.highlightThickness 0   widgetDefault
     option add *Button.padX            10     widgetDefault
     option add *Button.padY            5      widgetDefault
+
+    # Buttons ohne eigene Farben (das sind nur noch Icon-Buttons in Toolbars):
+    # Icon-Aussehen in allen Zuständen, damit keiner auf die Tk-Standardfarben
+    # zurückfällt. Text-Buttons verwenden immer knopf_positiv/knopf_neutral.
+    option add *Button.background         $::palette::icon                 widgetDefault
+    option add *Button.foreground         $::palette::neutral_text         widgetDefault
+    option add *Button.activeBackground   $::palette::icon_aktiv           widgetDefault
+    option add *Button.activeForeground   $::palette::neutral_text         widgetDefault
+    option add *Button.disabledForeground $::palette::neutral_text_inaktiv widgetDefault
 
     # Eingabefelder: dünner durchgehender Rahmen statt versenkter 3D-Optik
     option add *Entry.relief           solid  widgetDefault

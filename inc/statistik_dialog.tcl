@@ -121,12 +121,12 @@ proc ::statistik::open_zeitraum_dialog {} {
     pack $w.main.buttons -fill x -pady 15
 
     # Button "Berechnen" (grün) - mit Padding für angemessene Button-Höhe
-    button $w.main.buttons.berechnen -text "Berechnen" -bg "#569A40" -fg white -width 15 \
+    button $w.main.buttons.berechnen {*}$::palette::knopf_positiv -text "Berechnen" -width 15 \
         -command {::statistik::berechne_statistik}
     pack $w.main.buttons.berechnen -side left -padx 10 -ipady 8
 
     # Button "Abbrechen" (rosa) - mit Padding für angemessene Button-Höhe
-    button $w.main.buttons.abbrechen -text "Abbrechen" -bg "#E0E0E0" -width 15 \
+    button $w.main.buttons.abbrechen {*}$::palette::knopf_neutral -text "Abbrechen" -width 15 \
         -command {::statistik::schliesse_zeitraum_dialog}
     pack $w.main.buttons.abbrechen -side right -padx 10 -ipady 8
 
@@ -814,12 +814,12 @@ proc ::statistik::zeige_ergebnis_dialog {} {
     pack $w.main.buttons -fill x -pady 15
 
     # Button "HTML Export" (hellblau) - mit Padding für angemessene Button-Höhe
-    button $w.main.buttons.export -text "HTML Export" -bg "#569A40" -fg white -width 15 \
+    button $w.main.buttons.export {*}$::palette::knopf_positiv -text "HTML Export" -width 15 \
         -command {::statistik::exportiere_html}
     pack $w.main.buttons.export -side left -padx 10 -ipady 8
 
     # Button "Schließen" (rosa) - mit Padding für angemessene Button-Höhe
-    button $w.main.buttons.schliessen -text "Schlie\u00dfen" -bg "#E0E0E0" -width 15 \
+    button $w.main.buttons.schliessen {*}$::palette::knopf_neutral -text "Schlie\u00dfen" -width 15 \
         -command {::statistik::schliesse_ergebnis_dialog}
     pack $w.main.buttons.schliessen -side right -padx 10 -ipady 8
 

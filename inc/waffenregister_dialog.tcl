@@ -220,6 +220,9 @@ proc ::waffenregister::aktualisiere_waffen_anzeige {} {
         $fenster.main.tree insert {} end -values [list \
             $art $kaliber $seriennummer $wbk_nummer $hersteller $ausstellende_behoerde $bemerkungen]
     }
+
+    # Zebra-Streifen für die neu befüllte Liste setzen (zentral in inc/hauptansicht.tcl)
+    ::hauptansicht::zebra $fenster.main.tree
 }
 
 # =============================================================================
@@ -416,12 +419,12 @@ proc ::waffenregister::oeffne_hinzufuegen_dialog {} {
     pack $dialog.button_frame -side bottom -fill x -padx 20
 
     # Hinzufügen-Button (grün, links)
-    button $dialog.button_frame.hinzufuegen -text "Hinzufügen" -bg "#569A40" -fg white -width 12 \
+    button $dialog.button_frame.hinzufuegen {*}$::palette::knopf_positiv -text "Hinzufügen" -width 12 \
         -command [list ::waffenregister::speichere_neue_waffe $dialog]
     pack $dialog.button_frame.hinzufuegen -side left -padx 5
 
     # Abbrechen-Button (rot, rechts)
-    button $dialog.button_frame.abbrechen -text "Abbrechen" -bg "#E0E0E0" -width 12 \
+    button $dialog.button_frame.abbrechen {*}$::palette::knopf_neutral -text "Abbrechen" -width 12 \
         -command "destroy $dialog"
     pack $dialog.button_frame.abbrechen -side right -padx 5
 
@@ -504,8 +507,7 @@ proc open_waffenregister_dialog {} {
     wm geometry $w "1200x600"
     wm resizable $w 1 1
 
-    # Schriftgröße für Treeview-Widget konfigurieren (11 Punkte)
-    ttk::style configure Treeview -font {TkDefaultFont 11} -rowheight 22
+    # Schrift und Zeilenhöhe der Liste werden zentral in inc/hauptansicht.tcl gesetzt
 
     # Hauptframe
     frame $w.main -padx 20 -pady 20
@@ -563,18 +565,18 @@ proc open_waffenregister_dialog {} {
     pack $w.button_frame -side bottom -fill x -padx 20
 
     # Hinzufügen-Button (grün, links)
-    button $w.button_frame.hinzufuegen -text "Hinzufügen" -bg "#569A40" -fg white -width 15 \
+    button $w.button_frame.hinzufuegen {*}$::palette::knopf_positiv -text "Hinzufügen" -width 15 \
         -command ::waffenregister::oeffne_hinzufuegen_dialog
     pack $w.button_frame.hinzufuegen -side left -padx 5
 
     # Löschen-Button (rot, mitte, initial disabled)
-    button $w.button_frame.loeschen -text "Löschen" -bg "#E0E0E0" -width 15 \
+    button $w.button_frame.loeschen {*}$::palette::knopf_neutral -text "Löschen" -width 15 \
         -state disabled \
         -command ::waffenregister::oeffne_loeschen_dialog
     pack $w.button_frame.loeschen -side left -padx 5
 
     # Abbrechen-Button (blau, rechts)
-    button $w.button_frame.abbrechen -text "Schließen" -bg "#E0E0E0" -width 15 \
+    button $w.button_frame.abbrechen {*}$::palette::knopf_neutral -text "Schließen" -width 15 \
         -command "destroy $w"
     pack $w.button_frame.abbrechen -side right -padx 5
 

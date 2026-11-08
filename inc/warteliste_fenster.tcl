@@ -241,6 +241,9 @@ proc ::warteliste::aktualisiere_anzeige {} {
         incr index
     }
 
+    # Zebra-Streifen für die neu befüllte Liste setzen (zentral in inc/hauptansicht.tcl)
+    ::hauptansicht::zebra .warteliste.main.tree
+
     # Anzahl in der Statuszeile anzeigen
     set anzahl [llength $liste]
     if {$anzahl == 1} {
@@ -354,15 +357,12 @@ proc ::warteliste::oeffne_dialog {index} {
     grid columnconfigure $d.content 1 -weight 1
 
     # Abbrechen (neutral grau)
-    button $d.buttons.abbrechen -text "Abbrechen" \
-        -bg $::palette::neutral -activebackground $::palette::neutral_aktiv \
+    button $d.buttons.abbrechen {*}$::palette::knopf_neutral -text "Abbrechen" \
         -command [list destroy $d]
     pack $d.buttons.abbrechen -side right -padx 5
 
     # Speichern (Vereinsgrün, weiße Schrift auch im deaktivierten Zustand)
-    button $d.buttons.speichern -text "Speichern" \
-        -bg $::palette::positiv -fg $::palette::positiv_text \
-        -activebackground $::palette::positiv_aktiv -disabledforeground $::palette::positiv_text \
+    button $d.buttons.speichern {*}$::palette::knopf_positiv -text "Speichern" \
         -command ::warteliste::speichere_dialog
     pack $d.buttons.speichern -side right -padx 5
 
@@ -664,12 +664,8 @@ proc open_warteliste_fenster {} {
     scrollbar .warteliste.main.yscroll -command {.warteliste.main.tree yview} -orient vertical
     scrollbar .warteliste.main.xscroll -command {.warteliste.main.tree xview} -orient horizontal
 
-    # Gleiche Treeview-Optik wie in der Mitgliederverwaltung
-    ttk::style configure Treeview -font {TkDefaultFont 11} -rowheight 22
-    ttk::style configure Treeview.Heading -background $::palette::akzent -foreground white
-    ttk::style map Treeview.Heading \
-        -background [list active $::palette::akzent pressed $::palette::positiv_aktiv] \
-        -relief     [list active flat pressed sunken]
+    # Schrift, Zeilenhöhe und Kopfzeilen-Optik werden zentral in
+    # inc/hauptansicht.tcl gesetzt - hier nichts überschreiben
 
     # Spalten wie Mitgliederliste, ohne Eintrittsdatum, mit "Platz" vorne
     ttk::treeview .warteliste.main.tree \

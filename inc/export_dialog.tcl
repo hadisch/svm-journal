@@ -797,12 +797,12 @@ proc open_export_dialog {} {
     pack $w.felder_frame.button_row -anchor w -pady 5
 
     # Button "Alle auswählen"
-    button $w.felder_frame.button_row.alle -text "Alle ausw\u00e4hlen" -bg "#E0E0E0" -width 15 \
+    button $w.felder_frame.button_row.alle {*}$::palette::knopf_neutral -text "Alle ausw\u00e4hlen" -width 15 \
         -command ::export::waehle_alle_felder
     pack $w.felder_frame.button_row.alle -side left -padx 5
 
     # Button "Alle abwählen"
-    button $w.felder_frame.button_row.keine -text "Alle abw\u00e4hlen" -bg "#E0E0E0" -width 15 \
+    button $w.felder_frame.button_row.keine {*}$::palette::knopf_neutral -text "Alle abw\u00e4hlen" -width 15 \
         -command ::export::waehle_keine_felder
     pack $w.felder_frame.button_row.keine -side left -padx 5
 
@@ -869,12 +869,12 @@ proc open_export_dialog {} {
     pack $w.button_frame -in $w.main -fill x -pady 20
 
     # Button "Exportieren" - initial deaktiviert
-    button $w.button_frame.export -text "Exportieren" -bg "#569A40" -fg white -width 15 \
+    button $w.button_frame.export {*}$::palette::knopf_positiv -text "Exportieren" -width 15 \
         -command ::export::exportiere_daten -state disabled
     pack $w.button_frame.export -side left -padx 5
 
     # Button "Abbrechen"
-    button $w.button_frame.cancel -text "Abbrechen" -bg "#E0E0E0" -width 15 \
+    button $w.button_frame.cancel {*}$::palette::knopf_neutral -text "Abbrechen" -width 15 \
         -command ::export::schliesse_export_dialog
     pack $w.button_frame.cancel -side right -padx 5
 

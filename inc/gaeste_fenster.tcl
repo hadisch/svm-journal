@@ -124,6 +124,9 @@ proc ::gaeste_fenster::aktualisiere_anzeige {} {
         .gaestefenster.main.tree insert {} end -values [list $nachname $vorname]
     }
 
+    # Zebra-Streifen für die neu befüllte Liste setzen (zentral in inc/hauptansicht.tcl)
+    ::hauptansicht::zebra .gaestefenster.main.tree
+
     # Eintragsanzahl in der Statuszeile aktualisieren
     set anzahl [llength $gaeste_liste]
     if {[winfo exists .gaestefenster.status.info]} {
@@ -259,15 +262,15 @@ proc ::gaeste_fenster::oeffne_hinzufuegen_dialog {} {
     pack .gaestefenster.hinzufuegen.main.buttons -fill x -pady 8
 
     # Speichern-Button (initial deaktiviert bis beide Felder gefüllt)
-    button .gaestefenster.hinzufuegen.main.buttons.save \
-        -text "Hinzufügen" -bg #569A40 -fg white -activebackground #4a8735 \
+    button .gaestefenster.hinzufuegen.main.buttons.save {*}$::palette::knopf_positiv \
+        -text "Hinzufügen" \
         -state disabled \
         -command ::gaeste_fenster::speichere_neuen_gast
     pack .gaestefenster.hinzufuegen.main.buttons.save -side left -padx 5
 
     # Abbrechen-Button
-    button .gaestefenster.hinzufuegen.main.buttons.cancel \
-        -text "Abbrechen" -bg #E0E0E0 -activebackground #C8C8C8 \
+    button .gaestefenster.hinzufuegen.main.buttons.cancel {*}$::palette::knopf_neutral \
+        -text "Abbrechen" \
         -command {destroy .gaestefenster.hinzufuegen}
     pack .gaestefenster.hinzufuegen.main.buttons.cancel -side left -padx 5
 
@@ -452,14 +455,14 @@ proc ::gaeste_fenster::oeffne_bearbeiten_dialog {} {
     pack .gaestefenster.bearbeiten.main.buttons -fill x -pady 8
 
     # Speichern-Button (initial aktiv, da Felder vorausgefüllt)
-    button .gaestefenster.bearbeiten.main.buttons.save \
-        -text "Speichern" -bg #569A40 -fg white -activebackground #4a8735 \
+    button .gaestefenster.bearbeiten.main.buttons.save {*}$::palette::knopf_positiv \
+        -text "Speichern" \
         -command ::gaeste_fenster::speichere_geaenderten_gast
     pack .gaestefenster.bearbeiten.main.buttons.save -side left -padx 5
 
     # Abbrechen-Button
-    button .gaestefenster.bearbeiten.main.buttons.cancel \
-        -text "Abbrechen" -bg #E0E0E0 -activebackground #C8C8C8 \
+    button .gaestefenster.bearbeiten.main.buttons.cancel {*}$::palette::knopf_neutral \
+        -text "Abbrechen" \
         -command {destroy .gaestefenster.bearbeiten}
     pack .gaestefenster.bearbeiten.main.buttons.cancel -side left -padx 5
 
@@ -578,34 +581,36 @@ proc open_gaeste_fenster {} {
     pack .gaestefenster.toolbar -fill x
 
     # Button "Hinzufügen" - fügt manuell einen neuen Gast ein
-    button .gaestefenster.toolbar.add \
+    # Neutraler Hintergrund wie die übrigen Icon-Buttons: Das Icon selbst ist
+    # bereits vereinsgrün und wäre auf grünem Hintergrund nicht zu erkennen
+    button .gaestefenster.toolbar.add {*}$::palette::knopf_icon \
         -image [::toolbar_icons::get neuer_eintrag] \
         -command ::gaeste_fenster::oeffne_hinzufuegen_dialog \
-        -bg #569A40 -fg white -activebackground #4a8735 -relief flat -bd 1
+ -relief flat -bd 1
     pack .gaestefenster.toolbar.add -side left -padx 5 -pady 3
     ::tooltip::register .gaestefenster.toolbar.add "Gast manuell hinzufügen"
 
     # Button "Bearbeiten" - öffnet den Bearbeiten-Dialog für den markierten Gast
-    button .gaestefenster.toolbar.edit \
+    button .gaestefenster.toolbar.edit {*}$::palette::knopf_icon \
         -image [::toolbar_icons::get bearbeiten] \
         -command ::gaeste_fenster::oeffne_bearbeiten_dialog \
-        -bg #E0E0E0 -activebackground #C8C8C8 -relief flat -bd 1
+ -relief flat -bd 1
     pack .gaestefenster.toolbar.edit -side left -padx 5 -pady 3
     ::tooltip::register .gaestefenster.toolbar.edit "Ausgewählten Gast bearbeiten"
 
     # Button "Löschen" - entfernt den markierten Gast nach Bestätigung
-    button .gaestefenster.toolbar.delete \
+    button .gaestefenster.toolbar.delete {*}$::palette::knopf_icon \
         -image [::toolbar_icons::get loeschen] \
         -command ::gaeste_fenster::loesche_gast \
-        -bg #E0E0E0 -activebackground #C8C8C8 -relief flat -bd 1
+ -relief flat -bd 1
     pack .gaestefenster.toolbar.delete -side left -padx 5 -pady 3
     ::tooltip::register .gaestefenster.toolbar.delete "Ausgewählten Gast löschen"
 
     # Button "Schließen" - schließt das Fenster (rechts ausgerichtet)
-    button .gaestefenster.toolbar.close \
+    button .gaestefenster.toolbar.close {*}$::palette::knopf_icon \
         -image [::toolbar_icons::get schliessen] \
         -command {destroy .gaestefenster} \
-        -bg #E0E0E0 -activebackground #C8C8C8 -relief flat -bd 1
+ -relief flat -bd 1
     pack .gaestefenster.toolbar.close -side right -padx 5 -pady 3
     ::tooltip::register .gaestefenster.toolbar.close "Fenster schließen"
 

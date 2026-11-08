@@ -45,6 +45,7 @@ Jedes Modul unter `inc/` kapselt seinen Code in einem eigenen Namespace:
 | `::standpreise`                    | `standnutzung_preise_dialog.tcl` | Standnutzungspreise verwalten                                                 |
 | `::verein`                         | `verein_dialog.tcl`              | Vereinsdaten verwalten                                                        |
 | `::behoerde`                       | `behoerde_dialog.tcl`            | Behördendaten verwalten                                                       |
+| `::hauptansicht`                   | `hauptansicht.tcl`               | Optik der Hauptansicht: zentrale Farben/Maße (`stil`-Array), Zeilen-Tags, Hook `ansicht_aktualisiert` |
 | `::erscheinungsbild` / `::palette` | `erscheinungsbild.tcl`           | Zentrale Optik-Einstellungen (flache Ränder, moderne Schrift) und Farbpalette |
 
 Module ohne eigenen Namespace (`json_reader.tcl`, `json_writer.tcl`, `mitglieder_fenster.tcl`, `eintrag_bearbeiten.tcl`, `eintrag_loeschen.tcl`, `exit_confirm.tcl`, `fenster_einstellungen.tcl`, `journal_suche.tcl`) definieren globale Prozeduren.
@@ -72,7 +73,7 @@ Icons liegen im Verzeichnis `resources/` als PNG-Dateien und werden über `::too
 
 - Inline-Kommentare für jede nicht-triviale Zeile; Block-Kommentare für jeden logischen Abschnitt.
 - Umlaute in Menüeinträgen als Unicode-Escapes schreiben (z.B. `ü` für ü, `ö` für ö, `ä` für ä, `Ü` für Ü), damit sie unter Windows korrekt dargestellt werden.
-- Aktions-Buttons farblich nach Bedeutung darstellen: positive/bestätigende Aktionen (Speichern, Hinzufügen, Exportieren, Neu) in Vereinsgrün mit weißer Schrift, sekundäre Aktionen (Abbrechen, Schließen) in neutralem Grau. Farbwerte siehe Namespace `::palette` in `inc/erscheinungsbild.tcl`. Bedeutungstragende Farben (z.B. Kategorie-/Warnfarben, Statistik) davon ausnehmen.
+- Aktions-Buttons farblich nach Bedeutung darstellen: positive/bestätigende Aktionen (Speichern, Hinzufügen, Exportieren, Neu) in Vereinsgrün mit weißer Schrift, sekundäre Aktionen (Abbrechen, Schließen) in neutralem Grau. Dafür immer die fertigen Options-Sätze verwenden: `button $w {*}$::palette::knopf_positiv ...` bzw. `{*}$::palette::knopf_neutral` bzw. für Icon-Buttons in Toolbars `{*}$::palette::knopf_icon` (setzen alle Zustände inkl. Maus darüber/deaktiviert); keine einzelnen `-bg`/`-fg`-Werte an Buttons. Farbwerte siehe Namespace `::palette` in `inc/erscheinungsbild.tcl`. Bedeutungstragende Farben (z.B. Kategorie-/Warnfarben, Statistik) davon ausnehmen.
 - Neue logisch zusammenhängende Module unter `inc/` auslagern, nicht in `svm-journal.tcl` schreiben.
 - Personennamen (Nachname/Vorname) vor dem Speichern immer mit `::namen::normalisiere` bereinigen und für Vergleiche `::namen::schluessel` verwenden, nie exakte String-Vergleiche.
 
